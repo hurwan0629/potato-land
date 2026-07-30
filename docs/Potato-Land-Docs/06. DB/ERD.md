@@ -26,6 +26,7 @@
       AUCTION_WON
       AUCTION_ENDED
       AUCTION_ENDED_WITHOUT_BID
+      LISTING_DELETED
     
       PAYMENT_COMPLETED
       PAYMENT_RECEIVED
@@ -34,6 +35,7 @@
     
     Enum notification_reference_type {
       CHAT_ROOM
+      CHAT_MESSAGE
       LISTING
       TRANSACTION
       REVIEW
@@ -53,14 +55,12 @@
     
     Enum used_trade_status {
       ON_SALE
-      CANCELED
       SOLD
     }
     
     Enum auction_status {
       ON_GOING
       FINISHED
-      CANCELED
     }
     
     Enum chat_message_type {
@@ -96,6 +96,7 @@
       phone varchar(30) [not null]
       email varchar(255)
       profile_image varchar(2048)
+      bio varchar(255)
     
       role user_role [not null, default: 'USER']
     
@@ -109,11 +110,13 @@
         note: 'banned_at이 존재하고 이 값이 NULL이면 영구 밴'
       ]
       ban_reason text
+      admin_memo text
     
       indexes {
         login_id [unique, name: 'uq_users_login_id']
         nickname [unique, name: 'uq_users_nickname']
         phone [unique, name: 'uq_users_phone']
+        email [unique, name: 'uq_users_email']
       }
     }
     
@@ -183,12 +186,19 @@
     
       created_at timestamptz [not null, default: `now()`]
       updated_at timestamptz [not null, default: `now()`]
+
+      deleted_at timestamptz [note: '사용자 또는 관리자 게시글 삭제 시각']
+      deleted_by bigint [note: '삭제한 사용자 idx. 사용자 본인 또는 관리자']
+      delete_reason text
     
       indexes {
         seller_idx [name: 'idx_listings_seller']
         category_idx [name: 'idx_listings_category']
         (listing_type, created_at) [
           name: 'idx_listings_type_created'
+        ]
+        (deleted_at, listing_type, created_at) [
+          name: 'idx_listings_deleted_type_created'
         ]
       }
     }
@@ -418,10 +428,14 @@
     
       Note: '''
       PostgreSQL에서 별도의 부분 UNIQUE 인덱스 필요:
-    
-      CREATE UNIQUE INDEX uq_transactions_active_listing
-      ON transactions(listing_idx)
-      WHERE status IN ('REQUESTED', 'COMPLETED');
+
+      CREATE UNIQUE INDEX uq_transactions_active_listing_buyer
+      ON transactions(listing_idx, buyer_idx)
+      WHERE status = 'REQUESTED';
+
+      같은 게시글의 같은 구매자에게 동시에 2개 이상의 송금 요청을 만들 수 없다.
+      거래 완료 후에는 used_posts.trade_status = SOLD 또는 auction_posts.status = FINISHED 상태로
+      서비스 계층에서 추가 송금 요청을 차단한다.
       '''
     }
     
@@ -444,7 +458,6 @@
       content text [not null]
     
       created_at timestamptz [not null, default: `now()`]
-      deleted_at timestamptz
     
       indexes {
         (chat_room_idx, created_at, idx) [
@@ -501,6 +514,7 @@
     
     Ref: listings.seller_idx > users.idx
     Ref: listings.category_idx > categories.idx
+    Ref: listings.deleted_by > users.idx
     
     Ref: favorites.user_idx > users.idx
     Ref: favorites.listing_idx > listings.idx
@@ -531,8 +545,6 @@
     Ref: reviews.transaction_idx > transactions.idx
     Ref: reviews.reviewer_idx > users.idx
     Ref: reviews.reviewee_idx > users.idx
-    
-    Ref: "transactions"."idx" < "transactions"."seller_idx"
     ```
 
 ![[Potato Land.png]]
@@ -541,7 +553,8 @@
     
     > `UNIQUE(login_id)`  
     > `UNIQUE(nickname)`  
-    > `UNIQUE(phone)`
+    > `UNIQUE(phone)`  
+    > `UNIQUE(email)` (NULL 허용, 값이 있으면 중복 불가)
     
     - idx
     - login_id
@@ -551,22 +564,25 @@
     - phone
     - email `NULL`
     - profile_image `VARCHAR`
+    - bio NULL (상태 메시지/소개글)
     - role [ `USER`, `ADMIN` ]
     - created_at
     - updated_at
     - deleted_at ( `deleted_at`는 사용자 자진 탈퇴 )
     - banned_at ( `관리자 밴` )
-    - banned_until NULL ( `기본적으로 NULL -> 영구밴` )
+    - banned_until NULL (MVP 미사용. 컬럼은 유지)
     - ban_reason NULL ( 밴 사유 )
+    - admin_memo NULL (관리자 내부 메모)
 - 2. 알림 `notifications`
     
     - idx
     - receiver_idx
     - notification_type
-        - 채팅 페이지로 이동이동: `NEW_CHAT_ROOM`,`NEW_MESSAGE`, `PAYMENT_COMPLETED`,`NEW_REVIEW`, `PAYMENT_RECEIVED`
-        - 경매 상세페이지로 이동: `AUCTION_WON`,`AUCTION_ENDED`, `AUCTION_ENDED_WITHOUT_BID`, `NEW_BID`,`OUTBID`
-    - reference_type [ `CHAT_ROOM` `LISTING` `TRANSACTION` `REVIEW` ]
-    - reference_idx [ `알림과 관련된 대상을 가리키는 값` 예를 들어 `chat_room_idx`, `listing_idx`, `review_idx`, `transactions` ]
+        - 채팅 페이지로 이동: `NEW_CHAT_ROOM`, `NEW_MESSAGE`, `PAYMENT_COMPLETED`, `NEW_REVIEW`, `PAYMENT_RECEIVED`
+        - 경매 상세페이지로 이동: `AUCTION_WON`, `AUCTION_ENDED`, `AUCTION_ENDED_WITHOUT_BID`, `NEW_BID`, `OUTBID`
+        - 삭제 안내: `LISTING_DELETED`
+    - reference_type [ `CHAT_ROOM` `CHAT_MESSAGE` `LISTING` `TRANSACTION` `REVIEW` ]
+    - reference_idx [ `알림과 관련된 대상을 가리키는 값` 예를 들어 `chat_room_idx`, `chat_message_idx`, `listing_idx`, `review_idx`, `transactions` ]
     - content
     - is_read
     - created_at
@@ -598,6 +614,9 @@
     - view_count
     - created_at
     - updated_at
+    - deleted_at NULL (중고글/경매글 삭제 시각)
+    - deleted_by NULL (삭제한 사용자 또는 관리자)
+    - delete_reason NULL (삭제 사유)
 - 6. 중고글 `used_posts`
     
     > `PRIMARY KEY (listing_idx)`  
@@ -607,7 +626,7 @@
     - listing_idx
     - price ( 상품 가격 )
     - product_status ( 상품 상태 )
-    - trade_status [ `ON_SALE`, `CANCELED`, `SOLD` ]
+    - trade_status [ `ON_SALE`, `SOLD` ]
 - 7. 경매글 `auction_posts`
     
     > `PRIMARY KEY (listing_idx)`  
@@ -624,7 +643,7 @@
     - bid_unit (최소 입찰 단위) `이건 단위 고정으로?` 시작가//10` 으로 하는 느낌. 최소 50원이라던가 제한은 주기
     - started_at
     - ends_at ( 지금은 일단 started_at + 24 )
-    - status [ `ON_GOING`, `FINISHED`, `CANCELED` ]
+    - status [ `ON_GOING`, `FINISHED` ]
     - winning_bid_idx ( `실제 낙찰된 입찰 기록 번호` )
 - 8. 경매 입찰 기록 (+실시간) `auction_bids`
     
@@ -668,10 +687,9 @@
     - transaction_idx [ `NULL` ] [ `PAYMENT_REQUEST`와 `TRADE_COMPLETE` 에서 참조할 `transaction.idx` ]
     - content `TEXT`
     - created_at
-    - deleted_at
 - 12. 거래내역 `transactions`
-    
-    > `UNIQUE(listing_idx) WHERE status IN (REQUESTED, COMPLETED)`
+
+    > `UNIQUE(listing_idx, buyer_idx) WHERE status = REQUESTED`
     
     - idx
     - listing_idx
@@ -679,6 +697,8 @@
     - buyer_idx
     - transaction_type [ `DIRECT_SALE`, `AUCTION` ]
     - status [ `REQUESTED`, `COMPLETED`, `CANCELED` ]
+    - 같은 게시글의 같은 구매자에게 활성 송금 요청은 1개만 허용한다.
+    - 거래 완료 후 동일 게시글의 추가 송금 요청은 게시글/경매 상태를 기준으로 서비스 계층에서 차단한다.
     - amount
     - created_at
     - updated_at
