@@ -26,6 +26,7 @@
       AUCTION_WON
       AUCTION_ENDED
       AUCTION_ENDED_WITHOUT_BID
+      AUCTION_LEADER_CHANGED
       LISTING_DELETED
     
       PAYMENT_COMPLETED
@@ -39,6 +40,7 @@
       LISTING
       TRANSACTION
       REVIEW
+      AUCTION
     }
     
     Enum listing_type {
@@ -304,11 +306,6 @@
         (listing_idx, bid_price) [
           name: 'idx_auction_bids_listing_price'
         ]
-    
-        (idx, listing_idx) [
-          unique,
-          name: 'uq_auction_bids_idx_listing'
-        ]
       }
     
       checks {
@@ -398,9 +395,7 @@
     
       completed_at timestamptz
     
-      canceled_at timestamptz
       canceled_by bigint
-      cancel_reason text
     
       indexes {
         listing_idx [
@@ -448,6 +443,9 @@
     
       chat_room_idx bigint [not null]
       sender_idx bigint [not null]
+      client_message_id varchar(100) [
+        note: '클라이언트 재전송 중복 방지용 ID. TEXT Socket 메시지에서 필수 사용'
+      ]
     
       message_type chat_message_type [not null]
     
@@ -462,6 +460,10 @@
       indexes {
         (chat_room_idx, created_at, idx) [
           name: 'idx_chat_messages_room_recent'
+        ]
+        (chat_room_idx, sender_idx, client_message_id) [
+          unique,
+          name: 'uq_chat_messages_client_message'
         ]
       }
     }
@@ -525,8 +527,7 @@
     Ref: auction_bids.listing_idx > auction_posts.listing_idx
     Ref: auction_bids.bidder_idx > users.idx
     
-    Ref: auction_posts.(winning_bid_idx, listing_idx)
-      > auction_bids.(idx, listing_idx)
+    Ref: auction_posts.winning_bid_idx > auction_bids.idx
     
     Ref: post_images.listing_idx > listings.idx
     
@@ -579,9 +580,9 @@
     - receiver_idx
     - notification_type
         - 채팅 페이지로 이동: `NEW_CHAT_ROOM`, `NEW_MESSAGE`, `PAYMENT_COMPLETED`, `NEW_REVIEW`, `PAYMENT_RECEIVED`
-        - 경매 상세페이지로 이동: `AUCTION_WON`, `AUCTION_ENDED`, `AUCTION_ENDED_WITHOUT_BID`, `NEW_BID`, `OUTBID`
+        - 경매 상세페이지로 이동: `AUCTION_WON`, `AUCTION_ENDED`, `AUCTION_ENDED_WITHOUT_BID`, `AUCTION_LEADER_CHANGED`, `NEW_BID`, `OUTBID`
         - 삭제 안내: `LISTING_DELETED`
-    - reference_type [ `CHAT_ROOM` `CHAT_MESSAGE` `LISTING` `TRANSACTION` `REVIEW` ]
+    - reference_type [ `CHAT_ROOM` `CHAT_MESSAGE` `LISTING` `TRANSACTION` `REVIEW` `AUCTION` ]
     - reference_idx [ `알림과 관련된 대상을 가리키는 값` 예를 들어 `chat_room_idx`, `chat_message_idx`, `listing_idx`, `review_idx`, `transactions` ]
     - content
     - is_read
@@ -602,6 +603,7 @@
     - user_idx
     - listing_idx
     - created_at
+    - 게시글/경매 삭제 시 해당 listing의 favorites 행은 삭제한다.
 - 5. 공통 판매 게시글 `listings`
     
     - idx
@@ -644,7 +646,9 @@
     - started_at
     - ends_at ( 지금은 일단 started_at + 24 )
     - status [ `ON_GOING`, `FINISHED` ]
-    - winning_bid_idx ( `실제 낙찰된 입찰 기록 번호` )
+    - winning_bid_idx ( `실제 낙찰된 입찰 기록 번호. 경매 하나당 0개 또는 1개` )
+    - 낙찰 확정 시 `winning_bid_idx`는 해당 경매의 `auction_bids.idx`만 저장할 수 있다.
+    - 같은 경매의 입찰인지 검증은 경매 종료/최고 입찰자 재계산 서비스에서 처리한다.
 - 8. 경매 입찰 기록 (+실시간) `auction_bids`
     
     > `INDEX(listing_idx, bid_price DESC)`
@@ -683,6 +687,7 @@
     - idx
     - chat_room_idx
     - sender_idx
+    - client_message_id NULL (클라이언트 재전송 중복 방지. Socket TEXT 메시지에서 사용)
     - message_type [ `TEXT`, `IMAGE`, `SYSTEM`, `PAYMENT_REQUEST`, `TRADE_COMPLETE` ]
     - transaction_idx [ `NULL` ] [ `PAYMENT_REQUEST`와 `TRADE_COMPLETE` 에서 참조할 `transaction.idx` ]
     - content `TEXT`
@@ -703,9 +708,10 @@
     - created_at
     - updated_at
     - completed_at NULL
-    - canceled_at NULL ( 취소된 날짜 )
-    - canceled_by NULL ( `user_idx` )
-    - cancel_reason NULL ( 취소 사유 )
+    - canceled_by NULL (판매자가 취소하면 판매자 user_idx, 사용자 비활성화 자동 취소면 NULL)
+    - 취소 상태는 `status = CANCELED`로 판단한다.
+    - 취소 시각은 별도 컬럼을 두지 않고 `updated_at`으로 판단한다.
+    - 취소 사유는 저장하지 않는다.
 - 13. 거래 후기 `reviews`
     
     > CHECK(rating BETWEEN 1 AND 10)  

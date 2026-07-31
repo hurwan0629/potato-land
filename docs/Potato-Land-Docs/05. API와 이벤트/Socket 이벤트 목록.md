@@ -120,6 +120,7 @@ Success ack:
 - 로그인 사용자만 가능하다.
 - 채팅방 참여자만 join할 수 있다.
 - 게시글/경매가 삭제되었으면 채팅방 조회와 과거 메시지 조회는 가능하지만 새 메시지 전송은 차단한다.
+- 성공 시 서버는 `socket.data.activeChatRoomIdx = chatRoomIdx`로 갱신한다.
 
 ### `chat:leave`
 
@@ -142,6 +143,10 @@ Success ack:
   }
 }
 ```
+
+처리:
+
+- 성공 시 서버는 `socket.data.activeChatRoomIdx = null`로 정리한다.
 
 ### `chat:message:send`
 
@@ -299,7 +304,9 @@ Server -> Client payload:
 | Client -> Server | `auction:join` | 경매 상세 room 입장 | `auction:{listingIdx}` |
 | Client -> Server | `auction:leave` | 경매 상세 room 퇴장 | `auction:{listingIdx}` |
 | Server -> Client | `auction:bid-updated` | 현재가 갱신 | `auction:{listingIdx}` |
+| Server -> Client | `auction:leader-changed` | 최고 입찰자 재계산 | `auction:{listingIdx}` |
 | Server -> Client | `auction:ended` | 경매 종료 | `auction:{listingIdx}` |
+| Server -> Client | `auction:deleted` | 경매 삭제 | `auction:{listingIdx}` |
 | Server -> Client | `auction:won` | 낙찰자 개인 알림 | `user:{winnerIdx}` |
 | Server -> Client | `auction:outbid` | 최고 입찰자 밀림 | `user:{previousHighestBidderIdx}` |
 
@@ -333,6 +340,7 @@ Success ack:
 
 - 삭제된 경매는 join할 수 없다.
 - 종료된 경매는 join 자체는 가능하지만 입찰과 채팅은 비활성화한다.
+- 성공 시 서버는 `socket.data.activeAuctionListingIdx = listingIdx`로 갱신한다.
 
 ### `auction:leave`
 
@@ -356,6 +364,10 @@ Success ack:
 }
 ```
 
+처리:
+
+- 성공 시 서버는 `socket.data.activeAuctionListingIdx = null`로 정리한다.
+
 ### `auction:bid-updated`
 
 Server -> Client payload:
@@ -368,7 +380,6 @@ Server -> Client payload:
   "minNextBid": 51000,
   "highestBidderIdx": 3,
   "bidderNickname": "감자왕",
-  "bidCount": 12,
   "createdAt": "2026-07-30T00:00:00.000Z"
 }
 ```
@@ -391,6 +402,40 @@ Server -> Client payload:
 }
 ```
 
+### `auction:leader-changed`
+
+Server -> Client payload:
+
+```json
+{
+  "listingIdx": 1,
+  "currentPrice": 30000,
+  "minNextBid": 31000,
+  "highestBidderIdx": 4,
+  "highestBidderNickname": "새입찰자",
+  "reason": "LEADER_WITHDRAWN",
+  "message": "최고 입찰자가 자리를 내주었습니다.",
+  "changedAt": "2026-07-30T00:00:00.000Z"
+}
+```
+
+다음 유효 입찰자가 없는 경우:
+
+```json
+{
+  "listingIdx": 1,
+  "currentPrice": 10000,
+  "minNextBid": 11000,
+  "highestBidderIdx": null,
+  "highestBidderNickname": null,
+  "reason": "LEADER_WITHDRAWN",
+  "message": "최고 입찰자가 자리를 내주었습니다.",
+  "changedAt": "2026-07-30T00:00:00.000Z"
+}
+```
+
+내부 제재 사유는 payload에 담지 않는다.
+
 ### `auction:ended`
 
 Server -> Client payload:
@@ -402,12 +447,31 @@ Server -> Client payload:
   "finalPrice": 50000,
   "winnerIdx": 3,
   "winnerNickname": "감자왕",
-  "bidCount": 12,
   "endedAt": "2026-07-31T00:00:00.000Z"
 }
 ```
 
 종료된 경매는 입찰과 채팅이 비활성화되지만, 삭제되지 않았다면 조회와 관심 추가는 가능하다.
+
+### `auction:deleted`
+
+Server -> Client payload:
+
+```json
+{
+  "listingIdx": 1,
+  "deletedAt": "2026-07-30T00:00:00.000Z",
+  "message": "경매가 삭제되었습니다.",
+  "disabledActions": {
+    "favorite": true,
+    "bid": true,
+    "chat": true,
+    "paymentRequest": true
+  }
+}
+```
+
+진행 중 경매 삭제 후 DB commit, Redis 정리, Timer 정리가 끝난 뒤 전송한다.
 
 ### `auction:won`
 
@@ -458,6 +522,7 @@ NEW_REVIEW
 AUCTION_OUTBID
 AUCTION_WON
 AUCTION_ENDED
+AUCTION_LEADER_CHANGED
 LISTING_DELETED
 ```
 
@@ -486,9 +551,10 @@ Server -> Client payload:
 
 ## 6. 읽음 처리 정책
 
-- 알림은 DB에 먼저 저장한다.
-- 채팅 메시지 알림은 메시지 단위로 저장한다.
-- 채팅방을 보고 있는 사용자는 `chat:read`로 마지막 읽은 메시지 기준 읽음 처리한다.
+- 일반 알림은 DB에 먼저 저장한다.
+- 채팅 메시지 알림은 수신자의 Socket 연결 중 `socket.data.activeChatRoomIdx === chatRoomIdx`인 연결이 없을 때만 `NEW_MESSAGE` row를 저장한다.
+- 수신자가 해당 채팅방을 보고 있으면 `NEW_MESSAGE` row를 만들지 않는다.
+- 채팅방을 보고 있는 사용자는 `chat:read`로 마지막 읽은 메시지 기준 읽음 상태를 갱신한다.
 - `chat:read` 성공 후 서버는 해당 사용자에게 `notification:unread-count`를 보낸다.
 - 상대방에게는 필요 시 `chat:read:updated`를 보내 읽음 상태를 갱신한다.
 - 사용자가 경매 상세 화면을 보고 있어도 낙찰/종료처럼 중요한 알림은 DB에 남긴다.
@@ -498,10 +564,12 @@ Server -> Client payload:
 
 | Event | DB 저장 | Redis 사용 | 비고 |
 |---|---|---|---|
-| `chat:message:send` | `chat_messages`, `notifications` | 선택 | 텍스트 메시지 저장 후 emit |
-| `chat:read` | `chat_room_reads`, `notifications.is_read` | 선택 | 메시지 알림 읽음 처리 |
+| `chat:message:send` | `chat_messages`, 조건부 `notifications` | 없음 | 수신자가 해당 채팅방을 보고 있으면 NEW_MESSAGE 저장 생략 |
+| `chat:read` | `chat_room_reads`, 조건부 `notifications.is_read` | 없음 | 저장된 메시지 알림이 있을 때만 읽음 처리 |
 | `auction:bid-updated` | `auction_bids` | 필수 | HTTP 입찰 성공 후 emit |
 | `auction:ended` | `auction_posts`, `notifications` | 선택 | Timer 또는 Recovery Scheduler |
+| `auction:deleted` | `listings`, `notifications` | 필수 | 경매 soft delete 후 emit |
+| `auction:leader-changed` | `auction_posts`, `notifications` | 필수 | 최고 입찰자 비활성화 재계산 후 emit |
 | `auction:won` | `notifications` | 선택 | 낙찰자 개인 알림 |
 | `auction:outbid` | `notifications` | 선택 | 이전 최고 입찰자 개인 알림 |
 | `notification:new` | `notifications` | 선택 | DB 저장 후 emit |
@@ -517,10 +585,13 @@ Server -> Client payload:
 - [ ] Socket 에러 이벤트 규격 통일
 - [ ] 메시지 저장 후 `chat:message:new` emit
 - [ ] 채팅 목록 갱신 `chat:room:updated` emit
-- [ ] `chat:read` 기반 NEW_MESSAGE 읽음 처리
+- [ ] 현재 채팅방 수신자 NEW_MESSAGE 저장 생략
+- [ ] 저장된 NEW_MESSAGE `chat:read` 읽음 처리
 - [ ] 입찰 성공 후 `auction:bid-updated` emit
 - [ ] 최고 입찰자 변경 시 `auction:outbid` emit
+- [ ] 최고 입찰자 비활성화 재계산 시 `auction:leader-changed` emit
 - [ ] 경매 Timer 종료 후 `auction:ended`, `auction:won` emit
+- [ ] 진행 중 경매 삭제 후 `auction:deleted` emit
 - [ ] 알림 저장 후 `notification:new` push
 - [ ] 안읽음 수 변경 시 `notification:unread-count` emit
 - [ ] 미접속 사용자 알림 DB 보존

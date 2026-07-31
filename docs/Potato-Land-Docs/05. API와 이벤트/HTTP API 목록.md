@@ -154,7 +154,8 @@
 | `NOT_FOUND` | 대상 없음 |
 | `CONFLICT` | 중복 또는 상태 충돌 |
 | `AUCTION_CLOSED` | 종료된 경매 |
-| `LISTING_DELETED` | 삭제된 게시글 |
+| `INACTIVE_USER` | 탈퇴 또는 영구정지 사용자 대상 신규 행동 차단 |
+| `READ_ONLY_CHAT` | 읽기 전용 채팅방 |
 | `BID_TOO_LOW` | 입찰가 부족 |
 | `REDIS_UNAVAILABLE` | Redis 장애로 처리 불가 |
 | `UPLOAD_FAILED` | 업로드 실패 |

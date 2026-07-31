@@ -24,10 +24,15 @@
 - Access Token과 Refresh Token은 모두 HttpOnly 쿠키로 전달한다.
 - Access Token 만료 시간은 15분이다.
 - Refresh Token 만료 시간은 7일이다.
-- Refresh Token 쿠키 path는 refresh API 경로로 제한한다.
-- Refresh Token 유효성은 Redis TTL key로 관리한다.
+- Access Token 쿠키 path는 `/`로 둔다.
+- Refresh Token 쿠키 path는 `/api/auth/refresh`로 제한한다.
+- Access Token claim은 `sub`, `sid`, `jti`, `type=access`, `role`, `iat`, `exp`를 사용한다.
+- Refresh Token claim은 `sub`, `sid`, `jti`, `type=refresh`, `iat`, `exp`를 사용한다.
+- Refresh Token 유효성은 Redis `session:{sub}:{sid}` TTL key로 관리한다.
+- Refresh Token rotation 시 Redis의 `currentRefreshJti`와 token `jti`를 비교한다.
 - 로그아웃 시 access/refresh 쿠키를 모두 만료시키고 Redis refresh key를 삭제한다.
 - 정지 사용자와 탈퇴 사용자는 토큰 재발급을 차단한다.
+- 회원가입 성공 후 자동 로그인하지 않는다. 로그인 API를 호출해야 access/refresh token을 발급한다.
 
 ## 4. 권한
 
@@ -59,7 +64,8 @@
 - [x] 비밀번호 해시 저장
 - [x] 전화번호 인증 Redis TTL 적용
 - [x] 로그인 성공 시 access/refresh 쿠키 발급
-- [x] refresh token Redis key 저장
+- [x] refresh token Redis session key 저장
+- [x] refresh token rotation과 jti 비교
 - [x] access token 만료 시 refresh API로 재발급
 - [x] 로그아웃 시 쿠키 만료와 Redis key 삭제
 - [x] 정지/탈퇴 사용자 접근 차단
