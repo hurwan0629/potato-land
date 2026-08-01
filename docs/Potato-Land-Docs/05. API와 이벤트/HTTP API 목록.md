@@ -78,7 +78,7 @@
 | Method | Path | 설명 | Auth |
 |---|---|---|---|
 | `GET` | `/api/auctions` | 경매 목록/검색 | optional |
-| `POST` | `/api/auctions` | 경매 글 작성 | USER |
+| `POST` | `/api/auction` | 경매 글 작성 | USER |
 | `GET` | `/api/auctions/:listingIdx` | 경매 상세 | optional |
 | `PATCH` | `/api/auctions/:listingIdx` | 경매 글 수정 | 판매자 |
 | `DELETE` | `/api/auctions/:listingIdx` | 경매 글 삭제 | 판매자 |

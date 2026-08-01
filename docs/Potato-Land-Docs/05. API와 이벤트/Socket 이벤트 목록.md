@@ -180,7 +180,8 @@ Success ack:
 - 이미지 메시지는 `POST /api/chats/:chatRoomIdx/messages/images`로 업로드한다.
 - 채팅방 참여자만 메시지를 보낼 수 있다.
 - 정지/탈퇴 사용자는 메시지를 보낼 수 없다.
-- 삭제된 게시글, 종료된 경매, 삭제된 경매에서는 새 채팅을 차단한다.
+- 삭제된 게시글과 삭제된 경매에서는 새 메시지를 차단한다.
+- 종료된 경매의 일반 채팅은 차단하되, 판매자·낙찰자의 `REQUESTED` 거래에 연결된 정산 채팅방은 허용한다.
 
 ### `chat:message:new`
 
@@ -339,7 +340,7 @@ Success ack:
 검증:
 
 - 삭제된 경매는 join할 수 없다.
-- 종료된 경매는 join 자체는 가능하지만 입찰과 채팅은 비활성화한다.
+- 종료된 경매는 join 자체는 가능하지만 입찰과 일반 신규 채팅은 비활성화한다. 연결된 `REQUESTED` 정산 거래 채팅은 별도 권한으로 처리한다.
 - 성공 시 서버는 `socket.data.activeAuctionListingIdx = listingIdx`로 갱신한다.
 
 ### `auction:leave`
@@ -451,7 +452,7 @@ Server -> Client payload:
 }
 ```
 
-종료된 경매는 입찰과 채팅이 비활성화되지만, 삭제되지 않았다면 조회와 관심 추가는 가능하다.
+종료된 경매는 입찰과 일반 신규 채팅이 비활성화되지만, 삭제되지 않았다면 조회와 관심 추가는 가능하다. 판매자·낙찰자의 정산 채팅은 거래 상태 기준으로 처리한다.
 
 ### `auction:deleted`
 
@@ -511,22 +512,25 @@ Server -> Client payload:
 }
 ```
 
-사용 가능한 `notificationType` 후보:
+사용 가능한 `notificationType`:
 
 ```text
+NEW_CHAT_ROOM
 NEW_MESSAGE
 PAYMENT_REQUESTED
-PAYMENT_COMPLETED
+PAYMENT_RECEIVED
 PAYMENT_CANCELED
 NEW_REVIEW
-AUCTION_OUTBID
+NEW_BID
+OUTBID
 AUCTION_WON
 AUCTION_ENDED
+AUCTION_ENDED_WITHOUT_BID
 AUCTION_LEADER_CHANGED
 LISTING_DELETED
 ```
 
-사용 가능한 `referenceType` 후보:
+사용 가능한 `referenceType`:
 
 ```text
 CHAT_ROOM
@@ -567,12 +571,12 @@ Server -> Client payload:
 | `chat:message:send` | `chat_messages`, 조건부 `notifications` | 없음 | 수신자가 해당 채팅방을 보고 있으면 NEW_MESSAGE 저장 생략 |
 | `chat:read` | `chat_room_reads`, 조건부 `notifications.is_read` | 없음 | 저장된 메시지 알림이 있을 때만 읽음 처리 |
 | `auction:bid-updated` | `auction_bids` | 필수 | HTTP 입찰 성공 후 emit |
-| `auction:ended` | `auction_posts`, `notifications` | 선택 | Timer 또는 Recovery Scheduler |
+| `auction:ended` | `auction_posts`, `notifications` | commit 후 state 삭제 | Timer 또는 Recovery Scheduler, 거래 자동 생성 없음 |
 | `auction:deleted` | `listings`, `notifications` | 필수 | 경매 soft delete 후 emit |
 | `auction:leader-changed` | `auction_posts`, `notifications` | 필수 | 최고 입찰자 비활성화 재계산 후 emit |
-| `auction:won` | `notifications` | 선택 | 낙찰자 개인 알림 |
-| `auction:outbid` | `notifications` | 선택 | 이전 최고 입찰자 개인 알림 |
-| `notification:new` | `notifications` | 선택 | DB 저장 후 emit |
+| `auction:won` | `notifications` | 없음 | 낙찰자 개인 알림 |
+| `auction:outbid` | `notifications` | 없음 | 이전 최고 입찰자 개인 알림 |
+| `notification:new` | `notifications` | 없음 | DB 저장 후 emit |
 
 ## 8. 구현 체크리스트
 

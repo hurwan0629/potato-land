@@ -41,7 +41,7 @@
 7. 구매자와 판매자는 채팅으로 거래를 협의한다.
 8. 판매자가 채팅방에서 송금 요청을 생성하면 `transactions.status = REQUESTED`가 된다.
 9. 구매자는 채팅방의 송금 요청 링크로 송금 페이지에 접근한다.
-10. 구매자가 송금하면 `transactions.status = COMPLETED`, `used_posts.trade_status = SOLD`로 변경한다.
+10. 구매자가 송금하면 같은 transaction에서 `transactions.status = COMPLETED`, `used_posts.trade_status = SOLD`, `TRADE_COMPLETE` 시스템 메시지, 판매자 `PAYMENT_RECEIVED` 알림을 저장한다.
 11. 거래 완료 후 구매자와 판매자는 서로 후기를 작성할 수 있다.
 
 ## 6. 수정/삭제 정책
@@ -63,6 +63,7 @@
 - 판매자는 같은 상품과 같은 구매 희망자에게 활성 송금 요청을 2개 이상 만들 수 없다.
 - 송금 요청 생성 시 `transactions.status = REQUESTED`가 된다.
 - 판매자가 송금 요청을 취소하면 `transactions.status = CANCELED`가 된다.
+- 송금 요청 취소 시 구매자에게 `PAYMENT_CANCELED` 알림을 저장한다.
 - 구매자가 송금하면 `transactions.status = COMPLETED`가 된다.
 - 송금 요청 취소는 게시글 취소가 아니다.
 - 송금 요청 취소 사유는 저장하지 않는다.
