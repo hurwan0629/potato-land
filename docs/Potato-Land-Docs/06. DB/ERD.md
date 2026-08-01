@@ -425,13 +425,12 @@
       Note: '''
       PostgreSQL에서 별도의 부분 UNIQUE 인덱스 필요:
 
-      CREATE UNIQUE INDEX uq_transactions_active_listing_buyer
-      ON transactions(listing_idx, buyer_idx)
-      WHERE status = 'REQUESTED';
+      CREATE UNIQUE INDEX uq_transactions_listing_active_or_completed
+      ON transactions(listing_idx)
+      WHERE status IN ('REQUESTED', 'COMPLETED');
 
-      같은 게시글의 같은 구매자에게 동시에 2개 이상의 송금 요청을 만들 수 없다.
-      거래 완료 후에는 used_posts.trade_status = SOLD 또는 auction_posts.status = FINISHED 상태로
-      서비스 계층에서 추가 송금 요청을 차단한다.
+      한 게시글에는 REQUESTED 또는 COMPLETED 거래가 합쳐서 최대 1개만 존재할 수 있다.
+      CANCELED 이력은 여러 건 보존할 수 있고 취소 뒤 새 요청을 생성할 수 있다.
       '''
     }
     
@@ -443,7 +442,9 @@
       idx bigint [pk, increment]
     
       chat_room_idx bigint [not null]
-      sender_idx bigint [not null]
+      sender_idx bigint [
+        note: 'SYSTEM, TRADE_COMPLETE 서버 메시지는 NULL. 사용자 전송 메시지는 필수'
+      ]
       client_message_id varchar(100) [
         note: '클라이언트 재전송 중복 방지용 ID. TEXT Socket 메시지에서 필수 사용'
       ]
@@ -465,6 +466,12 @@
         (chat_room_idx, sender_idx, client_message_id) [
           unique,
           name: 'uq_chat_messages_client_message'
+        ]
+      }
+
+      checks {
+        `(message_type IN ('SYSTEM', 'TRADE_COMPLETE') AND sender_idx IS NULL) OR (message_type IN ('TEXT', 'IMAGE', 'PAYMENT_REQUEST') AND sender_idx IS NOT NULL)` [
+          name: 'chk_chat_messages_sender_by_type'
         ]
       }
     }
@@ -580,11 +587,13 @@
     - idx
     - receiver_idx
     - notification_type
-        - 채팅 페이지로 이동: `NEW_CHAT_ROOM`, `NEW_MESSAGE`, `PAYMENT_REQUESTED`, `PAYMENT_RECEIVED`, `PAYMENT_CANCELED`, `NEW_REVIEW`
-        - 경매 상세페이지로 이동: `AUCTION_WON`, `AUCTION_ENDED`, `AUCTION_ENDED_WITHOUT_BID`, `AUCTION_LEADER_CHANGED`, `NEW_BID`, `OUTBID`
+        - 채팅: `NEW_CHAT_ROOM`, `NEW_MESSAGE`
+        - 거래: `PAYMENT_REQUESTED`, `PAYMENT_RECEIVED`, `PAYMENT_CANCELED`
+        - 후기: `NEW_REVIEW`
+        - 경매: `AUCTION_WON`, `AUCTION_ENDED`, `AUCTION_ENDED_WITHOUT_BID`, `AUCTION_LEADER_CHANGED`, `NEW_BID`, `OUTBID`
         - 삭제 안내: `LISTING_DELETED`
     - reference_type [ `CHAT_ROOM` `CHAT_MESSAGE` `LISTING` `TRANSACTION` `REVIEW` `AUCTION` ]
-    - reference_idx [ `알림과 관련된 대상을 가리키는 값` 예를 들어 `chat_room_idx`, `chat_message_idx`, `listing_idx`, `review_idx`, `transactions` ]
+    - reference_idx [ `CHAT_ROOM=chat_rooms.idx`, `CHAT_MESSAGE=chat_messages.idx`, `LISTING/AUCTION=listings.idx`, `TRANSACTION=transactions.idx`, `REVIEW=reviews.idx` ]
     - content
     - is_read
     - created_at
@@ -643,7 +652,7 @@
     - listing_idx
     - start_price
     - current_price [ `실시간 데이터는 몇개 데이터를 캐싱하기` ]
-    - bid_unit (최소 입찰 단위) `이건 단위 고정으로?` 시작가//10` 으로 하는 느낌. 최소 50원이라던가 제한은 주기
+    - bid_unit (현재가 구간으로 계산한 최소 입찰 단위. 100만원 이상은 현재가 1%를 1,000원 단위 올림)
     - started_at
     - ends_at ( 지금은 일단 started_at + 24 )
     - status [ `ON_GOING`, `FINISHED` ]
@@ -687,7 +696,7 @@
     
     - idx
     - chat_room_idx
-    - sender_idx
+    - sender_idx NULL (`SYSTEM`, `TRADE_COMPLETE` 서버 메시지는 NULL, 사용자 전송 타입은 필수)
     - client_message_id NULL (클라이언트 재전송 중복 방지. Socket TEXT 메시지에서 사용)
     - message_type [ `TEXT`, `IMAGE`, `SYSTEM`, `PAYMENT_REQUEST`, `TRADE_COMPLETE` ]
     - transaction_idx [ `NULL` ] [ `PAYMENT_REQUEST`와 `TRADE_COMPLETE` 에서 참조할 `transaction.idx` ]
@@ -695,7 +704,7 @@
     - created_at
 - 12. 거래내역 `transactions`
 
-    > `UNIQUE(listing_idx, buyer_idx) WHERE status = REQUESTED`
+    > `UNIQUE(listing_idx) WHERE status IN (REQUESTED, COMPLETED)`
     
     - idx
     - listing_idx
@@ -703,8 +712,8 @@
     - buyer_idx
     - transaction_type [ `DIRECT_SALE`, `AUCTION` ]
     - status [ `REQUESTED`, `COMPLETED`, `CANCELED` ]
-    - 같은 게시글의 같은 구매자에게 활성 송금 요청은 1개만 허용한다.
-    - 거래 완료 후 동일 게시글의 추가 송금 요청은 게시글/경매 상태를 기준으로 서비스 계층에서 차단한다.
+    - 같은 게시글에는 `REQUESTED` 또는 `COMPLETED` 거래가 합쳐서 최대 1개만 존재한다.
+    - `CANCELED` 이력은 여러 건 보존할 수 있고 취소 뒤 새 송금 요청을 만들 수 있다.
     - amount
     - created_at
     - updated_at

@@ -67,8 +67,8 @@
 
 1. 대상 사용자의 모든 refresh session을 삭제한다.
 2. 대상 사용자의 Socket 연결을 강제 종료한다.
-3. 대상 사용자가 참여 중인 `REQUESTED` 거래를 `CANCELED`로 변경한다.
-4. 대상 사용자가 소유한 진행 중 경매를 soft delete한다.
+3. 대상 사용자가 참여 중인 `REQUESTED` 거래를 `CANCELED`로 변경하고 활성 상대방에게만 일반 `PAYMENT_CANCELED` 알림을 저장한다. 요청이 없으면 알림도 없다.
+4. 대상 사용자가 소유한 판매 중 중고글과 진행 중 경매를 soft delete하고 favorites를 제거한다.
 5. 대상 사용자가 최고 입찰자인 진행 중 경매의 최고 입찰자를 재계산한다.
 6. 관련 Redis 경매 상태를 정리한다.
 7. 관련 경매 Timer를 제거한다.

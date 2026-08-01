@@ -8,7 +8,7 @@
 
 현재 설계 문서는 Obsidian vault 형태로 관리합니다.
 
-- 문서 위치: `Obsidian_Potato-Land-Docs/Potato-Land-Docs`
+- 문서 위치: `docs/Potato-Land-Docs`
 - 핵심 문서: `00. 홈/프로젝트 홈.md`
 - DB 문서: `06. DB/ERD.md`
 - API 문서: `05. API와 이벤트/HTTP API 목록.md`

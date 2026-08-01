@@ -17,7 +17,7 @@
 1. 보호 API에서 access token을 검증한다.
 2. 만료되었으면 프론트는 refresh API를 호출한다.
 3. 서버는 refresh token과 Redis key를 확인한다.
-4. 사용자가 정지/탈퇴 상태가 아니면 새 access token을 발급한다.
+4. 사용자가 정지/탈퇴 상태가 아니고 currentRefreshJti가 일치하면 새 access token과 새 refresh token을 함께 발급하고 Redis jti를 rotation한다.
 
 ## 체크리스트
 

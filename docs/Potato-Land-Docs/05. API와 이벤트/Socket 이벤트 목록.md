@@ -10,6 +10,7 @@
 - MVP 기본값은 쿠키 인증이다.
 - 인증 실패, 탈퇴 사용자, 영구정지 사용자는 연결을 끊는다.
 - 연결 성공 시 사용자 개인 room에 join한다.
+- 각 Socket은 개인 room 외에 활성 화면 room 하나만 유지한다. `chat:join`은 기존 auction room을, `auction:join`은 기존 chat room을 먼저 leave하고 반대 active id를 null로 만든다.
 
 ```text
 user:{userIdx}
@@ -86,11 +87,10 @@ Payload:
 | Client -> Server | `chat:join` | 채팅방 입장 | `chat:{chatRoomIdx}` |
 | Client -> Server | `chat:leave` | 채팅방 퇴장 | `chat:{chatRoomIdx}` |
 | Client -> Server | `chat:message:send` | 텍스트 메시지 전송 | `chat:{chatRoomIdx}` |
-| Client -> Server | `chat:read` | 마지막으로 읽은 메시지 기준 읽음 처리 | `chat:{chatRoomIdx}` |
+| Client -> Server | `chat:read` | 채팅방의 저장된 메시지 알림 전체 읽음 처리 | `chat:{chatRoomIdx}` |
 | Server -> Client | `chat:message:new` | 새 메시지 수신 | `chat:{chatRoomIdx}` |
 | Server -> Client | `chat:room:new` | 새 채팅방 생성 알림 | `user:{userIdx}` |
 | Server -> Client | `chat:room:updated` | 채팅 목록 갱신 | `user:{userIdx}` |
-| Server -> Client | `chat:read:updated` | 상대방 읽음 상태 갱신 | `chat:{chatRoomIdx}` |
 
 ### `chat:join`
 
@@ -110,7 +110,7 @@ Success ack:
   "data": {
     "chatRoomIdx": 1,
     "joined": true,
-    "lastReadMessageIdx": 150
+    "unreadCount": 0
   }
 }
 ```
@@ -120,7 +120,7 @@ Success ack:
 - 로그인 사용자만 가능하다.
 - 채팅방 참여자만 join할 수 있다.
 - 게시글/경매가 삭제되었으면 채팅방 조회와 과거 메시지 조회는 가능하지만 새 메시지 전송은 차단한다.
-- 성공 시 서버는 `socket.data.activeChatRoomIdx = chatRoomIdx`로 갱신한다.
+- 성공 시 기존 auction room을 leave하고 `activeAuctionListingIdx = null`, `socket.data.activeChatRoomIdx = chatRoomIdx`로 갱신한다.
 
 ### `chat:leave`
 
@@ -267,8 +267,7 @@ Client -> Server payload:
 
 ```json
 {
-  "chatRoomIdx": 1,
-  "lastMessageIdx": 150
+  "chatRoomIdx": 1
 }
 ```
 
@@ -279,22 +278,8 @@ Success ack:
   "success": true,
   "data": {
     "chatRoomIdx": 1,
-    "lastReadMessageIdx": 150,
     "unreadCount": 0
   }
-}
-```
-
-### `chat:read:updated`
-
-Server -> Client payload:
-
-```json
-{
-  "chatRoomIdx": 1,
-  "readerIdx": 2,
-  "lastReadMessageIdx": 150,
-  "readAt": "2026-07-30T00:00:00.000Z"
 }
 ```
 
@@ -341,7 +326,7 @@ Success ack:
 
 - 삭제된 경매는 join할 수 없다.
 - 종료된 경매는 join 자체는 가능하지만 입찰과 일반 신규 채팅은 비활성화한다. 연결된 `REQUESTED` 정산 거래 채팅은 별도 권한으로 처리한다.
-- 성공 시 서버는 `socket.data.activeAuctionListingIdx = listingIdx`로 갱신한다.
+- 성공 시 기존 chat room을 leave하고 `activeChatRoomIdx = null`, `socket.data.activeAuctionListingIdx = listingIdx`로 갱신한다.
 
 ### `auction:leave`
 
@@ -558,9 +543,9 @@ Server -> Client payload:
 - 일반 알림은 DB에 먼저 저장한다.
 - 채팅 메시지 알림은 수신자의 Socket 연결 중 `socket.data.activeChatRoomIdx === chatRoomIdx`인 연결이 없을 때만 `NEW_MESSAGE` row를 저장한다.
 - 수신자가 해당 채팅방을 보고 있으면 `NEW_MESSAGE` row를 만들지 않는다.
-- 채팅방을 보고 있는 사용자는 `chat:read`로 마지막 읽은 메시지 기준 읽음 상태를 갱신한다.
+- 채팅방 입장 또는 `chat:read`에서 해당 방의 저장된 `NEW_MESSAGE` 알림을 모두 읽음 처리한다.
 - `chat:read` 성공 후 서버는 해당 사용자에게 `notification:unread-count`를 보낸다.
-- 상대방에게는 필요 시 `chat:read:updated`를 보내 읽음 상태를 갱신한다.
+- 메시지별 읽음 위치와 상대방 읽음 확인은 저장하거나 전송하지 않는다.
 - 사용자가 경매 상세 화면을 보고 있어도 낙찰/종료처럼 중요한 알림은 DB에 남긴다.
 - 프론트가 알림창을 열거나 알림을 클릭하면 HTTP 읽음 API를 호출한다.
 
@@ -569,7 +554,7 @@ Server -> Client payload:
 | Event | DB 저장 | Redis 사용 | 비고 |
 |---|---|---|---|
 | `chat:message:send` | `chat_messages`, 조건부 `notifications` | 없음 | 수신자가 해당 채팅방을 보고 있으면 NEW_MESSAGE 저장 생략 |
-| `chat:read` | `chat_room_reads`, 조건부 `notifications.is_read` | 없음 | 저장된 메시지 알림이 있을 때만 읽음 처리 |
+| `chat:read` | `notifications.is_read` | 없음 | `notifications`와 `chat_messages`를 join해 해당 방의 `NEW_MESSAGE`를 모두 읽음 처리 |
 | `auction:bid-updated` | `auction_bids` | 필수 | HTTP 입찰 성공 후 emit |
 | `auction:ended` | `auction_posts`, `notifications` | commit 후 state 삭제 | Timer 또는 Recovery Scheduler, 거래 자동 생성 없음 |
 | `auction:deleted` | `listings`, `notifications` | 필수 | 경매 soft delete 후 emit |

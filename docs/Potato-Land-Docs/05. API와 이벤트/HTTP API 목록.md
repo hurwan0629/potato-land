@@ -33,10 +33,9 @@
 | `POST` | `/api/auth/phone/send` | 전화번호 인증번호 발송 | 비회원 |
 | `POST` | `/api/auth/phone/verify` | 전화번호 인증번호 검증 | 비회원 |
 | `GET` | `/api/auth/phone/status` | 전화번호 인증 상태 조회 | 비회원 |
-| `DELETE` | `/api/auth/phone/status` | 전화번호 인증 완료 상태 초기화 | 비회원 |
 | `POST` | `/api/auth/login` | 로그인 및 쿠키 발급 | 비회원 |
-| `POST` | `/api/auth/logout` | 로그아웃 및 쿠키 만료 | USER |
 | `POST` | `/api/auth/refresh` | Access/Refresh Token 재발급과 rotation | refresh cookie |
+| `POST` | `/api/auth/refresh/logout` | 현재 refresh session 폐기 및 쿠키 만료 | refresh cookie |
 | `GET` | `/api/auth/me` | 내 인증 정보 조회 | USER |
 | `POST` | `/api/auth/find-id` | 아이디 찾기 | 비회원 |
 | `POST` | `/api/auth/password/reset` | 비밀번호 재설정 | 비회원/전화인증 |
