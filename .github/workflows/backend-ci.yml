@@ -19,15 +19,54 @@ on:
 
 jobs:
   test:
+    environment: test
+    env:
+      NODE_ENV: test
+
+      HOST: ${{ vars.HOST }}
+      PORT: ${{ vars.PORT }}
+      CLIENT_ORIGIN: ${{ vars.CLIENT_ORIGIN }}
+    
+      DATABASE_HOST: ${{ vars.DATABASE_HOST }}
+      DATABASE_PORT: ${{ vars.DATABASE_PORT }}
+      DATABASE_NAME: ${{ vars.DATABASE_NAME }}
+      DATABASE_USER: ${{ vars.DATABASE_USER }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+    
+      REDIS_HOST: ${{ vars.REDIS_HOST }}
+      REDIS_PORT: ${{ vars.REDIS_PORT }}
+      REDIS_PASSWORD: ""
+
+      BCRYPT_SALT_ROUNDS: ${{ vars.BCRYPT_SALT_ROUNDS }}
+
+      COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
+      COOKIE_SECURE: ${{ vars.COOKIE_HTTP_ONLY }}
+      COOKIE_SECURE: ${{ vars.COOKIE_SAME_SITE }}
+      
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      ACCESS_TOKEN_COOKIE_PATH: ${{ vars.ACCESS_TOKEN_COOKIE_PATH }}
+      ACCESS_TOKEN_EXPIRES_IN_SEC: ${{ vars.ACCESS_TOKEN_EXPIRES_IN_SEC }}
+
+      REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+      REFRESH_TOKEN_COOKIE_PATH: ${{ vars.REFRESH_TOKEN_COOKIE_PATH }}
+      REFRESH_TOKEN_EXPIRES_IN_SEC: ${{ vars.REFRESH_TOKEN_EXPIRES_IN_SEC }}
+
+      RECOVERY_CYCLE_SEC: ${{ vars.RECOVERY_CYCLE_SEC }}
+
+      UPLOAD_BASE_DIR: ${{ vars.UPLOAD_BASE_DIR }}
+      UPLOAD_LISTING_IMG_DIR: ${{ vars.UPLOAD_LISTING_IMG_DIR }}
+      UPLOAD_PROFILE_IMG_DIR: ${{ vars.UPLOAD_PROFILE_IMG_DIR }}
+      UPLOAD_MAX_SIZE_BYTES: ${{ vars.UPLOAD_MAX_SIZE_BYTES }}
+    
     runs-on: ubuntu-latest
 
     services:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_DB: potato_test
-          POSTGRES_USER: potato
-          POSTGRES_PASSWORD: 1234
+          POSTGRES_DB: ${{ vars.DATABASE_NAME }}
+          POSTGRES_USER: ${{ vars.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
         ports:
           - 5432:5432
       
@@ -52,3 +91,4 @@ jobs:
       - run: npm ci
       - run: npm run db:migrate
       - run: npm test
+

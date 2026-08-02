@@ -4,7 +4,7 @@ node_modules/
 # Environment
 .env
 .env.*
-!.env.example
+!.env*.example
 
 # Logs
 logs/
@@ -20,7 +20,10 @@ build/
 coverage/
 
 # Runtime uploads
-uploads/
+backend/uploads/**
+!backend/uploads/.gitkeep
+!backend/uploads/listing/.gitkeep
+!backend/uploads/profile/.gitkeep
 *.zip
 
 # OS / Editor
