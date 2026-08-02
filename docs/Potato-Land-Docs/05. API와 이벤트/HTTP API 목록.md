@@ -74,17 +74,17 @@
 
 ## 6. 경매
 
-| Method | Path | 설명 | Auth |
-|---|---|---|---|
-| `GET` | `/api/auctions` | 경매 목록/검색 | optional |
-| `POST` | `/api/auction` | 경매 글 작성 | USER |
-| `GET` | `/api/auctions/:listingIdx` | 경매 상세 | optional |
-| `PATCH` | `/api/auctions/:listingIdx` | 경매 글 수정 | 판매자 |
-| `DELETE` | `/api/auctions/:listingIdx` | 경매 글 삭제 | 판매자 |
-| `POST` | `/api/auctions/:listingIdx/bids` | 입찰 | USER |
-| `GET` | `/api/auctions/:listingIdx/bids` | 입찰 내역 조회 | optional |
-| `POST` | `/api/auctions/:listingIdx/favorite` | 관심 등록 | USER |
-| `DELETE` | `/api/auctions/:listingIdx/favorite` | 관심 해제 | USER |
+| Method   | Path                                 | 설명       | Auth     |
+| -------- | ------------------------------------ | -------- | -------- |
+| `GET`    | `/api/auctions`                      | 경매 목록/검색 | optional |
+| `POST`   | `/api/auctions`                      | 경매 글 작성  | USER     |
+| `GET`    | `/api/auctions/:listingIdx`          | 경매 상세    | optional |
+| `PATCH`  | `/api/auctions/:listingIdx`          | 경매 글 수정  | 판매자      |
+| `DELETE` | `/api/auctions/:listingIdx`          | 경매 글 삭제  | 판매자      |
+| `POST`   | `/api/auctions/:listingIdx/bids`     | 입찰       | USER     |
+| `GET`    | `/api/auctions/:listingIdx/bids`     | 입찰 내역 조회 | optional |
+| `POST`   | `/api/auctions/:listingIdx/favorite` | 관심 등록    | USER     |
+| `DELETE` | `/api/auctions/:listingIdx/favorite` | 관심 해제    | USER     |
 
 ## 7. 채팅
 

@@ -22,8 +22,14 @@ coverage/
 # Runtime uploads
 backend/uploads/**
 !backend/uploads/.gitkeep
-!backend/uploads/listing/.gitkeep
-!backend/uploads/profile/.gitkeep
+!backend/uploads/listings/
+!backend/uploads/profiles/
+
+backend/uploads/listings/*
+!backend/uploads/listings/.gitkeep
+
+backend/uploads/profiles/*
+!backend/uploads/profiles/.gitkeep
 *.zip
 
 # OS / Editor

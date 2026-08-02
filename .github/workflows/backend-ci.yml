@@ -35,13 +35,13 @@ jobs:
     
       REDIS_HOST: ${{ vars.REDIS_HOST }}
       REDIS_PORT: ${{ vars.REDIS_PORT }}
-      REDIS_PASSWORD: ""
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
 
       BCRYPT_SALT_ROUNDS: ${{ vars.BCRYPT_SALT_ROUNDS }}
 
       COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
-      COOKIE_SECURE: ${{ vars.COOKIE_HTTP_ONLY }}
-      COOKIE_SECURE: ${{ vars.COOKIE_SAME_SITE }}
+      COOKIE_HTTP_ONLY: ${{ vars.COOKIE_HTTP_ONLY }}
+      COOKIE_SAME_SITE: ${{ vars.COOKIE_SAME_SITE }}
       
       ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
       ACCESS_TOKEN_COOKIE_PATH: ${{ vars.ACCESS_TOKEN_COOKIE_PATH }}
@@ -51,7 +51,7 @@ jobs:
       REFRESH_TOKEN_COOKIE_PATH: ${{ vars.REFRESH_TOKEN_COOKIE_PATH }}
       REFRESH_TOKEN_EXPIRES_IN_SEC: ${{ vars.REFRESH_TOKEN_EXPIRES_IN_SEC }}
 
-      RECOVERY_CYCLE_SEC: ${{ vars.RECOVERY_CYCLE_SEC }}
+      AUCTION_RECOVERY_CRON: ${{ vars.AUCTION_RECOVERY_CRON }}
 
       UPLOAD_BASE_DIR: ${{ vars.UPLOAD_BASE_DIR }}
       UPLOAD_LISTING_IMG_DIR: ${{ vars.UPLOAD_LISTING_IMG_DIR }}
@@ -72,8 +72,23 @@ jobs:
       
       redis:
         image: redis:7
+        
+        command: >-
+          redis-server
+          --requirepass
+          "${{ secrets.REDIS_PASSWORD }}"
+
+        env:
+          REDISCLI_AUTH: ${{ secrets.REDIS_PASSWORD }}
+
         ports: 
           - 6379:6379
+
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     
     defaults:
       run:
@@ -84,7 +99,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
       

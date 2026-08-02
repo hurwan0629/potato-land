@@ -83,7 +83,7 @@ export const env = {
   redis: {
     host: required("REDIS_HOST", "127.0.0.1"),
     port: requiredInt("REDIS_PORT", 6379),
-    password: optional("REDIS_PASSWORD"), // 있으면 쓰고 없으면 없이 시도
+    password: required("REDIS_PASSWORD"), 
   },
 
   jwt: {
@@ -125,6 +125,6 @@ export const env = {
   },
 
   recoveryScheduler: {
-    cycleSec: requiredInt("RECOVERY_CYCLE_SEC", 300),
+    recoveryCron: required("AUCTION_RECOVERY_CRON", "*/5 * * * *"),
   },
 }

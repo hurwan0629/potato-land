@@ -26,6 +26,15 @@ services:
   redis:
     image: redis:7
     container_name: potato-land-redis
+    
+    command:
+      - redis-server
+      - --requirepass
+      - ${REDIS_PASSWORD}
+    
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+
     ports:
       - "127.0.0.1:${REDIS_PORT}:6379"
 
