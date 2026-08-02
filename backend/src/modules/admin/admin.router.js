@@ -1,0 +1,27 @@
+import { Router } from "express";
+
+import {
+  banUser,
+  deleteAuctionForAdmin,
+  deleteUsedForAdmin,
+  getDashboard,
+  getUser,
+  listAuctionWinners,
+  listAuctionsForAdmin,
+  listUsedForAdmin,
+  listUsers,
+  updateUserMemo,
+} from "./admin.controller.js";
+
+export const adminRouter = Router();
+
+adminRouter.get("/dashboard", getDashboard);
+adminRouter.get("/users", listUsers);
+adminRouter.get("/users/:userIdx", getUser);
+adminRouter.patch("/users/:userIdx/ban", banUser);
+adminRouter.patch("/users/:userIdx/memo", updateUserMemo);
+adminRouter.get("/used", listUsedForAdmin);
+adminRouter.delete("/used/:listingIdx", deleteUsedForAdmin);
+adminRouter.get("/auctions", listAuctionsForAdmin);
+adminRouter.delete("/auctions/:listingIdx", deleteAuctionForAdmin);
+adminRouter.get("/auctions/winners", listAuctionWinners);

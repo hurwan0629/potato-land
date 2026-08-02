@@ -72,14 +72,14 @@ jobs:
       
       redis:
         image: redis:7
+        env:
+          REDISCLI_AUTH: 1234
         
         command: >-
           redis-server
           --requirepass
-          "${{ secrets.REDIS_PASSWORD }}"
+          1234
 
-        env:
-          REDISCLI_AUTH: ${{ secrets.REDIS_PASSWORD }}
 
         ports: 
           - 6379:6379
