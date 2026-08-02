@@ -1,0 +1,28 @@
+{
+  "name": "potato-land-server",
+  "version": "1.0.0",
+  "description": "potato-land: used shop and auction service",
+  "keywords": [
+    "auction",
+    "used",
+    "shop",
+    "admin",
+    "jwt",
+    "multer",
+    "socket",
+    "rest",
+    "cooperation",
+    "redis",
+    "postgresql",
+    "docker",
+    "express",
+    "react"
+  ],
+  "license": "ISC",
+  "author": "hurwan",
+  "type": "module",
+  "main": "./src/app.js",
+  "scripts": {
+    "test": "npm run test"
+  }
+}

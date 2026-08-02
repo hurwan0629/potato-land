@@ -30,6 +30,7 @@ desktop.ini
 .vscode/
 .idea/
 .agent/
+.agents/
 
 # Obsidian workspace state
 **/.obsidian/

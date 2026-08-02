@@ -1,0 +1,54 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: potato_test
+          POSTGRES_USER: potato
+          POSTGRES_PASSWORD: 1234
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        ports: 
+          - 6379:6379
+    
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      
+      - run: npm ci
+      - run: npm run db:migrate
+      - run: npm test
