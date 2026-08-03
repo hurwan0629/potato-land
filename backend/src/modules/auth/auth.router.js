@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireAuth } from "../../common/middlewares/auth.middleware.js";
 
 import {
   checkLoginId,
@@ -24,6 +25,6 @@ authRouter.get("/phone/status", getPhoneStatus);
 authRouter.post("/login", login);
 authRouter.post("/refresh/logout", logout);
 authRouter.post("/refresh", refresh);
-authRouter.get("/me", getMe);
+authRouter.get("/me", requireAuth, getMe);
 authRouter.post("/find-id", findLoginId);
 authRouter.post("/password/reset", resetPassword);

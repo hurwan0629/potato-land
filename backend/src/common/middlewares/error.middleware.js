@@ -12,9 +12,10 @@ export function errorMiddleware(err, req, res, next) {
   }
 
   const status = Number.isInteger(err.status) ? err.status : 500;
-  res.status(status).json({
+  return res.status(status).json({
     success: false,
     code: err.code ?? "INTERNAL_SERVER_ERROR",
     message: err.message ?? "서버 오류가 발생했습니다.",
+    ...(err.details ? { details: err.details } : {}),
   });
 }

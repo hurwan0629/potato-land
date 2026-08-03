@@ -4,37 +4,43 @@ import { app } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./common/logging/logger.js";
 import { createSocketServer } from "./sockets/index.js";
+import { closeDatabase, connectDatabase } from "./config/db.js";
+import { closeRedis, connectRedis, onRedisError } from "./config/redis.js";
 
 // 어플리케이션 express 등록
 const httpServer = http.createServer(app);
 // 소켓 이벤트 및 emit
 const socketServer = createSocketServer(httpServer);
 
-// TODO: DB 연결 초기화
-// TODO: Redis 연결 초기화
+/** PostgreSQL과 Redis 연결을 완료한 후 HTTP 서버를 시작한다. */
+async function startServer() {
+  onRedisError((error) => logger.error("Redis client error", { error }));
+  await connectDatabase();
+  await connectRedis();
+  httpServer.listen(env.server.port, env.server.host, () => {
+    logger.info("HTTP server listening", { host: env.server.host, port: env.server.port, nodeEnv: env.nodeEnv });
+  });
+}
+
 // TODO: Auction recovery scheduler 시작
 
-// [2026-08-02 21:52:25] node 서버 생성 및 시작
-httpServer.listen(env.server.port, env.server.host, () => {
-  logger.info("HTTP server listening", {
-    host: env.server.host,
-    port: env.server.port,
-    nodeEnv: env.nodeEnv,
-  });
+startServer().catch((error) => {
+  logger.error("Server startup failed", { error });
+  process.exitCode = 1;
 });
 
 let isShuttingDown = false;
 
+/** 종료 신호를 한 번만 처리하고 외부 연결을 순서대로 닫는다. */
 function shutdown(signal) {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
   logger.info("Shutdown signal received", { signal });
 
-  socketServer.close(() => {
+  socketServer.close(async () => {
     // TODO: scheduler stop
-    // TODO: redis disconnect - 꺼지면 레디스는 상태가 모두 사라지므로 내부 상태를 정리할 필요 없어보임
-    // TODO: database close
+    await Promise.allSettled([closeRedis(), closeDatabase()]);
 
     logger.info("shutdown completed");
     process.exit(0);
