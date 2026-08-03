@@ -111,6 +111,8 @@
 - `GET /api/admin/dashboard`
 - `GET /api/admin/users`
 - `GET /api/admin/users/:userIdx`
+- `GET /api/admin/users/:userIdx/transactions`
+- `GET /api/admin/users/:userIdx/reviews`
 - `PATCH /api/admin/users/:userIdx/ban`
 - `PATCH /api/admin/users/:userIdx/memo`
 - `GET /api/admin/used`
@@ -125,6 +127,7 @@
 - [ ] 대시보드 통계 API
 - [ ] 회원 목록 조회
 - [ ] 회원 상세 조회
+- [ ] 회원별 거래/후기 활동 페이지네이션
 - [ ] 회원 삭제 UI를 영구정지 처리로 연결
 - [ ] 회원 비활성화 공통 서비스 호출
 - [ ] REQUESTED 거래 자동 CANCELED 처리

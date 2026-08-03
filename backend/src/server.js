@@ -3,51 +3,86 @@ import http from "node:http";
 import { app } from "./app.js";
 import { env } from "./config/env.js";
 import { logger } from "./common/logging/logger.js";
+import {
+  closeDatabase,
+  connectDatabase,
+} from "./infrastructure/database/database.js";
+import {
+  connectRedis,
+  disconnectRedis,
+} from "./infrastructure/redis/redisClient.js";
+import { clearAuctionTimers } from "./schedulers/auctionTimer.js";
+import { stopAuctionRecoveryScheduler } from "./schedulers/auctionRecoveryScheduler.js";
 import { createSocketServer } from "./sockets/index.js";
+
+const log = logger.child("server");
 
 // 어플리케이션 express 등록
 const httpServer = http.createServer(app);
 // 소켓 이벤트 및 emit
 const socketServer = createSocketServer(httpServer);
 
-// TODO: DB 연결 초기화
-// TODO: Redis 연결 초기화
-// TODO: Auction recovery scheduler 시작
+async function startServer() {
+  try {
+    await connectDatabase();
+    await connectRedis();
 
-// [2026-08-02 21:52:25] node 서버 생성 및 시작
-httpServer.listen(env.server.port, env.server.host, () => {
-  logger.info("HTTP server listening", {
-    host: env.server.host,
-    port: env.server.port,
-    nodeEnv: env.nodeEnv,
+    // TODO: auction.service의 recoverExpiredAuctions 구현 후
+    // startAuctionRecoveryScheduler(recoverExpiredAuctions)를 호출한다.
+
+    httpServer.listen(env.server.port, env.server.host, () => {
+      log.info("HTTP 서버가 요청을 기다립니다.", {
+        host: env.server.host,
+        port: env.server.port,
+        nodeEnv: env.nodeEnv,
+      });
+    });
+  } catch (error) {
+    log.error("서버 시작에 실패했습니다.", { error });
+    await Promise.allSettled([
+      closeSocketServer(),
+      disconnectRedis(),
+      closeDatabase(),
+    ]);
+    process.exitCode = 1;
+  }
+}
+
+function closeSocketServer() {
+  return new Promise((resolve) => {
+    socketServer.close(resolve);
   });
-});
+}
 
 let isShuttingDown = false;
 
-function shutdown(signal) {
+async function shutdown(signal) {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  logger.info("Shutdown signal received", { signal });
+  log.info("서버 종료 신호를 받았습니다.", { signal });
+  stopAuctionRecoveryScheduler();
+  clearAuctionTimers();
 
-  socketServer.close(() => {
-    // TODO: scheduler stop
-    // TODO: redis disconnect - 꺼지면 레디스는 상태가 모두 사라지므로 내부 상태를 정리할 필요 없어보임
-    // TODO: database close
+  const results = await Promise.allSettled([
+    closeSocketServer(),
+    disconnectRedis(),
+    closeDatabase(),
+  ]);
+  const failed = results.filter((result) => result.status === "rejected");
 
-    logger.info("shutdown completed");
-    process.exit(0);
-  });
+  if (failed.length > 0) {
+    log.error("일부 서버 자원을 정상적으로 종료하지 못했습니다.", {
+      errors: failed.map((result) => result.reason),
+    });
+    process.exitCode = 1;
+    return;
+  }
 
-  // httpServer.close((error) => {
-  //   if (error) {
-  //     logger.error("HTTP server close failed", { error });
-  //     process.exitCode = 1;
-  //   }
-  //   process.exit();
-  // });
+  log.info("서버 자원을 모두 종료했습니다.");
 }
 
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+process.on("SIGINT", () => void shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+
+void startServer();
