@@ -1,0 +1,8 @@
+.btn { padding: 6px 16px; border-radius: 8px; }
+.btn-primary { background: #5c3a21; color: white; }
+.btn-text{background: white; color: black; border: 1px solid #7B716A}
+.btn-review{background:#F5B039; color: white;border: 1px solid #F5B039}
+.btn-outline { background: transparent; border: 1px solid #5c3a21; }
+.btn-sm { font-size: 18px; }
+.btn-lg { font-size: 18px; }
+.btn-full { width: 100%; }
