@@ -1,0 +1,24 @@
+.auth-signup { min-height: 900px; padding: 45px 48px 80px; display: grid; grid-template-columns: 1.35fr .8fr; align-items: center; gap: 55px; color: #3a2416; background: #fffaf2; }
+.auth-signup-panel { padding: 46px 42px 35px; border-radius: 48px; background: white; box-shadow: 4px 8px 13px #3d2c2138; text-align: left; }
+.auth-signup-panel h1 { margin: 0 0 34px; color: #59361f; font-size: 47px; font-weight: 900; text-align: center; }
+.auth-signup-field { min-width: 0; display: grid; grid-template-columns: 125px 1fr; align-items: center; gap: 18px; margin-bottom: 20px; }
+.auth-signup-field strong { font-size: 16px; color: #24170f; }
+.auth-signup-field input { min-width: 0; width: 100%; height: 47px; padding: 0 15px; border: 1px solid #e3d0b8; border-radius: 7px; color: #3a2416; background: white; box-sizing: border-box; }
+.auth-signup-row { display: grid; grid-template-columns: 1fr 102px; align-items: start; gap: 15px; margin-bottom: 20px; }
+.auth-signup-row .auth-signup-field { margin-bottom: 0; }
+.auth-check-button { height: 47px; border: 0; border-radius: 14px; color: white; background: #ffbc43; font-weight: 800; cursor: pointer; }
+.auth-check-button:disabled { opacity: .6; cursor: not-allowed; }
+.auth-field-message { margin: -10px 0 20px 143px; font-size: 13px; font-weight: 800; line-height: 1.5; }
+.auth-password-guide { margin: -12px 0 16px 143px; font-size: 13px; font-weight: 800; }
+.auth-signup .error { color: #c53b35; }
+.auth-signup .success { color: #2b7b45; }
+.auth-signup .phone-info { color: #8a6336; }
+.auth-terms { margin: 27px 0 0 125px; display: flex; align-items: center; gap: 10px; color: #847970; font-size: 14px; }
+.auth-terms input { width: 21px; height: 21px; }
+.auth-form-message { margin: 12px 0 0 125px; font-size: 14px; font-weight: 700; }
+.auth-signup-submit { width: calc(100% - 125px); height: 56px; margin: 24px 0 0 125px; border: 0; border-radius: 13px; color: white; background: #ffc24c; font-size: 20px; font-weight: 800; cursor: pointer; }
+.auth-signup-submit:disabled { opacity: .65; cursor: wait; }
+.auth-signup-mascot { position: relative; font-size: 150px; text-align: left; }
+.auth-signup-mascot span { position: absolute; left: 105px; top: -50px; font-size: 255px; filter: drop-shadow(0 18px 16px #7c441d33); }
+@media (max-width: 820px) { .auth-signup { grid-template-columns: 1fr; } .auth-signup-mascot { display: none; } }
+@media (max-width: 560px) { .auth-signup { padding: 30px 15px 60px; } .auth-signup-panel { padding: 35px 20px; border-radius: 30px; } .auth-signup-panel h1 { font-size: 37px; } .auth-signup-field { grid-template-columns: 1fr; gap: 7px; } .auth-signup-row { grid-template-columns: 1fr; } .auth-field-message, .auth-password-guide, .auth-terms, .auth-form-message, .auth-signup-submit { margin-left: 0; } .auth-signup-submit { width: 100%; } }

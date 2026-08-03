@@ -122,6 +122,10 @@ export const env = {
     apiSecret: optional("SMS_API_SECRET"),
     phoneFrom: optional("SMS_PHONE_FROM"),
     ownerName: optional("SMS_OWNER_NAME"),
+    codeTtlSec: requiredInt("PHONE_AUTH_CODE_TTL_SEC", 180),
+    cooldownSec: requiredInt("PHONE_AUTH_COOLDOWN_SEC", 30),
+    verifiedTtlSec: requiredInt("PHONE_AUTH_VERIFIED_TTL_SEC", 600),
+    maxAttempts: requiredInt("PHONE_AUTH_MAX_ATTEMPTS", 5),
   },
 
   recoveryScheduler: {

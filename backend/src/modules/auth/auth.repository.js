@@ -23,6 +23,12 @@ export async function findUserById(userIdx) {
   return result.rows[0] ?? null;
 }
 
+/** 휴대전화 번호로 가입된 사용자가 있는지 조회한다. */
+export async function findUserByPhone(phone) {
+  const result = await db.query("SELECT idx FROM users WHERE phone = $1 LIMIT 1", [phone]);
+  return result.rows[0] ?? null;
+}
+
 /** 가입 필드 중 이미 사용 중인 값을 찾아 충돌 필드명을 반환한다. */
 export async function findSignupConflict({ loginId, nickname, phone, email }) {
   const result = await db.query(
