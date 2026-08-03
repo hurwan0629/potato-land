@@ -10,6 +10,6 @@ import {
 export const notificationsRouter = Router();
 
 notificationsRouter.get("/", listNotifications);
-notificationsRouter.patch("/:notificationIdx/read", readNotification);
 notificationsRouter.patch("/read-all", readAllNotifications);
 notificationsRouter.get("/unread-count", getUnreadNotificationCount);
+notificationsRouter.patch("/:notificationIdx/read", readNotification);

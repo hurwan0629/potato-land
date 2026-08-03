@@ -55,6 +55,11 @@
       USED
       DAMAGED
     }
+
+    Enum review_tag_type {
+      STRENGTH
+      WEAKNESS
+    }
     
     Enum used_trade_status {
       ON_SALE
@@ -184,6 +189,7 @@
       title varchar(200) [not null]
       description text [not null]
       preferred_trade_location varchar(255)
+      product_status product_status [not null]
     
       view_count bigint [not null, default: 0]
     
@@ -236,7 +242,6 @@
       listing_idx bigint [pk]
     
       price bigint [not null]
-      product_status product_status [not null]
       trade_status used_trade_status [
         not null,
         default: 'ON_SALE'
@@ -509,13 +514,40 @@
         `rating BETWEEN 1 AND 10` [
           name: 'chk_reviews_rating'
         ]
+
+        `content IS NULL OR char_length(content) <= 50` [
+          name: 'chk_reviews_content_length'
+        ]
     
         `reviewer_idx <> reviewee_idx` [
           name: 'chk_reviews_participants'
         ]
       }
     }
-    
+
+    Table review_tags {
+      idx bigint [pk, increment]
+      tag_type review_tag_type [not null]
+      label varchar(50) [not null]
+      sort_order integer [not null]
+      is_active boolean [not null, default: true]
+
+      indexes {
+        (tag_type, label) [unique, name: 'uq_review_tags_type_label']
+        (tag_type, sort_order) [name: 'idx_review_tags_type_sort']
+      }
+    }
+
+    Table review_tag_selections {
+      review_idx bigint [not null]
+      review_tag_idx bigint [not null]
+
+      indexes {
+        (review_idx, review_tag_idx) [pk, name: 'pk_review_tag_selections']
+        review_tag_idx [name: 'idx_review_tag_selections_tag']
+      }
+    }
+
     /* =========================================================
        관계
        ========================================================= */
@@ -554,6 +586,10 @@
     Ref: reviews.transaction_idx > transactions.idx
     Ref: reviews.reviewer_idx > users.idx
     Ref: reviews.reviewee_idx > users.idx
+
+    Ref: review_tag_selections.review_idx > reviews.idx
+    Ref: review_tag_selections.review_tag_idx > review_tags.idx
+
     ```
 
 ![[Potato Land.png]]
@@ -605,6 +641,7 @@
     - name
     - sort_order
     - is_active
+    - 초기 seed 순서: 의류, 전자기기, 뷰티, 반려동물 용품, 도서, 악세사리, 신발, 헬스
 - 4. 관심 품목 `favorites`
     
     > `PRIMARY KEY(user_idx, listing_idx)`  
@@ -623,6 +660,7 @@
     - title
     - description
     - preferred_trade_location
+    - product_status [ `NEW`, `LIKE_NEW`, `USED`, `DAMAGED` ]
     - view_count
     - created_at
     - updated_at
@@ -637,7 +675,6 @@
     
     - listing_idx
     - price ( 상품 가격 )
-    - product_status ( 상품 상태 )
     - trade_status [ `ON_SALE`, `SOLD` ]
 - 7. 경매글 `auction_posts`
     
@@ -736,3 +773,8 @@
     - content
     - created_at
     - updated_at
+- 14. 후기 태그 `review_tags`, `review_tag_selections`
+
+    - `review_tags`는 장점(`STRENGTH`)과 아쉬운 점(`WEAKNESS`) 선택지를 관리한다.
+    - `review_tag_selections`는 후기와 선택 태그의 다대다 연결이다.
+    - 서비스에서 장점과 아쉬운 점을 각각 최대 3개로 제한한다.

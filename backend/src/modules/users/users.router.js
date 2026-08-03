@@ -4,8 +4,7 @@ import {
   getMyProfile,
   getUserProfile,
   updateMe,
-  updateMyPassword,
-  updateMyProfileImage,
+  updateMyProfile,
   verifyMyPassword,
   withdrawMe,
 } from "./users.controller.js";
@@ -13,9 +12,8 @@ import {
 export const usersRouter = Router();
 
 usersRouter.get("/me", getMyProfile);
-usersRouter.patch("/me/profile", updateMyProfileImage);
+usersRouter.patch("/me/profile", updateMyProfile);
 usersRouter.post("/me/verify-password", verifyMyPassword);
 usersRouter.patch("/me", updateMe);
-usersRouter.patch("/me/password", updateMyPassword);
 usersRouter.delete("/me", withdrawMe);
 usersRouter.get("/:userIdx/profile", getUserProfile);

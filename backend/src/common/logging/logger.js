@@ -32,31 +32,51 @@ function sanitize(value) {
   );
 }
 
-function write(level, message, meta) {
+function write(level, message, meta, defaultScope) {
   const log = console[level] ?? console.log;
+  const scope = meta?.scope ?? defaultScope;
+  const scopeText = scope ? ` [${scope}]` : "";
+  const prefix = `[${new Date().toISOString()}] [${level.toUpperCase()}]${scopeText}`;
   if (meta === undefined) {
-    log(`[${level}] ${message}`);
+    log(`${prefix} ${message}`);
     return;
   }
 
-  log(`[${level}] ${message}`, sanitize(meta));
+  const { scope: _scope, ...rest } = meta;
+  if (Object.keys(rest).length === 0) {
+    log(`${prefix} ${message}`);
+    return;
+  }
+
+  log(`${prefix} ${message}`, sanitize(rest));
+}
+
+function createMethods(scope) {
+  return Object.freeze({
+    info(message, meta) {
+      write("info", message, meta, scope);
+    },
+
+    warn(message, meta) {
+      write("warn", message, meta, scope);
+    },
+
+    error(message, meta) {
+      write("error", message, meta, scope);
+    },
+  });
 }
 
 /**
- * logger.info(메시지, 데이터): `[info] 메시지 데이터`가 작성되게 됨
- * logger.warn(메시지, 데이터): `[warn] 메시지 데이터`가 작성되게 됨
- * logger.error(메시지, 데이터): `[error] 메시지 데이터`가 작성되게 됨
+ * 모든 로그는 ISO 시각, 단계, 메시지, 선택 메타데이터 순서로 출력한다.
+ * 위치는 logger.child("모듈명")으로 고정하거나 meta.scope로 한 번만 지정한다.
  */
 export const logger = Object.freeze({
-  info(message, meta) {
-    write("info", message, meta);
-  },
-
-  warn(message, meta) {
-    write("warn", message, meta);
-  },
-
-  error(message, meta) {
-    write("error", message, meta);
+  ...createMethods(),
+  child(scope) {
+    if (typeof scope !== "string" || scope.trim() === "") {
+      throw new TypeError("로그 위치를 나타낼 모듈 이름이 필요합니다.");
+    }
+    return createMethods(scope.trim());
   },
 });
