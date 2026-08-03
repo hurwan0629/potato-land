@@ -32,9 +32,9 @@ function shutdown(signal) {
   logger.info("Shutdown signal received", { signal });
 
   socketServer.close(() => {
-    // TODO: scheduler stop
-    // TODO: redis disconnect - 꺼지면 레디스는 상태가 모두 사라지므로 내부 상태를 정리할 필요 없어보임
-    // TODO: database close
+    // TODO: scheduler stop - 필요 없는 cron 자원 없애주기
+    // TODO: redis disconnect - 서버의 redis client의 상태 정리해주기
+    // TODO: database close - 서버의 database 연결 상태 정리해주기
 
     logger.info("shutdown completed");
     process.exit(0);
