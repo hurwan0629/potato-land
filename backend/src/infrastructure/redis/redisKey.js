@@ -6,6 +6,21 @@ function normalizePurpose(purpose) {
   return String(purpose).trim().toUpperCase();
 }
 
+/**
+ * redis에는 다음과 같은 이름의 키만 들어가게 됩니다.
+ * 
+ * - session(userIdx, sessionId) -> session:{userIdx}:{sessionId} - { currentRefreshJti, userAgent, ip, createdAt, rotatedAt }
+ * 
+ * - phoneCode(phone, purpose) -> phone:code:{phone}:{purpose} - { phone, purpose, phoneVerificationId, codeHash, attemptCount, createdAt, expiresAt }
+ * 
+ * - phoneCooldown(phone, purpose) -> phone:cooldown:{phone}:{purpose} - { phone, purpose, resendAfterSeconds }
+ * 
+ * - phoneVerified(phone, purpose) -> phone:verified:{phone}:{purpose} - { phone, purpose, phoneVerifiedId, verified, verifiedAt }
+ * 
+ * - auctionState(listingIdx) -> auction:state:{listingIdx} - redis hash: { currentPrice, highestBidderIdx, highestBidIdx }
+ * 
+ * -
+ */
 export const redisKey = Object.freeze({
   session(userIdx, sessionId) {
     return `session:${userIdx}:${sessionId}`;

@@ -2,6 +2,13 @@ import { logger } from "../logging/logger.js";
 
 const log = logger.child("http-error");
 
+/**
+ * express 미들웨어 전체에서 마지막에 에러를 모두 받아주는 객체입니다.
+ * 
+ * err 객체에 status, expose, code, message가 있으면 그것을 그대로 사용하며 없으면 기본값을 사용합니다. 
+ * 
+ * 로그를 출력합니다.
+ */
 export function errorMiddleware(err, req, res, next) {
   if (res.headersSent) {
     return next(err);

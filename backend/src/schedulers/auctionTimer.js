@@ -4,6 +4,9 @@ const MAX_TIMEOUT_MS = 2_147_483_647;
 const timers = new Map();
 const log = logger.child("auction-timer");
 
+/**
+ * timers Map에서 listingIdx에 등록되어있는 setTimer을 삭제해주고, 해당 키밸류를 삭제해주기
+ */
 function clearEntry(listingIdx) {
   const entry = timers.get(listingIdx);
   if (!entry) return false;
@@ -13,6 +16,9 @@ function clearEntry(listingIdx) {
   return true;
 }
 
+/**
+ * 
+ */
 function scheduleNext(entry) {
   const remainingMs = entry.endsAt.getTime() - Date.now();
 
@@ -37,6 +43,12 @@ function scheduleNext(entry) {
   timers.set(entry.listingIdx, entry);
 }
 
+
+/**
+ * 1번인자: listingIdx
+ * 2번인자: 종료 날짜
+ * 3번인자: function(listingIdx) 로 경매를 종료 시킬 때 동작하는 함수
+ */
 export function scheduleAuctionEnd(listingIdx, endsAt, onEnd) {
   const normalizedListingIdx = Number(listingIdx);
   const normalizedEndsAt = new Date(endsAt);

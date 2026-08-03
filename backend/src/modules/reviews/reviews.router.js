@@ -10,4 +10,3 @@ export const reviewsRouter = Router();
 
 reviewsRouter.get("/reviews/tags", listReviewTags);
 reviewsRouter.post("/reviews", createReview);
-reviewsRouter.get("/users/:userIdx/reviews", listUserReviews);

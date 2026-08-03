@@ -7,6 +7,7 @@ import {
   updateMyProfile,
   verifyMyPassword,
   withdrawMe,
+  listUserReviews
 } from "./users.controller.js";
 
 export const usersRouter = Router();
@@ -17,3 +18,4 @@ usersRouter.post("/me/verify-password", verifyMyPassword);
 usersRouter.patch("/me", updateMe);
 usersRouter.delete("/me", withdrawMe);
 usersRouter.get("/:userIdx/profile", getUserProfile);
+usersRouter.get("/users/:userIdx/reviews", listUserReviews);

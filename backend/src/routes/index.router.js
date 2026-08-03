@@ -17,12 +17,12 @@ export const indexRouter = Router();
 // 업무 API 총 68개이며 /health는 app.js에 별도로 있다.
 indexRouter.use("/", mainRouter); // 2개 - 통합 search는 MVP에서 제외
 indexRouter.use("/auth", authRouter); // 11개
-indexRouter.use("/users", usersRouter); // 6개
+indexRouter.use("/users", usersRouter); // 7개
 indexRouter.use("/used", usedRouter); // 7
 indexRouter.use("/auctions", auctionsRouter); // 9
 indexRouter.use("/chats", chatsRouter); // 5
 indexRouter.use("/transactions", transactionsRouter); // 4
-indexRouter.use("/", reviewsRouter); // 3
+indexRouter.use("/reviews", reviewsRouter); // 2
 indexRouter.use("/mypage", mypageRouter); // 5개
 indexRouter.use("/notifications", notificationsRouter); // 4
 indexRouter.use("/admin", adminRouter); // 12개

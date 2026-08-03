@@ -40,3 +40,8 @@ export function withdrawMe(req, res) {
   // 4. commit 후 모든 session, Timer/Redis 상태를 정리하고 관련 사용자에게 알림을 보낸다.
   return notImplemented(res, "회원 탈퇴");
 }
+
+export function listUserReviews(req, res) {
+  // TODO: 대상 사용자가 받은 후기를 reviewer 정보, 거래 상품, reviewerRole과 함께 페이지네이션해 반환한다.
+  return notImplemented(res, "사용자 후기 목록 조회");
+}
