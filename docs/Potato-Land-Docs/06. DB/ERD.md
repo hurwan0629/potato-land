@@ -55,11 +55,6 @@
       USED
       DAMAGED
     }
-
-    Enum review_tag_type {
-      STRENGTH
-      WEAKNESS
-    }
     
     Enum used_trade_status {
       ON_SALE
@@ -525,29 +520,6 @@
       }
     }
 
-    Table review_tags {
-      idx bigint [pk, increment]
-      tag_type review_tag_type [not null]
-      label varchar(50) [not null]
-      sort_order integer [not null]
-      is_active boolean [not null, default: true]
-
-      indexes {
-        (tag_type, label) [unique, name: 'uq_review_tags_type_label']
-        (tag_type, sort_order) [name: 'idx_review_tags_type_sort']
-      }
-    }
-
-    Table review_tag_selections {
-      review_idx bigint [not null]
-      review_tag_idx bigint [not null]
-
-      indexes {
-        (review_idx, review_tag_idx) [pk, name: 'pk_review_tag_selections']
-        review_tag_idx [name: 'idx_review_tag_selections_tag']
-      }
-    }
-
     /* =========================================================
        관계
        ========================================================= */
@@ -586,9 +558,6 @@
     Ref: reviews.transaction_idx > transactions.idx
     Ref: reviews.reviewer_idx > users.idx
     Ref: reviews.reviewee_idx > users.idx
-
-    Ref: review_tag_selections.review_idx > reviews.idx
-    Ref: review_tag_selections.review_tag_idx > review_tags.idx
 
     ```
 
@@ -759,22 +728,3 @@
     - 취소 상태는 `status = CANCELED`로 판단한다.
     - 취소 시각은 별도 컬럼을 두지 않고 `updated_at`으로 판단한다.
     - 취소 사유는 저장하지 않는다.
-- 13. 거래 후기 `reviews`
-    
-    > CHECK(rating BETWEEN 1 AND 10)  
-    > CHECK(reviewer_idx <> reviewee_idx)  
-    > UNIQUE(transaction_idx, reviewer_idx)
-    
-    - idx
-    - transaction_idx (거래 기록)
-    - reviewer_idx
-    - reviewee_idx
-    - rating
-    - content
-    - created_at
-    - updated_at
-- 14. 후기 태그 `review_tags`, `review_tag_selections`
-
-    - `review_tags`는 장점(`STRENGTH`)과 아쉬운 점(`WEAKNESS`) 선택지를 관리한다.
-    - `review_tag_selections`는 후기와 선택 태그의 다대다 연결이다.
-    - 서비스에서 장점과 아쉬운 점을 각각 최대 3개로 제한한다.
