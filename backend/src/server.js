@@ -9,6 +9,7 @@ import { createSocketServer } from "./sockets/index.js";
 const httpServer = http.createServer(app);
 // 소켓 이벤트 및 emit
 const socketServer = createSocketServer(httpServer);
+app.set("io", socketServer.io);
 
 // TODO: DB 연결 초기화
 // TODO: Redis 연결 초기화

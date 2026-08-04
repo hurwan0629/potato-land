@@ -6,6 +6,9 @@ import { registerAuctionSocket } from "./auction.socket.js";
 import { registerChatSocket } from "./chat.socket.js";
 import { clearSocketServer, setSocketServer } from "./socket.context.js";
 import { socketAuth } from "./socketAuth.js";
+import { getUnreadNotificationCount } from "../modules/notifications/notifications.service.js";
+import { query } from "../infrastructure/database/database.js";
+import { SOCKET_EVENT } from "../common/constants/socketEvent.js";
 
 // server.js에서 호출된 함수를 이용하여 io 서버를 생성 후 
 // origin을 이용하여 cors 설정을 해주게 됨. 
@@ -30,6 +33,10 @@ export function createSocketServer(httpServer) {
     logger.info("Socket connected", {
       socketId: socket.id,
     });
+
+    void getUnreadNotificationCount(query, socket.data.user.userIdx)
+      .then((unreadCount) => socket.emit(SOCKET_EVENT.NOTIFICATION_UNREAD_COUNT, { unreadCount }))
+      .catch((error) => logger.warn("초기 알림 미확인 수 전송에 실패했습니다.", { error, socketId: socket.id }));
 
     // 채팅방 및 경매 전용 관리 소켓 함수를 통해 이벤트를 등록해주게됨.
     registerChatSocket(io, socket);

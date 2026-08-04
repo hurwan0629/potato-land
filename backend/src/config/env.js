@@ -114,6 +114,7 @@ export const env = {
     baseDir: required("UPLOAD_BASE_DIR", "uploads"),
     listingImageDir: required("UPLOAD_LISTING_IMG_DIR", "listings"),
     profileImageDir: required("UPLOAD_PROFILE_IMG_DIR", "profiles"),
+    chatImageDir: required("UPLOAD_CHAT_IMG_DIR", "chats"),
     maxSizeBytes: requiredInt("UPLOAD_MAX_SIZE_BYTES", 5242880),
   },
 
