@@ -7,26 +7,6 @@ import {
   SUPPORTED_NOTIFICATION_TYPES,
 } from "./notifications.service.js";
 
-<<<<<<< Updated upstream
-export function listNotifications(req, res) {
-  // TODO: list notifications for current user.
-  return notImplemented(res, "알림 목록 조회");
-}
-
-export function readNotification(req, res) {
-  // TODO: mark one notification as read for current user.
-  return notImplemented(res, "알림 읽음 처리");
-}
-
-export function readAllNotifications(req, res) {
-  // TODO: mark all current user's notifications as read.
-  return notImplemented(res, "전체 알림 읽음 처리");
-}
-
-export function getUnreadNotificationCount(req, res) {
-  // TODO: count unread notifications for current user.
-  return notImplemented(res, "안읽은 알림 수 조회");
-=======
 function parsePositiveInteger(value, fieldName) {
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 1) {
@@ -175,5 +155,4 @@ export async function readAllNotifications(req, res) {
 export async function getUnreadNotificationCount(req, res) {
   const unreadCount = await getUnreadNotificationCountFromDatabase(query, req.user.userIdx);
   res.status(200).json({ success: true, data: { unreadCount } });
->>>>>>> Stashed changes
 }
