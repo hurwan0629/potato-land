@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { Menu, Search, Heart, Bell, User, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useNotifications } from "../../context/NotificationContext";
 import USER_ROLE from "../../constants/userRole";
 import Button from "../button/Button";
 import "./Header.css";
@@ -24,9 +25,17 @@ const ADMIN_NAV_ITEMS = [
 
 export default function Header() {
   const { user, isLoggedIn, logout } = useAuth();
+  const {
+    notifications,
+    unreadCount,
+    loadNotifications,
+    readAllNotifications,
+    readNotification,
+  } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const isAdmin = user?.role === USER_ROLE.ADMIN;
 
@@ -39,6 +48,29 @@ export default function Header() {
   const handleLogout = async () => {
     await logout();
     navigate("/");
+  };
+
+  const toggleNotifications = () => {
+    const nextOpen = !isNotificationOpen;
+    setIsNotificationOpen(nextOpen);
+    if (nextOpen) void loadNotifications().catch(() => {});
+  };
+
+  const notificationPath = (notification) => {
+    if (notification.referenceType === "CHAT_ROOM") return `/chat/${notification.referenceIdx}`;
+    if (notification.referenceType === "TRANSACTION") return `/payment/${notification.referenceIdx}`;
+    if (notification.referenceType === "AUCTION") return `/auction`;
+    if (notification.referenceType === "LISTING") return `/products/${notification.referenceIdx}`;
+    return "/chat";
+  };
+
+  const handleNotificationClick = async (notification) => {
+    try {
+      if (!notification.isRead) await readNotification(notification.notificationIdx);
+    } finally {
+      setIsNotificationOpen(false);
+      navigate(notificationPath(notification));
+    }
   };
 
   return (
@@ -113,9 +145,11 @@ export default function Header() {
               type="button"
               className="header-icon-btn"
               aria-label="알림"
-              // TODO: 알림 드롭다운/페이지 생기면 연결
+              aria-expanded={isNotificationOpen}
+              onClick={toggleNotifications}
             >
               <Bell size={20} />
+              {unreadCount > 0 && <span aria-label={`읽지 않은 알림 ${unreadCount}개`}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
             </button>
             <button
               type="button"
@@ -147,6 +181,26 @@ export default function Header() {
         <div style={{ position: "absolute", top: 88, left: 32, background: "#fff", border: "1px solid #f1e3cf", borderRadius: 8, padding: 12 }}>
           카테고리 메뉴 준비중
         </div>
+      )}
+
+      {isNotificationOpen && (
+        <section aria-label="알림 목록" style={{ position: "absolute", right: 24, top: 72, width: 340, background: "white", border: "1px solid #ddd", padding: 12, zIndex: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <strong>알림</strong>
+            <button type="button" disabled={unreadCount === 0} onClick={() => void readAllNotifications().catch(() => {})}>모두 읽음</button>
+          </div>
+          {notifications.length === 0 ? <p>새 알림이 없습니다.</p> : (
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {notifications.map((notification) => (
+                <li key={notification.notificationIdx}>
+                  <button type="button" onClick={() => void handleNotificationClick(notification)} style={{ fontWeight: notification.isRead ? "normal" : "bold", textAlign: "left", width: "100%" }}>
+                    {notification.content}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       )}
     </header>
   );

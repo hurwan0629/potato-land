@@ -16,7 +16,7 @@ import { http } from "./http";
  */
 export const authApi = {
   login: ({ id, password }) => http.post("/auth/login", { id, password }),
-  logout: () => http.post("/auth/logout"),
+  logout: () => http.post("/auth/refresh/logout"),
   me: () => http.get("/auth/me"),
   refresh: () => http.post("/auth/refresh"),
 };

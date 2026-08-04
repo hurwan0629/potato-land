@@ -32,6 +32,7 @@ export const router = createBrowserRouter([
       { path: "products/:id", element: <Auth role={constRole.LOGIN}><ProductDetail /></Auth> },
       { path: "products/register", element: <Auth role={constRole.LOGIN}><ProductRegister /></Auth> },
       { path: "chat", element: <Auth role={constRole.LOGIN}><Chat /></Auth> },
+      { path: "chat/:chatRoomIdx", element: <Auth role={constRole.LOGIN}><Chat /></Auth> },
       { path: "payment/:id", element: <Auth role={constRole.LOGIN}><Payment /></Auth> },
       {
         path: "mypage/:id",

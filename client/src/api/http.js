@@ -37,14 +37,15 @@ function refreshAccessToken() {
 
 // 실제 fetch 호출 (재시도/리프레시 로직 없이 순수 요청만)
 async function rawRequest(path, { method = "GET", body, headers } = {}) {
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     credentials: "include",
     headers: {
-      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(body && !isFormData ? { "Content-Type": "application/json" } : {}),
       ...headers,
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   });
 
   const text = await res.text();
