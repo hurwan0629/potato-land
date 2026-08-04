@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
+import AccountRecoveryModal from "../features/auth/AccountRecoveryModal";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
-/** 로그인 폼을 제출하고 성공하면 메인 화면으로 이동한다. */
+/** 로그인 폼과 계정 찾기 모달의 표시 상태를 관리한다. */
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState(() => ({ loginId: localStorage.getItem("rememberedLoginId") ?? "", password: "", rememberLoginId: Boolean(localStorage.getItem("rememberedLoginId")) }));
   const [status, setStatus] = useState({ isSubmitting: false, message: "" });
+  const [recoveryType, setRecoveryType] = useState(null);
 
   /** 로그인 입력값 또는 아이디 저장 체크 상태를 갱신한다. */
   function updateField(event) {
@@ -30,7 +32,7 @@ export default function Login() {
 
   return (
     <section className="auth-login">
-      <div className="auth-login-mascot" aria-hidden="true">🥔<span>⚖</span></div>
+      <div className="auth-login-mascot" aria-hidden="true">🥔<span>🌱</span></div>
       <form className="auth-login-panel" onSubmit={handleSubmit}>
         <h1>감자 나라</h1>
         <p className="auth-login-copy">귀여운 감자와 함께하는 안전한 중고거래!</p>
@@ -43,8 +45,9 @@ export default function Login() {
         <button className="auth-primary" disabled={status.isSubmitting} type="submit">{status.isSubmitting ? "로그인 중..." : "로그인"}</button>
         <div className="auth-divider"><span>또는</span></div>
         <button className="auth-signup-button" type="button" onClick={() => navigate("/signup")}>회원가입</button>
-        <div className="auth-account-links"><button type="button">아이디 찾기</button><i /><button type="button">비밀번호 찾기</button></div>
+        <div className="auth-account-links"><button type="button" onClick={() => setRecoveryType("findId")}>아이디 찾기</button><i /><button type="button" onClick={() => setRecoveryType("resetPassword")}>비밀번호 찾기</button></div>
       </form>
+      {recoveryType && <AccountRecoveryModal key={recoveryType} type={recoveryType} onClose={() => setRecoveryType(null)} />}
     </section>
   );
 }

@@ -54,7 +54,14 @@ export function validateSignup(body = {}) {
 
 /** 인증번호 발송 요청의 휴대전화 번호와 목적을 검증한다. */
 export function validatePhoneSend(body = {}) {
-  return validatePhoneBase(body);
+  const data = { ...validatePhoneBase(body), name: text(body.name), loginId: text(body.loginId) };
+  if ((data.purpose === "FIND_ID" || data.purpose === "RESET_PASSWORD") && !data.name) {
+    throw new AppError(400, "VALIDATION_ERROR", "이름을 확인해주세요.", { field: "name" });
+  }
+  if (data.purpose === "RESET_PASSWORD" && !data.loginId) {
+    throw new AppError(400, "VALIDATION_ERROR", "아이디를 확인해주세요.", { field: "loginId" });
+  }
+  return data;
 }
 
 /** 인증번호 확인 요청의 번호, 목적, 인증 식별자와 6자리 코드를 검증한다. */
@@ -69,6 +76,26 @@ export function validatePhoneVerify(body = {}) {
 export function validatePhoneStatus(query = {}) {
   const data = { ...validatePhoneBase(query), phoneVerificationId: text(query.phoneVerificationId) };
   if (!data.phoneVerificationId) throw new AppError(400, "VALIDATION_ERROR", "휴대전화 인증 식별자가 필요합니다.", { field: "phoneVerificationId" });
+  return data;
+}
+
+/** 아이디 찾기 요청의 이름, 휴대전화 번호와 인증 식별자를 검증한다. */
+export function validateFindLoginId(body = {}) {
+  const data = { name: text(body.name), phone: normalizePhone(body.phone), phoneVerificationId: text(body.phoneVerificationId) };
+  if (!data.name) throw new AppError(400, "VALIDATION_ERROR", "이름을 입력해주세요.", { field: "name" });
+  if (!PHONE_PATTERN.test(data.phone)) throw new AppError(400, "VALIDATION_ERROR", "휴대전화 번호 형식을 확인해주세요.", { field: "phone" });
+  if (!data.phoneVerificationId) throw new AppError(400, "VALIDATION_ERROR", "휴대전화 인증이 필요합니다.", { field: "phoneVerificationId" });
+  return data;
+}
+
+/** 비밀번호 재설정 요청의 계정 정보, 새 비밀번호와 인증 식별자를 검증한다. */
+export function validateResetPassword(body = {}) {
+  const data = { loginId: text(body.loginId), name: text(body.name), phone: normalizePhone(body.phone), phoneVerificationId: text(body.phoneVerificationId), password: typeof body.password === "string" ? body.password : "", passwordConfirm: typeof body.passwordConfirm === "string" ? body.passwordConfirm : "" };
+  const missingField = ["loginId", "name", "phone", "phoneVerificationId", "password", "passwordConfirm"].find((field) => !data[field]);
+  if (missingField) throw new AppError(400, "VALIDATION_ERROR", "필수 입력값이 누락되었습니다.", { field: missingField });
+  if (!PHONE_PATTERN.test(data.phone)) throw new AppError(400, "VALIDATION_ERROR", "휴대전화 번호 형식을 확인해주세요.", { field: "phone" });
+  if (!isValidPassword(data.password)) throw new AppError(400, "VALIDATION_ERROR", "비밀번호는 영문, 숫자, 특수문자 중 2가지 이상을 조합한 8~20자여야 합니다.", { field: "password" });
+  if (data.password !== data.passwordConfirm) throw new AppError(400, "VALIDATION_ERROR", "비밀번호가 일치하지 않습니다.", { field: "passwordConfirm" });
   return data;
 }
 

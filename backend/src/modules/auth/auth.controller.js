@@ -1,6 +1,6 @@
 import { asyncHandler } from "../../common/utils/asyncHandler.js";
 import { notImplemented } from "../../common/utils/notImplemented.js";
-import { checkLoginIdAvailability, getAuthenticatedUser, getPhoneVerificationStatus, loginUser, sendPhoneVerification, signupUser, verifyPhoneVerification } from "./auth.service.js";
+import { checkLoginIdAvailability, findLoginIdByPhone, getAuthenticatedUser, getPhoneVerificationStatus, loginUser, resetUserPassword, sendPhoneVerification, signupUser, verifyPhoneVerification } from "./auth.service.js";
 import { setLoginCookies } from "./auth.token.js";
 
 /** 회원가입 요청을 처리하고 생성된 사용자 정보를 응답한다. */
@@ -34,8 +34,8 @@ export function refresh(req, res) { return notImplemented(res, "토큰 재발급
 /** access token으로 식별한 현재 활성 사용자 정보를 응답한다. */
 export const getMe = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await getAuthenticatedUser(req.auth.userIdx) }));
 
-/** 아이디 찾기 기능은 후속 구현 전까지 명시적인 미구현 응답을 반환한다. */
-export function findLoginId(req, res) { return notImplemented(res, "아이디 찾기"); }
+/** 본인인증을 완료한 사용자의 아이디를 조회해 응답한다. */
+export const findLoginId = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await findLoginIdByPhone(req.body) }));
 
-/** 비밀번호 재설정 기능은 후속 구현 전까지 명시적인 미구현 응답을 반환한다. */
-export function resetPassword(req, res) { return notImplemented(res, "비밀번호 재설정"); }
+/** 본인인증을 완료한 사용자의 비밀번호를 새 값으로 변경한다. */
+export const resetPassword = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await resetUserPassword(req.body) }));

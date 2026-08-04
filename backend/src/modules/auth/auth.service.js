@@ -4,10 +4,10 @@ import { randomInt, randomUUID } from "node:crypto";
 import { AppError } from "../../common/errors/AppError.js";
 import { env } from "../../config/env.js";
 import { solapiSmsService } from "../../infrastructure/sms/solapiSms.service.js";
-import { createUser, findSignupConflict, findUserById, findUserByLoginId, findUserByPhone } from "./auth.repository.js";
+import { createUser, findSignupConflict, findUserById, findUserByLoginId, findUserByPhone, updateUserPassword } from "./auth.repository.js";
 import { deletePhoneCode, deletePhoneVerified, getPhoneCode, getPhoneCooldown, getPhoneVerified, savePhoneCode, savePhoneVerified, saveRefreshSession, updatePhoneCode } from "./auth.redis.js";
 import { createLoginTokens } from "./auth.token.js";
-import { validateLogin, validateLoginId, validatePhoneSend, validatePhoneStatus, validatePhoneVerify, validateSignup } from "./auth.validator.js";
+import { validateFindLoginId, validateLogin, validateLoginId, validatePhoneSend, validatePhoneStatus, validatePhoneVerify, validateResetPassword, validateSignup } from "./auth.validator.js";
 
 const CONFLICT_MESSAGES = { loginId: "이미 사용 중인 아이디입니다.", nickname: "이미 사용 중인 닉네임입니다.", phone: "이미 가입된 휴대전화 번호입니다.", email: "이미 사용 중인 이메일입니다." };
 
@@ -31,8 +31,18 @@ export async function signupUser(body) {
 
 /** 6자리 인증번호를 생성해 Redis에 저장한 뒤 SOLAPI 문자메시지를 발송한다. */
 export async function sendPhoneVerification(body) {
-  const { phone, purpose } = validatePhoneSend(body);
-  if (purpose === "SIGNUP" && await findUserByPhone(phone)) throw new AppError(409, "PHONE_ALREADY_REGISTERED", "이미 가입된 휴대전화 번호입니다.", { field: "phone" });
+  const { phone, purpose, name, loginId } = validatePhoneSend(body);
+  const phoneUser = await findUserByPhone(phone);
+  if (purpose === "SIGNUP" && phoneUser) throw new AppError(409, "PHONE_ALREADY_REGISTERED", "이미 가입된 휴대전화 번호입니다.", { field: "phone" });
+  if ((purpose === "FIND_ID" || purpose === "RESET_PASSWORD") && (!phoneUser || phoneUser.deleted_at)) {
+    throw new AppError(404, "ACCOUNT_NOT_FOUND", "전화번호를 확인해주세요.", { field: "phone" });
+  }
+  if ((purpose === "FIND_ID" || purpose === "RESET_PASSWORD") && phoneUser.name !== name) {
+    throw new AppError(404, "ACCOUNT_NOT_FOUND", "이름을 확인해주세요.", { field: "name" });
+  }
+  if (purpose === "RESET_PASSWORD" && phoneUser.login_id !== loginId) {
+    throw new AppError(404, "ACCOUNT_NOT_FOUND", "아이디를 확인해주세요.", { field: "loginId" });
+  }
   const retryAfterSeconds = await getPhoneCooldown(phone, purpose);
   if (retryAfterSeconds > 0) throw new AppError(429, "PHONE_SEND_COOLDOWN", `${retryAfterSeconds}초 후 다시 요청해주세요.`, { retryAfterSeconds });
   const code = String(randomInt(100000, 1000000));
@@ -74,6 +84,29 @@ export async function getPhoneVerificationStatus(query) {
   const saved = await getPhoneVerified(phone, purpose);
   const verified = Boolean(saved && saved.phoneVerificationId === phoneVerificationId);
   return { verified, phoneVerificationId, expiresAt: verified ? saved.expiresAt : null };
+}
+
+/** 본인인증 정보와 이름이 일치하면 가입된 아이디를 반환하고 인증 상태를 소비한다. */
+export async function findLoginIdByPhone(body) {
+  const data = validateFindLoginId(body);
+  const verified = await getPhoneVerified(data.phone, "FIND_ID");
+  if (!verified || verified.phoneVerificationId !== data.phoneVerificationId) throw new AppError(410, "PHONE_VERIFICATION_EXPIRED", "휴대전화 인증이 만료되었거나 완료되지 않았습니다.");
+  const user = await findUserByPhone(data.phone);
+  if (!user || user.name !== data.name || user.deleted_at) throw new AppError(404, "ACCOUNT_NOT_FOUND", "입력한 정보와 일치하는 계정을 찾을 수 없습니다.");
+  await deletePhoneVerified(data.phone, "FIND_ID");
+  return { loginId: user.login_id };
+}
+
+/** 본인인증과 계정 정보가 일치하면 새 비밀번호 해시를 저장하고 인증 상태를 소비한다. */
+export async function resetUserPassword(body) {
+  const data = validateResetPassword(body);
+  const verified = await getPhoneVerified(data.phone, "RESET_PASSWORD");
+  if (!verified || verified.phoneVerificationId !== data.phoneVerificationId) throw new AppError(410, "PHONE_VERIFICATION_EXPIRED", "휴대전화 인증이 만료되었거나 완료되지 않았습니다.");
+  const user = await findUserByPhone(data.phone);
+  if (!user || user.login_id !== data.loginId || user.name !== data.name || user.deleted_at) throw new AppError(404, "ACCOUNT_NOT_FOUND", "입력한 정보와 일치하는 계정을 찾을 수 없습니다.");
+  await updateUserPassword(user.idx, await bcrypt.hash(data.password, env.bcrypt.saltRounds));
+  await deletePhoneVerified(data.phone, "RESET_PASSWORD");
+  return { reset: true };
 }
 
 /** 아이디가 회원가입에 사용 가능한지 조회한다. */

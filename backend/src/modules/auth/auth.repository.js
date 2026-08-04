@@ -25,8 +25,13 @@ export async function findUserById(userIdx) {
 
 /** 휴대전화 번호로 가입된 사용자가 있는지 조회한다. */
 export async function findUserByPhone(phone) {
-  const result = await db.query("SELECT idx FROM users WHERE phone = $1 LIMIT 1", [phone]);
+  const result = await db.query("SELECT idx, login_id, name, phone, deleted_at, banned_at FROM users WHERE phone = $1 LIMIT 1", [phone]);
   return result.rows[0] ?? null;
+}
+
+/** 사용자 식별자에 해당하는 비밀번호 해시를 새 값으로 변경한다. */
+export async function updateUserPassword(userIdx, passwordHash) {
+  await db.query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE idx = $2", [passwordHash, userIdx]);
 }
 
 /** 가입 필드 중 이미 사용 중인 값을 찾아 충돌 필드명을 반환한다. */
