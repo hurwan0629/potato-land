@@ -10,7 +10,9 @@ import {
   withTransaction,
 } from "../src/infrastructure/database/database.js";
 
+// 로깅하기
 const log = logger.child("db:migrate");
+// 
 const migrationsDirectory = fileURLToPath(
   new URL("./migrations/", import.meta.url),
 );

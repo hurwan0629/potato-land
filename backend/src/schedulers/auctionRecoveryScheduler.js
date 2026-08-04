@@ -23,6 +23,7 @@ export function startAuctionRecoveryScheduler(recoverAuctions) {
 
   // 매 주기별로 동작할 작업을 등록해주기.
   // 여기에서 cron은 node-cron의 모듈입니다.
+  // env.recoveryScheduler.recoveryCron은 문자열입니다. */5 * * * * 같은
   recoveryTask = cron.schedule(env.recoveryScheduler.recoveryCron, async () => {
     if (recoveryRunning) {
       log.warn("이전 경매 복구 작업이 실행 중이므로 이번 주기를 건너뜁니다.");
@@ -33,6 +34,11 @@ export function startAuctionRecoveryScheduler(recoverAuctions) {
     recoveryRunning = true;
     try {
       // 실행
+      /**
+       * 여기에서 DB에서 ON_GOING인 idx인데 timers[idx]에 존재하지 않으면 만들어주어야합니다.
+       * endsAt를 넣어주고
+       * onEnd 함수와 함께 넣어주는, auctionTimer 모듈을 이용해서 scheduleAuctionEnd를 넣어주게 됩니다.
+       */
       await recoverAuctions();
     } catch (error) {
       log.error("누락 경매 복구 작업에 실패했습니다.", { error });

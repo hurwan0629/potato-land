@@ -6,6 +6,7 @@
 export function socketAuth(socket, next) {
   // TODO 처리 순서:
   // 1. cookie의 access token을 먼저 읽고 없으면 handshake.auth의 token을 확인한다.
+  
   // 2. JWT 서명, 만료 시각, type=access를 검증한다.
   // 3. DB에서 사용자를 다시 조회해 탈퇴·영구정지 상태를 차단한다.
   // 4. 성공한 경우에만 socket.data.auth와 socket.data.user를 채운다.

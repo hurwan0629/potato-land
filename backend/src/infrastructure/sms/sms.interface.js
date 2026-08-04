@@ -42,7 +42,7 @@ export async function sendVerificationCode({ to, code }) {
   }
 
   return sendWithProvider({
-    apiKey: env.sms.apiKey,
+    apiKey: env.sms.apiKey, 
     apiSecret: env.sms.apiSecret,
     from: env.sms.phoneFrom,
     to,

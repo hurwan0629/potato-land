@@ -48,6 +48,9 @@ async function startServer() {
   }
 }
 
+/**
+ * socketServer = { io, close(callback) => {...} }
+ */
 function closeSocketServer() {
   return new Promise((resolve) => {
     socketServer.close(resolve);

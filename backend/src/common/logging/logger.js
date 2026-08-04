@@ -57,6 +57,8 @@ function write(level, message, meta, defaultScope) {
   const log = console[level] ?? console.log;
   const scope = meta?.scope ?? defaultScope;
   const scopeText = scope ? ` [${scope}]` : "";
+
+  // [시간] [레벨(info/warn/error)] [?scopeText - meta?.scope -> defaultScope -> ""] message + meta(data)
   const prefix = `[${new Date().toISOString()}] [${level.toUpperCase()}]${scopeText}`;
   if (meta === undefined) {
     log(`${prefix} ${message}`);
