@@ -34,6 +34,7 @@ export async function sendPhoneVerification(body) {
   const { phone, purpose, name, loginId } = validatePhoneSend(body);
   const phoneUser = await findUserByPhone(phone);
   if (purpose === "SIGNUP" && phoneUser) throw new AppError(409, "PHONE_ALREADY_REGISTERED", "이미 가입된 휴대전화 번호입니다.", { field: "phone" });
+  if (purpose === "CHANGE_PHONE" && phoneUser) throw new AppError(409, "PHONE_ALREADY_REGISTERED", "이미 가입된 휴대전화 번호입니다.", { field: "phone" });
   if ((purpose === "FIND_ID" || purpose === "RESET_PASSWORD") && (!phoneUser || phoneUser.deleted_at)) {
     throw new AppError(404, "ACCOUNT_NOT_FOUND", "전화번호를 확인해주세요.", { field: "phone" });
   }

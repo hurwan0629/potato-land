@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireAuth } from "../../common/middlewares/auth.middleware.js";
 
 import {
   getMyProfile,
@@ -12,10 +13,10 @@ import {
 
 export const usersRouter = Router();
 
-usersRouter.get("/me", getMyProfile);
-usersRouter.patch("/me/profile", updateMyProfileImage);
-usersRouter.post("/me/verify-password", verifyMyPassword);
-usersRouter.patch("/me", updateMe);
-usersRouter.patch("/me/password", updateMyPassword);
-usersRouter.delete("/me", withdrawMe);
+usersRouter.get("/me", requireAuth, getMyProfile);
+usersRouter.patch("/me/profile", requireAuth, updateMyProfileImage);
+usersRouter.post("/me/verify-password", requireAuth, verifyMyPassword);
+usersRouter.patch("/me", requireAuth, updateMe);
+usersRouter.patch("/me/password", requireAuth, updateMyPassword);
+usersRouter.delete("/me", requireAuth, withdrawMe);
 usersRouter.get("/:userIdx/profile", getUserProfile);
