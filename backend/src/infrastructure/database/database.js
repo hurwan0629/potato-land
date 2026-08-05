@@ -12,11 +12,15 @@ const log = logger.child("database");
 
 // pool 관리 객체를 사용합니다.
 const pool = new Pool({
-  host: env.database.host,
-  port: env.database.port,
-  database: env.database.name,
-  user: env.database.user,
-  password: env.database.password,
+  connectionString: env.database.url,
+
+  max: 10,
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 let connected = false;
@@ -33,9 +37,21 @@ pool.on("error", (error) => {
 export async function connectDatabase() {
   if (connected) return;
 
-  await pool.query("SELECT 1");
+  const { rows } = await pool.query(`
+    SELECT
+      CURRENT_DATABASE() AS database_name,
+      CURRENT_USER AS database_user,
+      NOW() AS conneted_at,
+      TO_REGCLASS('public.users') AS users_table
+    `);
+
   connected = true;
-  log.info("PostgreSQL 연결을 확인했습니다.");
+  log.info("Supabase PostgreSQL 연결을 확인했습니다.", {
+    databaseName: rows[0].database_name,
+    databaseUser: rows[0].database_user,
+    connectedAt: rows[0].connedted_at,
+    usersTable: rows[0].users_table,
+  });
 }
 
 /**
@@ -44,9 +60,6 @@ export async function connectDatabase() {
 export function query(text, params) {
   return pool.query(text, params);
 }
-
-/** 기존 모듈의 db.query 호출 형식과 새 인프라 계층을 연결하는 호환 객체다. */
-export const db = Object.freeze({ query });
 
 /**
  * 트랜잭션의 경우에는 작업자체 함수를 만들어서 넣어주면 해당 작업을 트랜잭션 범위 안에서 작업해주게 됩니다.
