@@ -21,3 +21,17 @@ export function requireAuth(req, _res, next) {
     return next(new AppError(401, "UNAUTHORIZED", "로그인이 필요합니다."));
   }
 }
+
+/** Access Token이 있으면 인증 정보를 저장하고, 없거나 잘못됐으면 비로그인 요청으로 계속 진행한다. */
+export function optionalAuth(req, _res, next) {
+  const token = req.cookies.access_token;
+  if (!token) return next();
+  try {
+    const payload = jwt.verify(token, env.jwt.accessToken.secret);
+    if (payload.type !== "access") return next();
+    req.auth = { userIdx: Number(payload.sub), sessionId: payload.sid, role: payload.role };
+  } catch {
+    // 공개 API에서는 만료된 쿠키를 인증 실패로 응답하지 않고 비로그인 상태로 처리한다.
+  }
+  return next();
+}

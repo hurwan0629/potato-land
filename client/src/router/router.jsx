@@ -7,6 +7,8 @@ import Login from "../pages/Login";
 import Home from "../pages/Home";
 import Search from "../pages/Search";
 import Auction from "../pages/Auction";
+import AuctionDetail from "../pages/Auction/AuctionDetail";
+import AuctionForm from "../pages/Auction/AuctionForm";
 import ProductDetail from "../pages/ProductDetail";
 import ProductRegister from "../pages/ProductRegister";
 import Chat from "../pages/Chat";
@@ -28,7 +30,10 @@ export const router = createBrowserRouter([
       { path: "login", element: <Auth role={constRole.GUEST}><Login /></Auth> },
       { path: "signup", element: <Auth role={constRole.GUEST}><Signup /></Auth> },
       { path: "search", element: <Auth role={constRole.LOGIN}><Search /></Auth> },
-      { path: "auction", element: <Auth role={constRole.LOGIN}><Auction /></Auth> },
+      { path: "auction", element: <Auth role={constRole.PUBLIC}><Auction /></Auth> },
+      { path: "auction/new", element: <Auth role={constRole.LOGIN}><AuctionForm /></Auth> },
+      { path: "auction/:listingIdx", element: <Auth role={constRole.PUBLIC}><AuctionDetail /></Auth> },
+      { path: "auction/:listingIdx/edit", element: <Auth role={constRole.LOGIN}><AuctionForm /></Auth> },
       { path: "products/:id", element: <Auth role={constRole.LOGIN}><ProductDetail /></Auth> },
       { path: "products/register", element: <Auth role={constRole.LOGIN}><ProductRegister /></Auth> },
       { path: "chat", element: <Auth role={constRole.LOGIN}><Chat /></Auth> },
