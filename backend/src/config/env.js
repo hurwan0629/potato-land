@@ -12,11 +12,11 @@ config({
 })
 
 // [2026-08-02 13:39:58] 환경변수 또는 기본 설정 주입용
-function required(key, defaultValue=undefined) {
+function required(key, defaultValue = undefined) {
   const value = process.env[key] ?? defaultValue
 
   // 설정이 채워지지 못하면 시작 ㄴㄴ
-  if(value === undefined || value === "") {
+  if (value === undefined || value === "") {
     throw new Error(`can't find env value of [${key}]`)
   }
 
@@ -24,12 +24,12 @@ function required(key, defaultValue=undefined) {
 }
 
 // [2026-08-02 13:55:33] 선택적 문자열
-function optional(key, defaultValue=null) {
+function optional(key, defaultValue = null) {
   const value = process.env[key]
 
   return value === undefined || value === ""
-          ? defaultValue
-          : value
+    ? defaultValue
+    : value
 }
 
 // [2026-08-02 13:57:32] 불린 작업
@@ -50,7 +50,7 @@ function requiredBoolean(key, defaultValue) {
 }
 
 // [2026-08-02 13:48:25] 숫자형 환경변수 세팅
-function requiredInt(key, defaultValue=undefined) {
+function requiredInt(key, defaultValue = undefined) {
   const value = required(key, defaultValue)
   const result = Number(value)
   if (!Number.isInteger(result)) {
@@ -73,17 +73,11 @@ export const env = {
   },
 
   database: {
-    host: required("DATABASE_HOST", "127.0.0.1"),
-    port: requiredInt("DATABASE_PORT", 5432),
-    name: required("DATABASE_NAME"),
-    user: required("DATABASE_USER"),
-    password: required("DATABASE_PASSWORD"),
+    url: required("DATABASE_URL"),
   },
 
   redis: {
-    host: required("REDIS_HOST", "127.0.0.1"),
-    port: requiredInt("REDIS_PORT", 6379),
-    password: required("REDIS_PASSWORD"), 
+    url: required("REDIS_URL"),
   },
 
   jwt: {
@@ -114,6 +108,7 @@ export const env = {
     baseDir: required("UPLOAD_BASE_DIR", "uploads"),
     listingImageDir: required("UPLOAD_LISTING_IMG_DIR", "listings"),
     profileImageDir: required("UPLOAD_PROFILE_IMG_DIR", "profiles"),
+    chatImageDir: required("UPLOAD_CHAT_IMG_DIR", "chats"),
     maxSizeBytes: requiredInt("UPLOAD_MAX_SIZE_BYTES", 5242880),
   },
 
