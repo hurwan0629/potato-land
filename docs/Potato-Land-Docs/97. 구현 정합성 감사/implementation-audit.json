@@ -1,0 +1,699 @@
+{
+  "repository": "hurwan0629/potato-land",
+  "branch": "integration/hurwan/team-merge",
+  "commit": "061e78c2bcd039191277b211a51fd08bb1669feb",
+  "audit_date": "2026-08-05",
+  "metrics": {
+    "expected_business_endpoints": 68,
+    "executable": 33,
+    "executable_percent": 48.5,
+    "full_static": 4,
+    "partial": 29,
+    "non_executable": 35,
+    "doc_equivalent": 18.5,
+    "doc_equivalent_percent": 27.2,
+    "health_endpoint": "implemented"
+  },
+  "endpoints": [
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/signup",
+      "purpose": "회원가입",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#signup",
+      "chain": "app.js → apiRouter → authRouter → asyncHandler(signup) → validateSignup → signupUser → Redis 가입 인증 확인 → 중복 조회 → bcrypt → DB transaction(createUser) → 201",
+      "issue": "기능은 동작하나 문서 오류 코드·응답 DTO 일부 불일치."
+    },
+    {
+      "domain": "인증",
+      "method": "GET",
+      "url": "/api/auth/check-id",
+      "purpose": "아이디 중복 확인",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#checkLoginId",
+      "chain": "app.js → apiRouter → authRouter → checkLoginId → validateLoginId → checkLoginIdAvailability → auth.repository.findUserByLoginId → 200",
+      "issue": "실행 가능. 문서와 세부 오류 코드/메시지 정합성은 완전하지 않음."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/phone/send",
+      "purpose": "SMS 인증번호 발송",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#sendPhoneCode",
+      "chain": "app.js → apiRouter → authRouter → sendPhoneCode → validatePhoneSend → sendPhoneVerification → Redis cooldown/rate-limit → SMS provider → Redis code 저장 → 200",
+      "issue": "인증번호와 SMS 본문이 로그에 평문 노출됨. 응답 DTO도 문서와 다름."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/phone/verify",
+      "purpose": "SMS 인증번호 검증",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#verifyPhoneCode",
+      "chain": "app.js → apiRouter → authRouter → verifyPhoneCode → validatePhoneVerify → verifyPhoneVerification → Redis code 비교/시도 횟수 → verified proof 저장 → 200",
+      "issue": "문서의 phone/purpose 반환 계약과 차이."
+    },
+    {
+      "domain": "인증",
+      "method": "GET",
+      "url": "/api/auth/phone/status",
+      "purpose": "전화번호 인증 상태 조회",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#getPhoneStatus",
+      "chain": "app.js → apiRouter → authRouter → getPhoneStatus → validate query → getPhoneVerificationStatus → Redis proof 조회 → 200",
+      "issue": "문서상 없는 인증은 404인데 구현은 false 응답 가능."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/login",
+      "purpose": "로그인",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#login",
+      "chain": "app.js → apiRouter → authRouter → login → validateLogin → loginUser → DB 사용자/정지 상태 확인 → bcrypt → JWT 발급 → Redis session 저장 → 쿠키 설정 → 200",
+      "issue": "기능은 구현됐으나 전체 인증 계층이 이중화되어 도메인별 차단 결과가 다를 수 있음."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/refresh",
+      "purpose": "Access Token 재발급",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#refresh",
+      "chain": "app.js → apiRouter → authRouter → refresh → refresh 쿠키 확인 → refreshLoginSession → JWT 검증 → Redis session 확인/rotation → 새 쿠키 설정 → 200",
+      "issue": "구현됨. 문서 오류 응답과 세션 정책의 세부 차이 가능."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/refresh/logout",
+      "purpose": "현재 세션 로그아웃",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#logout",
+      "chain": "app.js → apiRouter → authRouter → logout → refresh token 해석 → Redis session 삭제 → access/refresh 쿠키 삭제 → 200",
+      "issue": "구현됨. 라우트 명세 외 세션 API가 추가되어 문서 개수가 오래됨."
+    },
+    {
+      "domain": "인증",
+      "method": "GET",
+      "url": "/api/auth/me",
+      "purpose": "현재 인증 사용자 조회",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#getMe",
+      "chain": "app.js → apiRouter → authRouter → requireAuth(JWT-only) → getMe → getAuthenticatedUser → DB 사용자 조회 → 200",
+      "issue": "미들웨어 자체는 DB 상태를 확인하지 않고 서비스가 보완함."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/find-id",
+      "purpose": "아이디 찾기",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#findLoginId",
+      "chain": "app.js → apiRouter → authRouter → findLoginId → validate → findLoginIdByPhone → Redis FIND_ID proof 소비 → DB 조회 → 200",
+      "issue": "기능 구현. 문서 DTO/오류 코드 세부 차이."
+    },
+    {
+      "domain": "인증",
+      "method": "POST",
+      "url": "/api/auth/password/reset",
+      "purpose": "비밀번호 재설정",
+      "status": "partial",
+      "location": "backend/src/modules/auth/auth.router.js → auth.controller.js#resetPassword",
+      "chain": "app.js → apiRouter → authRouter → resetPassword → validate → resetUserPassword → Redis RESET_PASSWORD proof 소비 → bcrypt → DB password update → 세션 정리 → 200",
+      "issue": "기능 구현. 요청/오류 계약 일부 차이."
+    },
+    {
+      "domain": "사용자",
+      "method": "GET",
+      "url": "/api/users/:userIdx/profile",
+      "purpose": "외부 프로필 조회",
+      "status": "stub",
+      "location": "backend/src/modules/users/users.router.js → users.controller.js#getPublicProfile",
+      "chain": "app.js → apiRouter → usersRouter → getPublicProfile → notImplemented → 501",
+      "issue": "명시적 501."
+    },
+    {
+      "domain": "사용자",
+      "method": "GET",
+      "url": "/api/users/me",
+      "purpose": "내 정보 조회",
+      "status": "partial",
+      "location": "backend/src/modules/users/users.router.js → users.controller.js#getMe",
+      "chain": "app.js → apiRouter → usersRouter → requireAuth(JWT-only) → getMe → users.service.getMyProfile → repository → DB → 200",
+      "issue": "bio·거래 횟수·평점·리뷰 수 등 문서 DTO 누락."
+    },
+    {
+      "domain": "사용자",
+      "method": "PATCH",
+      "url": "/api/users/me/profile",
+      "purpose": "프로필 이미지 수정",
+      "status": "stub",
+      "location": "backend/src/modules/users/users.router.js → users.controller.js#updateMyProfile",
+      "chain": "app.js → apiRouter → usersRouter → requireAuth → updateMyProfile → notImplemented → 501",
+      "issue": "파일 업로드 흐름 미구현."
+    },
+    {
+      "domain": "사용자",
+      "method": "POST",
+      "url": "/api/users/me/verify-password",
+      "purpose": "회원정보 수정 전 비밀번호 확인",
+      "status": "partial",
+      "location": "backend/src/modules/users/users.router.js → users.controller.js#verifyMyPassword",
+      "chain": "app.js → apiRouter → usersRouter → requireAuth → verifyMyPassword → validate → users.service.verifyPassword → bcrypt → Redis editToken 저장 → 200",
+      "issue": "문서의 verificationToken 대신 editToken 사용."
+    },
+    {
+      "domain": "사용자",
+      "method": "PATCH",
+      "url": "/api/users/me",
+      "purpose": "회원정보 수정",
+      "status": "partial",
+      "location": "backend/src/modules/users/users.router.js → users.controller.js#updateMyAccount",
+      "chain": "app.js → apiRouter → usersRouter → requireAuth → updateMyAccount → validate → Redis editToken 검증 → 중복 확인 → 선택 필드 DB update → 200",
+      "issue": "문서의 verificationToken/newPassword와 구현 editToken/password가 다름."
+    },
+    {
+      "domain": "사용자",
+      "method": "DELETE",
+      "url": "/api/users/me",
+      "purpose": "회원 탈퇴",
+      "status": "partial",
+      "location": "backend/src/modules/users/users.router.js → users.controller.js#deleteMyAccount",
+      "chain": "app.js → apiRouter → usersRouter → requireAuth → deleteMyAccount → Redis editToken 확인 → users soft delete → 전체 세션 삭제 → 쿠키 삭제 → 200",
+      "issue": "문서가 요구한 비밀번호 확인·게시글/경매/거래/알림/타이머 연쇄 정리가 없음."
+    },
+    {
+      "domain": "메인",
+      "method": "GET",
+      "url": "/api/main",
+      "purpose": "메인 목록",
+      "status": "stub",
+      "location": "backend/src/modules/main/main.router.js → main.controller.js#getMain",
+      "chain": "app.js → apiRouter → mainRouter → getMain → notImplemented → 501",
+      "issue": "명시적 501."
+    },
+    {
+      "domain": "메인",
+      "method": "GET",
+      "url": "/api/categories",
+      "purpose": "카테고리 조회",
+      "status": "stub",
+      "location": "backend/src/modules/main/main.router.js → main.controller.js#getCategories",
+      "chain": "app.js → apiRouter → categories mount → getCategories → notImplemented → 501",
+      "issue": "seed는 있으나 조회 API는 501."
+    },
+    {
+      "domain": "중고거래",
+      "method": "GET",
+      "url": "/api/used",
+      "purpose": "중고 목록",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#listUsed",
+      "chain": "app.js → apiRouter → usedRouter → listUsed → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "중고거래",
+      "method": "POST",
+      "url": "/api/used",
+      "purpose": "중고 등록",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#createUsed",
+      "chain": "app.js → apiRouter → usedRouter → createUsed → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "중고거래",
+      "method": "GET",
+      "url": "/api/used/:listingIdx",
+      "purpose": "중고 상세",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#getUsedDetail",
+      "chain": "app.js → apiRouter → usedRouter → getUsedDetail → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "중고거래",
+      "method": "PATCH",
+      "url": "/api/used/:listingIdx",
+      "purpose": "중고 수정",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#updateUsed",
+      "chain": "app.js → apiRouter → usedRouter → updateUsed → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "중고거래",
+      "method": "DELETE",
+      "url": "/api/used/:listingIdx",
+      "purpose": "중고 삭제",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#deleteUsed",
+      "chain": "app.js → apiRouter → usedRouter → deleteUsed → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "중고거래",
+      "method": "POST",
+      "url": "/api/used/:listingIdx/favorite",
+      "purpose": "관심 추가",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#addFavorite",
+      "chain": "app.js → apiRouter → usedRouter → addFavorite → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "중고거래",
+      "method": "DELETE",
+      "url": "/api/used/:listingIdx/favorite",
+      "purpose": "관심 해제",
+      "status": "stub",
+      "location": "backend/src/modules/used/used.router.js → used.controller.js#removeFavorite",
+      "chain": "app.js → apiRouter → usedRouter → removeFavorite → notImplemented → 501",
+      "issue": "라우트는 존재하지만 실제 로직·인증·DB 작업 없음."
+    },
+    {
+      "domain": "경매",
+      "method": "GET",
+      "url": "/api/auctions",
+      "purpose": "경매 목록",
+      "status": "partial",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#listAuctions",
+      "chain": "app.js → apiRouter → auctionsRouter → listAuctions → validate query → auctions.service.listAuctions → repository SQL → DTO → 200",
+      "issue": "optional auth 없음. hasMyBid/myBidAmount를 고정값으로 반환."
+    },
+    {
+      "domain": "경매",
+      "method": "POST",
+      "url": "/api/auctions",
+      "purpose": "경매 등록",
+      "status": "partial",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#createAuction",
+      "chain": "app.js → apiRouter → auctionsRouter → requireAuth(JWT-only) → createAuction → validate → service → DB transaction(listing/auction/images) → timer schedule → 201",
+      "issue": "multer 미들웨어가 없어 req.files가 실제로 채워지지 않음. 이미지 URL prefix도 잘못됨."
+    },
+    {
+      "domain": "경매",
+      "method": "GET",
+      "url": "/api/auctions/:listingIdx",
+      "purpose": "경매 상세",
+      "status": "partial",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#getAuctionDetail",
+      "chain": "app.js → apiRouter → auctionsRouter → getAuctionDetail → validate id → service → repository SQL/view count → DTO → 200",
+      "issue": "seller rating/reviewCount/isFavorite를 고정값으로 반환."
+    },
+    {
+      "domain": "경매",
+      "method": "PATCH",
+      "url": "/api/auctions/:listingIdx",
+      "purpose": "경매 수정",
+      "status": "partial",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#updateAuction",
+      "chain": "app.js → apiRouter → auctionsRouter → requireAuth → updateAuction → validate → owner/state check → DB transaction → timer reschedule → 200",
+      "issue": "파일 업로드 미들웨어 없음. 문서의 수정 가능 조건·부수효과 일부 누락."
+    },
+    {
+      "domain": "경매",
+      "method": "DELETE",
+      "url": "/api/auctions/:listingIdx",
+      "purpose": "경매 삭제",
+      "status": "partial",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#deleteAuction",
+      "chain": "app.js → apiRouter → auctionsRouter → requireAuth → deleteAuction → owner/state check → soft delete → timer cancel → Redis key delete → 200",
+      "issue": "입찰자 알림/최고 입찰자 재계산 없음. 문서에 없는 Redis bidders key 사용."
+    },
+    {
+      "domain": "경매",
+      "method": "POST",
+      "url": "/api/auctions/:listingIdx/bids",
+      "purpose": "입찰",
+      "status": "stub",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#createBid",
+      "chain": "app.js → apiRouter → auctionsRouter → requireAuth → createBid → notImplemented → 501",
+      "issue": "경매 핵심 기능 미구현."
+    },
+    {
+      "domain": "경매",
+      "method": "GET",
+      "url": "/api/auctions/:listingIdx/bids",
+      "purpose": "입찰 목록",
+      "status": "stub",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#listBids",
+      "chain": "app.js → apiRouter → auctionsRouter → listBids → notImplemented → 501",
+      "issue": "명시적 501."
+    },
+    {
+      "domain": "경매",
+      "method": "POST",
+      "url": "/api/auctions/:listingIdx/favorite",
+      "purpose": "경매 관심 추가",
+      "status": "stub",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#addFavorite",
+      "chain": "app.js → apiRouter → auctionsRouter → requireAuth → addFavorite → notImplemented → 501",
+      "issue": "명시적 501."
+    },
+    {
+      "domain": "경매",
+      "method": "DELETE",
+      "url": "/api/auctions/:listingIdx/favorite",
+      "purpose": "경매 관심 해제",
+      "status": "stub",
+      "location": "backend/src/modules/auctions/auctions.router.js → auctions.controller.js#removeFavorite",
+      "chain": "app.js → apiRouter → auctionsRouter → requireAuth → removeFavorite → notImplemented → 501",
+      "issue": "명시적 501."
+    },
+    {
+      "domain": "채팅",
+      "method": "GET",
+      "url": "/api/chats",
+      "purpose": "채팅방 목록",
+      "status": "partial",
+      "location": "backend/src/modules/chats/chats.router.js → chats.controller.js#listChats",
+      "chain": "app.js → apiRouter → chatsRouter → DB-validating requireAuth → listChats → pagination/q validation → SQL + unread subquery → DTO → 200",
+      "issue": "실행 가능. DTO·검색 계약을 문서와 완전히 검증하지 못함."
+    },
+    {
+      "domain": "채팅",
+      "method": "POST",
+      "url": "/api/chats",
+      "purpose": "채팅방 생성",
+      "status": "partial",
+      "location": "backend/src/modules/chats/chats.router.js → chats.controller.js#createChat",
+      "chain": "app.js → apiRouter → chatsRouter → requireAuth → createChat → chats.service.createChatRoom → DB transaction/upsert → notification 저장 → Socket room:new → 200",
+      "issue": "문서의 상세 응답 DTO보다 축약됨."
+    },
+    {
+      "domain": "채팅",
+      "method": "GET",
+      "url": "/api/chats/:chatRoomIdx",
+      "purpose": "채팅방 상세",
+      "status": "partial",
+      "location": "backend/src/modules/chats/chats.router.js → chats.controller.js#getChatDetail",
+      "chain": "app.js → apiRouter → chatsRouter → requireAuth → getChatDetail → 참가자 검증 → unread count → toChatDetail → 200",
+      "issue": "HTTP 조회 자체는 읽음 처리하지 않으며 Socket join에 의존."
+    },
+    {
+      "domain": "채팅",
+      "method": "GET",
+      "url": "/api/chats/:chatRoomIdx/messages",
+      "purpose": "메시지 목록",
+      "status": "partial",
+      "location": "backend/src/modules/chats/chats.router.js → chats.controller.js#listChatMessages",
+      "chain": "app.js → apiRouter → chatsRouter → requireAuth → listChatMessages → 참가자 검증 → SQL pagination → DTO → 200",
+      "issue": "실행 가능. 통합 테스트 없음."
+    },
+    {
+      "domain": "채팅",
+      "method": "POST",
+      "url": "/api/chats/:chatRoomIdx/messages/images",
+      "purpose": "이미지 메시지",
+      "status": "partial",
+      "location": "backend/src/modules/chats/chats.router.js → chat.upload.js#chatImageUpload → chats.controller.js#uploadChatImageMessage",
+      "chain": "app.js → apiRouter → chatsRouter → requireAuth → multer → uploadChatImageMessage → service.createImageMessages → DB transaction → Socket/notification → 201",
+      "issue": "저장 URL은 /resources인데 Express는 /uploads를 제공하여 실제 접근 경로가 깨짐."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "POST",
+      "url": "/api/transactions/payment-requests",
+      "purpose": "송금 요청",
+      "status": "partial",
+      "location": "backend/src/modules/transactions/transactions.router.js → transactions.controller.js#createPaymentRequest",
+      "chain": "app.js → apiRouter → transactionsRouter → DB-validating requireAuth → createPaymentRequest → DB transaction(lock/validate/insert transaction+message+notification) → commit → Socket/notification → 201",
+      "issue": "구현됨. controller에 SQL/도메인/전파가 집중됨."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "GET",
+      "url": "/api/transactions/:transactionIdx",
+      "purpose": "거래 상세",
+      "status": "partial",
+      "location": "backend/src/modules/transactions/transactions.router.js → transactions.controller.js#getTransaction",
+      "chain": "app.js → apiRouter → transactionsRouter → requireAuth → getTransaction → participant query → DTO → 200",
+      "issue": "카테고리와 실제 평점·리뷰 집계 등 문서 DTO 일부 누락."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "PATCH",
+      "url": "/api/transactions/:transactionIdx/complete",
+      "purpose": "거래 완료",
+      "status": "partial",
+      "location": "backend/src/modules/transactions/transactions.router.js → transactions.controller.js#completeTransaction",
+      "chain": "app.js → apiRouter → transactionsRouter → requireAuth → completeTransaction → DB transaction(lock/status/participant/update listing+transaction+system message+notification) → commit → Socket/notification → 200",
+      "issue": "핵심 부수효과는 존재하나 서비스/저장소 분리와 계약 테스트 없음."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "PATCH",
+      "url": "/api/transactions/:transactionIdx/cancel",
+      "purpose": "거래 취소",
+      "status": "partial",
+      "location": "backend/src/modules/transactions/transactions.router.js → transactions.controller.js#cancelTransaction",
+      "chain": "app.js → apiRouter → transactionsRouter → requireAuth → cancelTransaction → DB transaction(lock/status/update/message/notification) → commit → Socket/notification → 200",
+      "issue": "핵심 부수효과는 존재하나 문서 세부 계약 완전 검증 필요."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "GET",
+      "url": "/api/reviews/tags",
+      "purpose": "후기 태그 목록",
+      "status": "missing",
+      "location": "라우트 없음",
+      "chain": "app.js → apiRouter → reviewsRouter에서 일치 라우트 없음 → notFound middleware → 404",
+      "issue": "라우트와 DB 태그 테이블 모두 없음."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "POST",
+      "url": "/api/reviews",
+      "purpose": "후기 작성",
+      "status": "stub",
+      "location": "backend/src/modules/reviews/reviews.router.js → reviews.controller.js#createReview",
+      "chain": "app.js → apiRouter → reviewsRouter → createReview → notImplemented → 501",
+      "issue": "명시적 501. 라우터 인증도 없음."
+    },
+    {
+      "domain": "거래·후기",
+      "method": "GET",
+      "url": "/api/users/:userIdx/reviews",
+      "purpose": "사용자 후기 목록",
+      "status": "missing",
+      "location": "기대 URL 없음; 실제 /api/reviews/users/:userIdx",
+      "chain": "app.js → apiRouter → usersRouter에서 일치 라우트 없음 → notFound → 404",
+      "issue": "잘못된 actual URL도 reviews.controller#getUserReviews에서 501."
+    },
+    {
+      "domain": "마이페이지",
+      "method": "GET",
+      "url": "/api/mypage/me/listings",
+      "purpose": "내 판매글",
+      "status": "stub",
+      "location": "backend/src/modules/mypage/mypage.router.js → mypage.controller.js#getMyListings",
+      "chain": "app.js → apiRouter → mypageRouter → getMyListings → notImplemented → 501",
+      "issue": "라우트는 있으나 인증·DB 로직 없이 501."
+    },
+    {
+      "domain": "마이페이지",
+      "method": "GET",
+      "url": "/api/mypage/me/favorites",
+      "purpose": "관심 목록",
+      "status": "stub",
+      "location": "backend/src/modules/mypage/mypage.router.js → mypage.controller.js#getMyFavorites",
+      "chain": "app.js → apiRouter → mypageRouter → getMyFavorites → notImplemented → 501",
+      "issue": "라우트는 있으나 인증·DB 로직 없이 501."
+    },
+    {
+      "domain": "마이페이지",
+      "method": "GET",
+      "url": "/api/mypage/me/history",
+      "purpose": "거래 내역",
+      "status": "stub",
+      "location": "backend/src/modules/mypage/mypage.router.js → mypage.controller.js#getMyHistory",
+      "chain": "app.js → apiRouter → mypageRouter → getMyHistory → notImplemented → 501",
+      "issue": "라우트는 있으나 인증·DB 로직 없이 501."
+    },
+    {
+      "domain": "마이페이지",
+      "method": "GET",
+      "url": "/api/mypage/me/reviews",
+      "purpose": "내 후기",
+      "status": "stub",
+      "location": "backend/src/modules/mypage/mypage.router.js → mypage.controller.js#getMyReviews",
+      "chain": "app.js → apiRouter → mypageRouter → getMyReviews → notImplemented → 501",
+      "issue": "라우트는 있으나 인증·DB 로직 없이 501."
+    },
+    {
+      "domain": "마이페이지",
+      "method": "GET",
+      "url": "/api/mypage/:userIdx/listings",
+      "purpose": "외부 사용자 판매글",
+      "status": "stub",
+      "location": "backend/src/modules/mypage/mypage.router.js → mypage.controller.js#getUserListings",
+      "chain": "app.js → apiRouter → mypageRouter → getUserListings → notImplemented → 501",
+      "issue": "라우트는 있으나 인증·DB 로직 없이 501."
+    },
+    {
+      "domain": "알림",
+      "method": "GET",
+      "url": "/api/notifications",
+      "purpose": "알림 목록",
+      "status": "full",
+      "location": "backend/src/modules/notifications/notifications.router.js → notifications.controller.js#listNotifications",
+      "chain": "app.js → apiRouter → notificationsRouter → DB-validating requireAuth → listNotifications → pagination/unreadOnly validation → SQL/count → normalize → 200",
+      "issue": "정적 검토상 문서 핵심 계약 충족. supportedNotificationTypes 추가 필드는 비파괴적."
+    },
+    {
+      "domain": "알림",
+      "method": "PATCH",
+      "url": "/api/notifications/:notificationIdx/read",
+      "purpose": "단건 읽음",
+      "status": "full",
+      "location": "backend/src/modules/notifications/notifications.router.js → notifications.controller.js#readNotification",
+      "chain": "app.js → apiRouter → notificationsRouter → requireAuth → readNotification → DB transaction(owner check/update read_at) → commit → unread-count Socket → 200",
+      "issue": "정적 검토상 문서 핵심 계약 충족."
+    },
+    {
+      "domain": "알림",
+      "method": "PATCH",
+      "url": "/api/notifications/read-all",
+      "purpose": "전체 읽음",
+      "status": "full",
+      "location": "backend/src/modules/notifications/notifications.router.js → notifications.controller.js#readAllNotifications",
+      "chain": "app.js → apiRouter → notificationsRouter → requireAuth → readAllNotifications → DB transaction(update all) → commit → unread-count Socket → 200",
+      "issue": "정적 검토상 문서 핵심 계약 충족."
+    },
+    {
+      "domain": "알림",
+      "method": "GET",
+      "url": "/api/notifications/unread-count",
+      "purpose": "미확인 개수",
+      "status": "full",
+      "location": "backend/src/modules/notifications/notifications.router.js → notifications.controller.js#getUnreadNotificationCount",
+      "chain": "app.js → apiRouter → notificationsRouter → requireAuth → getUnreadNotificationCount → service SQL → 200",
+      "issue": "정적 검토상 문서 핵심 계약 충족."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/dashboard",
+      "purpose": "대시보드",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#getDashboard",
+      "chain": "app.js → apiRouter → adminRouter → getDashboard → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/users",
+      "purpose": "사용자 목록",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#listUsers",
+      "chain": "app.js → apiRouter → adminRouter → listUsers → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/users/:userIdx",
+      "purpose": "사용자 상세",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#getUserDetail",
+      "chain": "app.js → apiRouter → adminRouter → getUserDetail → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/users/:userIdx/transactions",
+      "purpose": "사용자 거래",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#getUserTransactions",
+      "chain": "app.js → apiRouter → adminRouter → getUserTransactions → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/users/:userIdx/reviews",
+      "purpose": "사용자 후기",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#getUserReviews",
+      "chain": "app.js → apiRouter → adminRouter → getUserReviews → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "PATCH",
+      "url": "/api/admin/users/:userIdx/ban",
+      "purpose": "영구정지",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#banUser",
+      "chain": "app.js → apiRouter → adminRouter → banUser → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "PATCH",
+      "url": "/api/admin/users/:userIdx/memo",
+      "purpose": "관리자 메모",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#updateUserMemo",
+      "chain": "app.js → apiRouter → adminRouter → updateUserMemo → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/used",
+      "purpose": "중고 관리 목록",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#listUsed",
+      "chain": "app.js → apiRouter → adminRouter → listUsed → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "DELETE",
+      "url": "/api/admin/used/:listingIdx",
+      "purpose": "중고 강제 삭제",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#deleteUsed",
+      "chain": "app.js → apiRouter → adminRouter → deleteUsed → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/auctions",
+      "purpose": "경매 관리 목록",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#listAuctions",
+      "chain": "app.js → apiRouter → adminRouter → listAuctions → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "DELETE",
+      "url": "/api/admin/auctions/:listingIdx",
+      "purpose": "경매 강제 삭제",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#deleteAuction",
+      "chain": "app.js → apiRouter → adminRouter → deleteAuction → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    },
+    {
+      "domain": "관리자",
+      "method": "GET",
+      "url": "/api/admin/auctions/winners",
+      "purpose": "낙찰자 목록",
+      "status": "stub",
+      "location": "backend/src/modules/admin/admin.router.js → admin.controller.js#listAuctionWinners",
+      "chain": "app.js → apiRouter → adminRouter → listAuctionWinners → notImplemented → 501",
+      "issue": "명시적 501이며 관리자 인증/role 미들웨어도 없음."
+    }
+  ]
+}
