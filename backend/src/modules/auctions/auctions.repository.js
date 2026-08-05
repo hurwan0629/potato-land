@@ -101,7 +101,15 @@ export async function finalizeAuctionRecord(listingIdx){
     const sellerType=winner?"AUCTION_ENDED":"AUCTION_ENDED_WITHOUT_BID";
     const sellerMessage=winner?"경매가 종료되어 낙찰자가 결정되었습니다.":"입찰 없이 경매가 종료되었습니다.";
     const sellerNotification=await client.query(`INSERT INTO notifications(receiver_idx,notification_type,reference_type,reference_idx,content) VALUES($1,$2,'AUCTION',$3,$4) RETURNING *`,[auction.seller_idx,sellerType,listingIdx,sellerMessage]);notifications.push(sellerNotification.rows[0]);
-    if(winner){const won=await client.query(`INSERT INTO notifications(receiver_idx,notification_type,reference_type,reference_idx,content) VALUES($1,'AUCTION_WON','AUCTION',$2,'경매에 낙찰되었습니다.') RETURNING *`,[winner.bidder_idx,listingIdx]);notifications.push(won.rows[0]);}
+    if(winner){
+      const won=await client.query(`INSERT INTO notifications(receiver_idx,notification_type,reference_type,reference_idx,content) VALUES($1,'AUCTION_WON','AUCTION',$2,'경매에 낙찰되었습니다.') RETURNING *`,[winner.bidder_idx,listingIdx]);
+      notifications.push(won.rows[0]);
+      const losingBidders=await client.query(`SELECT DISTINCT bidder_idx FROM auction_bids WHERE listing_idx=$1 AND bidder_idx<>$2`,[listingIdx,winner.bidder_idx]);
+      for(const bidder of losingBidders.rows){
+        const ended=await client.query(`INSERT INTO notifications(receiver_idx,notification_type,reference_type,reference_idx,content) VALUES($1,'AUCTION_ENDED','AUCTION',$2,'참여한 경매가 종료되었습니다.') RETURNING *`,[bidder.bidder_idx,listingIdx]);
+        notifications.push(ended.rows[0]);
+      }
+    }
     return{winner,transaction,notifications,endedAt:new Date()};
   });
 }

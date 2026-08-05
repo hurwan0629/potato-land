@@ -36,7 +36,7 @@ export async function deleteAuction(user,listingIdxValue,body){const listingIdx=
 
 /** 1. DB 행 잠금으로 입찰 순서를 직렬화한다. 2. commit 후 Redis cache를 갱신한다. 3. 경매방과 이전 최고 입찰자에게 Socket을 보낸다. */
 export async function createAuctionBid(userIdx,listingIdxValue,body={}){const listingIdx=validateListingIdx(listingIdxValue),bidAmount=validateBidAmount(body.bidAmount);const result=await insertBid({listingIdx,bidderIdx:userIdx,bidAmount});const failures={NOT_FOUND:[404,"NOT_FOUND","경매를 찾을 수 없습니다."],CLOSED:[409,"AUCTION_CLOSED","종료된 경매입니다."],OWNER:[403,"FORBIDDEN","판매자는 본인 경매에 입찰할 수 없습니다."]};if(result.failure){if(result.failure==="TOO_LOW")throw new AppError({status:409,code:"BID_TOO_LOW",message:"최소 입찰가 이상으로 입찰해주세요.",details:{minimumBidAmount:result.minimum}});const[status,code,message]=failures[result.failure];throw new AppError({status,code,message});}
-  await writeBidCache(listingIdx,userIdx,bidAmount,{currentPrice:result.currentPrice,minNextBid:result.minimumNextBid});
+  await writeBidCache(listingIdx,userIdx,bidAmount,{currentPrice:result.currentPrice,minNextBid:result.minimumNextBid,highestBidderIdx:Number(userIdx),status:"ON_GOING"});
   const payload={listingIdx,bidIdx:Number(result.bid.idx),bidderIdx:Number(userIdx),bidAmount,currentPrice:result.currentPrice,minNextBid:result.minimumNextBid,createdAt:result.bid.created_at};
   emitSafely("입찰 갱신",()=>emitAuctionBidUpdated(listingIdx,payload),{listingIdx});
   emitSafely("최고 입찰자 갱신",()=>emitAuctionLeaderChanged(listingIdx,{listingIdx,highestBidderIdx:Number(userIdx),currentPrice:result.currentPrice}),{listingIdx});
