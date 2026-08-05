@@ -1,0 +1,79 @@
+.favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .favorite-card {
+    cursor: pointer;
+  }
+  
+  .favorite-thumbnail {
+    width: 100%;
+    aspect-ratio: 1 / 0.85;
+    border-radius: 10px;
+    background: #EAD9B0;
+    margin-bottom: 8px;
+  }
+  
+  .favorite-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+  
+  .favorite-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #33291f;
+  }
+  
+  .favorite-tag {
+    flex: 0 0 auto;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+  }
+  
+  .favorite-tag-used {
+    background: #E3F2E1;
+    color: #4C8A4C;
+  }
+  
+  .favorite-tag-auction {
+    background: #EAE3F8;
+    color: #7B5FB5;
+  }
+  
+  .favorite-price {
+    font-size: 14px;
+    font-weight: 800;
+    color: #33291f;
+    margin: 0 0 4px;
+  }
+  
+  .favorite-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #b3a894;
+  }
+  
+  .favorite-likes {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: #d64545;
+  }
+  
+  @media (max-width: 900px) {
+    .favorites-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  

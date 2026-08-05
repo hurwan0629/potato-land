@@ -1,0 +1,86 @@
+.reviews-filters {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid #f1e3cf;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.review-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #f1e3cf;
+  border-radius: 12px;
+}
+
+.review-avatar {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #F5B039;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.review-nickname {
+  font-size: 14px;
+  font-weight: 800;
+  color: #33291f;
+}
+
+.review-item {
+  font-size: 13px;
+  color: #7b716a;
+}
+
+.review-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.review-tag-sell {
+  background: #E3F2E1;
+  color: #4C8A4C;
+}
+
+.review-tag-buy {
+  background: #EAE3F8;
+  color: #7B5FB5;
+}
+
+.review-date {
+  margin-left: auto;
+  font-size: 12px;
+  color: #b3a894;
+}
+
+.review-content {
+  font-size: 13px;
+  color: #9a8f7f;
+  margin: 6px 0 0;
+}

@@ -1,0 +1,139 @@
+.admin-search-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-search-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #eadfc9;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #fff;
+  color: #9a8f7f;
+}
+
+.admin-search-input input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 14px;
+  color: #33291f;
+}
+
+.admin-search-btn {
+  border: none;
+  background: #5c3a21;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-table-wrap {
+  background: #fff;
+  border: 1px solid #f1e3cf;
+  border-radius: 16px;
+  overflow: visible;
+  margin-bottom: 16px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  text-align: left;
+  font-size: 12px;
+  color: #9a8f7f;
+  font-weight: 700;
+  padding: 16px 14px;
+  border-bottom: 1px solid #f1e3cf;
+}
+
+.admin-table td {
+  padding: 14px;
+  font-size: 13px;
+  color: #33291f;
+  border-bottom: 1px solid #f6efe0;
+  position: relative;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.col-checkbox {
+  width: 32px;
+}
+
+.admin-product-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.admin-thumbnail {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #eddcb0;
+  flex: 0 0 36px;
+}
+
+.admin-status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.status-yellow { background: #faf1cf; color: #b28b1f; }
+.status-gray { background: #eee9e0; color: #9a8f7f; }
+
+.admin-icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #5c534a;
+  display: inline-flex;
+}
+
+.admin-manage-cell {
+  overflow: visible;
+}
+
+.admin-row-menu {
+  position: absolute;
+  right: 14px;
+  top: 44px;
+  background: #fff;
+  border: 1px solid #eadfc9;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  min-width: 100px;
+}
+
+.admin-row-menu-item {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-row-menu-item.danger {
+  color: #d64545;
+}

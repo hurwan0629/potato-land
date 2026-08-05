@@ -18,4 +18,4 @@ usersRouter.post("/me/verify-password", verifyMyPassword);
 usersRouter.patch("/me", updateMe);
 usersRouter.delete("/me", withdrawMe);
 usersRouter.get("/:userIdx/profile", getUserProfile);
-usersRouter.get("/users/:userIdx/reviews", listUserReviews);
+usersRouter.get("/:userIdx/reviews", listUserReviews);

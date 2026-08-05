@@ -1,0 +1,77 @@
+.listing-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.listing-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 160px 110px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #f1e3cf;
+  border-radius: 12px;
+}
+
+.listing-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.listing-thumbnail {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: #d9d3f5;
+  background-size: cover;
+  background-position: center;
+}
+
+.listing-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #33291f;
+  margin: 0 0 2px;
+}
+
+.listing-price {
+  font-size: 12px;
+  color: #d99a35;
+  font-weight: 700;
+  margin: 0;
+}
+
+.listing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.listing-badge-sold {
+  background: #E3F2E1;
+  color: #4C8A4C;
+}
+
+.listing-badge-onsale {
+  background: #e5e9f5;
+  color: #5c7cba;
+}
+
+.listing-badge-auction {
+  background: #EAE3F8;
+  color: #7B5FB5;
+}
+
+.listing-status-date {
+  font-size: 13px;
+  color: #7b716a;
+}

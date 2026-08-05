@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import Input from "../components/input/Input";
 import Button from "../components/button/Button";
+import USER_ROLE from "../constants/userRole";
 import "./Login.css";
 
 export default function Login() {
@@ -24,7 +25,8 @@ export default function Login() {
       setError(result.message);
       return;
     }
-    navigate("/");
+
+    navigate(result.user?.role === USER_ROLE.ADMIN ? "/admin" : "/");
   };
 
   return (

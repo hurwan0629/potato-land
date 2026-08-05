@@ -130,6 +130,7 @@ export function AuthProvider({ children }) {
 
         return {
           ok: true,
+          user: DEV_MOCK_USER,
         }
       }
 
@@ -161,6 +162,7 @@ export function AuthProvider({ children }) {
 
         return {
           ok: true,
+          user: data.user,
         }
 
       } catch (error) {

@@ -1,21 +1,53 @@
-import { useParams } from "react-router";
-import SideMenu from "../../components/layout/sideMenu";
-// 사용할 api PATCH /api/users/me  /api/users/me/profile
+import { useNavigate } from "react-router";
+import { useAuth } from "../../context/AuthContext";
+import ProfileModal from "../../components/modal/profileModal";
 export default function EditProfilePage() {
-  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const menuItems = [
-    { to: `/mypage/${id}`, label: "내 정보" },
-    { to: `/mypage/${id}/edit`, label: "정보 수정" },
-  ];
+  // =========================
+  // 모달 닫기
+  // =========================
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+  // =========================
+  // 프로필 저장
+  // =========================
+
+  const handleSave = async (data) => {
+
+    try {
+
+      console.log(
+        "프로필 수정 데이터:",
+        data
+      );
+      /*
+        나중에 실제 API 연결
+
+        예:
+
+        await http.patch(
+          `/users/${user.id}`,
+          data
+        );
+      */
+      // 저장 완료 후 이전 페이지로 이동
+      navigate(-1);
+    } catch (error) {
+      console.error(
+        "프로필 수정 실패:",
+        error
+      )
+    }
+  }
   return (
-    <div style={{ display: "flex" }}>
-      <SideMenu items={menuItems} />
-      <div style={{ padding: 40, flex: 1 }}>
-        <h2>회원 정보 수정</h2>
-        <p>닉네임, 비밀번호, 연락처 등을 수정하는 폼이 들어갈 페이지입니다.</p>
-      </div>
-    </div>
-  );
+    <ProfileModal
+      user={user}
+      onSave={handleSave}
+      onClose={handleClose}
+    />
+  )
 }

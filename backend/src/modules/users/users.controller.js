@@ -1,8 +1,85 @@
 import { notImplemented } from "../../common/utils/notImplemented.js";
+import { query } from "../../infrastructure/database/database.js";
+import { AppError } from "../../common/errors/AppError.js";
 
-export function getUserProfile(req, res) {
-  // TODO: 대상 사용자의 공개 프로필, 완료 판매/구매 수, 평균 평점, 받은 후기 수를 조회하고 비활성 사용자 표시 정책을 적용한다.
-  return notImplemented(res, "사용자 공개 프로필 조회");
+export async function getUserProfile(req, res, next) {
+  const { userIdx } = req.params;
+  const targetIdx = Number(userIdx);
+
+  if (!Number.isInteger(targetIdx) || targetIdx <= 0) {
+    return next(
+      new AppError({
+        status: 400,
+        code: "INVALID_USER_IDX",
+        message: "유효하지 않은 사용자 ID입니다.",
+        details: {
+          userIdx,
+        },
+      }),
+    );
+  }
+
+  try {
+    const result = await query(
+      `
+      SELECT
+        u.idx AS "userIdx",
+        u.nickname AS "nickname",
+        u.profile_image AS "profileImageUrl",
+        u.bio AS "bio",
+
+        (SELECT COUNT(*) FROM transactions t WHERE t.seller_idx = u.idx AND t.status = 'COMPLETED') AS "sellCount",
+        (SELECT COUNT(*) FROM transactions t WHERE t.buyer_idx = u.idx AND t.status = 'COMPLETED') AS "buyCount",
+        (SELECT COALESCE(AVG(r.rating), 0) FROM reviews r WHERE r.reviewee_idx = u.idx) AS "averageRating",
+        (SELECT COUNT(*) FROM reviews r WHERE r.reviewee_idx = u.idx) AS "reviewCount"
+
+      FROM users u
+      WHERE u.idx = $1
+        AND u.deleted_at IS NULL
+        AND u.banned_at IS NULL
+      `,
+      [targetIdx],
+    )
+
+    if (result.rows.length === 0) {
+      return next(
+        new AppError({
+          status: 404,
+          code: "NOT_FOUND",
+          message: "사용자를 찾을 수 없습니다.",
+          details: {
+            userIdx,
+          },
+        }),
+      );
+    }
+
+    const row = result.rows[0]
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...row,
+        sellCount: Number(row.sellCount),
+        buyCount: Number(row.buyCount),
+        averageRating: Number(row.averageRating),
+        reviewCount: Number(row.reviewCount),
+      },
+    })
+  } catch (error) {
+    return next(
+      new AppError({
+        status: 500,
+        code: "GET_USER_PROFILE_FAILED",
+        message: "사용자 프로필을 조회하는 중 오류가 발생했습니다.",
+        cause: error,
+        expose: false,
+        details: {
+          userIdx,
+        },
+      }),
+    )
+  }
 }
 
 export function getMyProfile(req, res) {

@@ -1,0 +1,237 @@
+.admin-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-back-btn {
+  border: 1px solid #eadfc9;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #5c534a;
+  cursor: pointer;
+  height: fit-content;
+}
+
+.detail-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #f1e3cf;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.detail-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #eab54f;
+  color: #5c3a21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 64px;
+}
+
+.detail-profile-name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.detail-profile-name strong {
+  font-size: 20px;
+  color: #33291f;
+}
+
+.detail-profile-name span {
+  font-size: 13px;
+  color: #9a8f7f;
+}
+
+.detail-profile-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #7b716a;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-box {
+  background: #fff;
+  border: 1px solid #f1e3cf;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.detail-box h2 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #33291f;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-box-title-spaced {
+  margin-top: 20px;
+}
+
+.detail-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9a8f7f;
+}
+
+.detail-more-link {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  color: #9a8f7f;
+  cursor: pointer;
+}
+
+.detail-info-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-info-table th,
+.detail-info-table td {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  border: 1px solid #f1e3cf;
+}
+
+.detail-info-table th {
+  width: 100px;
+  background: #fdf8ee;
+  color: #7b716a;
+  font-weight: 600;
+}
+
+.detail-transactions-head {
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr 0.9fr 0.9fr 0.9fr 24px;
+  font-size: 11px;
+  color: #9a8f7f;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1e3cf;
+}
+
+.detail-transaction-row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr 0.9fr 0.9fr 0.9fr 24px;
+  align-items: center;
+  font-size: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f6efe0;
+}
+
+.detail-transaction-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.detail-thumbnail {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: #eddcb0;
+  flex: 0 0 32px;
+}
+
+.detail-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.pill-blue { background: #e5e9f5; color: #5c7cba; }
+.pill-purple { background: #EAE3F8; color: #7B5FB5; }
+.pill-orange { background: #fbe8cf; color: #d9822b; }
+.pill-red { background: #fbdede; color: #d64545; }
+
+.detail-review-row {
+  padding: 12px 0;
+  border-bottom: 1px solid #f6efe0;
+}
+
+.detail-review-row:last-child {
+  border-bottom: none;
+}
+
+.detail-review-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.detail-review-date {
+  margin-left: auto;
+  font-size: 11px;
+  color: #b3a894;
+}
+
+.detail-review-body {
+  font-size: 12px;
+  font-weight: 700;
+  color: #33291f;
+  margin: 0 0 2px;
+}
+
+.detail-review-content {
+  font-size: 12px;
+  color: #9a8f7f;
+  margin: 0;
+}
+
+.detail-memo {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #eadfc9;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  margin-bottom: 12px;
+}
+
+.detail-memo-save {
+  float: right;
+  border: none;
+  background: #5c3a21;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}

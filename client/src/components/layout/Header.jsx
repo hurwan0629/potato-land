@@ -89,7 +89,7 @@ export default function Header() {
               type="button"
               className="header-icon-btn"
               aria-label="마이페이지"
-              onClick={() => navigate(`/mypage/${user.id}`)}
+              onClick={() => navigate(isAdmin ? "/admin" : `/mypage/${user.id}`)}
             >
               <User size={20} />
             </button>

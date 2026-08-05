@@ -1,0 +1,194 @@
+.mypage {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  text-align: left;
+}
+
+/* =====================================
+   사이드바
+====================================== */
+
+.mypage-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 0 0 280px;
+}
+
+.mypage-profile-card,
+.mypage-tabs-card,
+.mypage-content {
+  background: #fff;
+  border: 1px solid #f1e3cf;
+  border-radius: 16px;
+}
+
+.mypage-profile-card {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.mypage-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background-color: #eab54f;
+  background-size: cover;
+  background-position: center;
+  color: #5c3a21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.mypage-nickname {
+  font-size: 18px;
+  font-weight: 800;
+  color: #33291f;
+  margin: 0 0 4px;
+}
+
+.mypage-subtitle {
+  font-size: 13px;
+  color: #9a8f7f;
+  margin: 0 0 16px;
+}
+
+.mypage-profile-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mypage-tabs-card {
+  padding: 12px;
+}
+
+.mypage-tabs {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mypage-tab,
+.mypage-tab-active {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mypage-tab {
+  background: transparent;
+  color: #5c534a;
+}
+
+.mypage-tab-active {
+  background: #eab54f;
+  color: #33291f;
+}
+
+.mypage-stats {
+  border-top: 1px solid #f1e3cf;
+  padding-top: 14px;
+}
+
+.mypage-stats-row {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 14px;
+}
+
+.mypage-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mypage-stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.mypage-stat-icon-sell {
+  background: #eab54f;
+}
+
+.mypage-stat-icon-buy {
+  background: #5c7cba;
+}
+
+.mypage-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #33291f;
+}
+
+.mypage-stat-label {
+  font-size: 12px;
+  color: #9a8f7f;
+}
+
+.mypage-rating {
+  text-align: center;
+}
+
+.mypage-rating-label {
+  font-size: 12px;
+  color: #9a8f7f;
+  margin-bottom: 2px;
+}
+
+.mypage-rating-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #33291f;
+  margin-bottom: 4px;
+}
+
+.rating-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: center;
+}
+
+/* =====================================
+   콘텐츠
+====================================== */
+
+.mypage-content {
+  flex: 1;
+  padding: 24px;
+  min-width: 0;
+}
+
+.mypage-content-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #33291f;
+  margin: 0 0 16px;
+}

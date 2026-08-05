@@ -1,116 +1,123 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useState, useEffect } from "react"
+import { useParams, useNavigate, useLocation, Navigate } from "react-router"
 
 import {
   Gavel,
-  UserX,
-  Coins,
-  ShoppingBag,
   Package,
+  ClipboardList,
   Pencil,
+  Heart,
+  ArrowUpRight,
+  ShoppingCart,
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
+import { usersApi } from "../../api/usersApi";
+import USER_ROLE from "../../constants/userRole";
 import Button from "../../components/button/Button.jsx";
-import ListItem from "../../components/list/ListItem";
-import Pagination from "../../components/list/Pagination";
+import RatingStar from "../../components/input/RatingStar.jsx";
+import ListingsTab from "./tabs/ListingsTab.jsx";
+import HistoryTab from "./tabs/HistoryTab.jsx";
+import ReviewsTab from "./tabs/ReviewsTab.jsx";
+import FavoritesTab from "./tabs/FavoritesTabs.jsx"
+import "./MyPage.css";
 
-const MOCK_PRODUCTS = [
-  {
-    id: 1,
-    title: "아이폰 15 프로",
-    price: "900,000원",
-    status: "판매중",
-    createdAt: "2026-08-01",
-    listingType: "USED",
-  },
-  {
-    id: 2,
-    title: "맥북 에어 M2",
-    price: "1,000,000원",
-    status: "판매중",
-    createdAt: "2026-07-30",
-    listingType: "AUCTION",
-  },
-  {
-    id: 3,
-    title: "닌텐도 스위치",
-    price: "250,000원",
-    status: "거래완료",
-    createdAt: "2026-07-28",
-    listingType: "product",
-  },
-];
-
+const formatRating = (averageRating) => (averageRating > 0 ? averageRating.toFixed(1) : "-");
 
 // 마이페이지 탭
-const TABS = [
+// 본인 마이페이지는 4개 탭 전부, 상대방 프로필은 판매상품/거래후기만 노출한다.
+// (docs F. 마이페이지 - 6. 노출 정책: 관심목록/거래내역은 개인정보이므로 비공개)
+const TAB_DEFS = [
   {
     key: "listings",
-    label: "내가 등록한 상품",
     icon: Package,
+    ownerOnly: false,
+    label: (isMyPage) => (isMyPage ? "내가 등록한 상품" : "판매 상품"),
   },
   {
     key: "history",
-    label: "거래 내역",
-    icon: Package,
+    icon: ClipboardList,
+    ownerOnly: true,
+    label: () => "거래 내역",
   },
   {
     key: "reviews",
-    label: "거래 후기",
-    icon: Package,
+    icon: Pencil,
+    ownerOnly: false,
+    label: () => "거래 후기",
   },
   {
     key: "favorites",
-    label: "관심 목록",
-    icon: Package,
+    icon: Heart,
+    ownerOnly: true,
+    label: () => "관심 목록",
   },
 ];
-
-const ITEMS_PER_PAGE = 5;
 
 
 export default function MyPage() {
 
   // URL: /mypage/:id
-  const { id } = useParams();
+  const { id } = useParams()
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const { user } = useAuth();
+  const { user } = useAuth()
 
-  const [activeTab, setActiveTab] =
-    useState(TABS[0].key);
+  // 현재 로그인한 사용자와 페이지의 사용자가 같은지 확인
+  const isMyPage = String(user?.id) === String(id)
+  const tabs = TAB_DEFS.filter((tab) => isMyPage || !tab.ownerOnly)
 
-  const [currentPage, setCurrentPage] =
-    useState(1);
-
-
-  // 현재 로그인한 사용자와
-  // 페이지의 사용자가 같은지 확인
-  const isMyPage =String(user?.id) === String(id)
-  // 현재 페이지에 보여줄 상품
-  const startIndex =
-    (currentPage - 1) * ITEMS_PER_PAGE;
-
-  const currentProducts =
-    MOCK_PRODUCTS.slice(
-      startIndex,
-      startIndex + ITEMS_PER_PAGE
-    );
+  const [activeTab, setActiveTab] = useState(tabs[0].key)
+  const [profile, setProfile] = useState(null)
 
 
-  // 상품 상세 페이지 이동
-  const handleProductClick = (product) => {
+  // 다른 사용자의 페이지로 이동하는 등 id가 바뀌면 숨겨지는 탭이 남아있지 않도록 리셋
+  // (렌더링 도중 state를 조정하는 React 권장 패턴: effect로 하면 한 프레임 늦게 반영됨)
+  const [resetKey, setResetKey] = useState(id)
 
-    if (product.listingType === "auction") {
-      navigate(`/auction/${product.id}`);
-      return;
+  if (resetKey !== id) {
+    setResetKey(id)
+    setActiveTab("listings")
+  }
+
+
+  // 공개 프로필(닉네임/소개글/아바타/통계) 조회
+  useEffect(() => {
+    if (!id) return
+
+    let cancelled = false
+
+    function fetchProfile() {
+      setProfile(null)
+
+      usersApi
+        .getProfile(id)
+        .then((res) => {
+          if (cancelled) return
+          setProfile(res.data)
+        })
+        .catch(() => {
+          // 프로필 조회 실패는 부가 정보라 화면 전체를 에러로 덮지 않고 placeholder 유지
+        })
     }
 
-    navigate(`/used/${product.id}`);
-  };
+    fetchProfile()
 
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  // averageRating은 10점 만점 원본 → UI는 5점 별점 기준으로 환산
+  const displayRating = profile ? profile.averageRating / 2 : 0
+
+  // 관리자가 자기 자신의 마이페이지로 들어오면 관리자 페이지로 보낸다.
+  // (다른 사람의 공개 프로필을 보는 것은 그대로 허용)
+  if (isMyPage && user?.role === USER_ROLE.ADMIN) {
+    return <Navigate to="/admin" replace />
+  }
 
   return (
     <div className="mypage">
@@ -121,133 +128,131 @@ export default function MyPage() {
 
       <aside className="mypage-sidebar">
 
-        {/* 프로필 이미지 */}
-        <div className="mypage-avatar">
-          <Gavel size={32} />
-        </div>
-
-
-        {/* 닉네임 */}
-        <p className="mypage-nickname">
-          {user?.nickname ?? id}
-        </p>
-
-
-        {/* 소개 */}
-        <p className="mypage-subtitle">
-          소개글
-        </p>
-
-
         {/* =====================================
-            프로필 액션
+            프로필 카드
         ====================================== */}
 
-        <div className="mypage-profile-actions">
+        <div className="mypage-profile-card">
+
+          {/* 프로필 이미지 */}
+          <div
+            className="mypage-avatar"
+            style={
+              profile?.profileImageUrl
+                ? { backgroundImage: `url(${profile.profileImageUrl})` }
+                : undefined
+            }
+          >
+            {!profile?.profileImageUrl && <Gavel size={32} />}
+          </div>
+
+
+          {/* 닉네임 */}
+          <p className="mypage-nickname">
+            {profile?.nickname ?? user?.nickname ?? id}
+          </p>
+
+
+          {/* 소개 */}
+          <p className="mypage-subtitle">
+            {profile?.bio || "소개글이 없습니다."}
+          </p>
+
 
           {/* 자신의 마이페이지일 때만 수정 버튼 */}
           {isMyPage && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() =>
-                navigate(`/mypage/${id}/editprofile`)
-              }
-            >
-              <Pencil size={16} />
-              프로필 수정
-            </Button>
-          )}
-          {isMyPage && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() =>
-                navigate(`/mypage/${id}/edituser`)
-              }
-            >
-              <Pencil size={16} />
-              사용자 수정
-            </Button>
+            <div className="mypage-profile-actions">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  navigate(`/mypage/${id}/editprofile`, {
+                    state: {
+                      backgroundLocation: location,
+                    }
+                  })}>
+                <Pencil size={16} />
+                프로필 수정
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  navigate(`/mypage/${id}/edituser`, {
+                    state: {
+                      backgroundLocation: location,
+                    }
+                  })
+                }
+              >
+                <Pencil size={16} />
+                회원 정보 수정
+              </Button>
+            </div>
           )}
 
         </div>
 
 
         {/* =====================================
-            탭
+            탭 + 통계 카드
         ====================================== */}
 
-        <ul className="mypage-tabs">
+        <div className="mypage-tabs-card">
 
-          {TABS.map(
-            ({ key, label, icon: Icon }) => (
-              <li key={key}>
+          <ul className="mypage-tabs">
 
-                <button
-                  className={
-                    activeTab === key
-                      ? "mypage-tab-active"
-                      : "mypage-tab"
-                  }
-                  onClick={() => {
-                    setActiveTab(key);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <Icon size={16} />
-                  {label}
-                </button>
+            {tabs.map(
+              ({ key, label, icon: Icon }) => (
+                <li key={key}>
 
-              </li>
-            )
-          )}
+                  <button
+                    className={
+                      activeTab === key
+                        ? "mypage-tab-active"
+                        : "mypage-tab"
+                    }
+                    onClick={() => setActiveTab(key)}
+                  >
+                    <Icon size={16} />
+                    {label(isMyPage)}
+                  </button>
 
-        </ul>
+                </li>
+              )
+            )}
+
+          </ul>
 
 
-        {/* =====================================
-            통계
-        ====================================== */}
+          {/* 통계 (판매/구매 건수, 평균 평점) */}
+          <div className="mypage-stats">
 
-        <div className="mypage-stats">
+            <div className="mypage-stats-row">
 
-          <div className="mypage-stat">
+              <div className="mypage-stat">
+                <div className="mypage-stat-icon mypage-stat-icon-sell">
+                  <ArrowUpRight size={16} />
+                </div>
+                <div className="mypage-stat-value">{profile ? profile.sellCount : "-"}</div>
+                <div className="mypage-stat-label">판매</div>
+              </div>
 
-            <div className="mypage-stat-label">
-              <Coins size={16} />
-              판매
+              <div className="mypage-stat">
+                <div className="mypage-stat-icon mypage-stat-icon-buy">
+                  <ShoppingCart size={16} />
+                </div>
+                <div className="mypage-stat-value">{profile ? profile.buyCount : "-"}</div>
+                <div className="mypage-stat-label">구매</div>
+              </div>
+
             </div>
 
-            <div className="mypage-stat-value">
-              API
-            </div>
-
-          </div>
-
-
-          <div className="mypage-stat">
-
-            <div className="mypage-stat-label">
-              <ShoppingBag size={16} />
-              구매
-            </div>
-
-            <div className="mypage-stat-value">
-              API
-            </div>
-
-          </div>
-
-
-          <div className="mypage-rating">
-
-            <div className="mypage-rating-label">
-              평균 평점
-            </div>
-
-            <div className="mypage-rating-value">
-              API
+            <div className="mypage-rating">
+              <div className="mypage-rating-label">평균 평점</div>
+              <div className="mypage-rating-value">{formatRating(displayRating)}</div>
+              <RatingStar rating={displayRating} size={16} />
             </div>
 
           </div>
@@ -255,80 +260,28 @@ export default function MyPage() {
         </div>
 
       </aside>
+
       <section className="mypage-content">
 
-        {/* 내가 등록한 상품 */}
+        {/* 내가 등록한 상품 / 판매 상품 */}
         {activeTab === "listings" && (
-          <>
-
-            <h2>
-              {isMyPage
-                ? "내가 등록한 상품"
-                : `${user?.nickname ?? id}님의 상품`}
-            </h2>
-
-
-            <div className="mypage-list">
-
-              {currentProducts.length > 0 ? (
-
-                currentProducts.map(
-                  (product) => (
-
-                    <ListItem
-                      key={product.id}
-                      thumbnail={null}
-                      title={product.title}
-                      subtitle={product.price}
-                      status={product.status}
-                      date={product.createdAt}
-                      onClick={() =>
-                        handleProductClick(product)
-                      }
-                    />
-
-                  )
-                )
-
-              ) : (
-
-                <p>
-                  등록된 상품이 없습니다.
-                </p>
-
-              )}
-              
-
-            </div>
-
-
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(
-                MOCK_PRODUCTS.length /
-                  ITEMS_PER_PAGE
-              )}
-              onPageChange={setCurrentPage}
-            />
-
-          </>
+          <ListingsTab
+            userIdx={id}
+            isMyPage={isMyPage}
+            title={isMyPage ? "내가 등록한 상품" : `${profile?.nickname ?? id}님의 판매 상품`}
+          />
         )}
 
+        {/* 거래 내역 (본인 전용) */}
+        {activeTab === "history" && isMyPage && <HistoryTab />}
 
-        {/* 나머지 탭 */}
-        {activeTab !== "products" && (
-
-          <div>
-            {
-              TABS.find(
-                (tab) =>
-                  tab.key === activeTab
-              )?.label
-            }
-            화면 준비 중입니다.
-          </div>
-
+        {/* 거래 후기 */}
+        {activeTab === "reviews" && (
+          <ReviewsTab userId={id} isMyPage={isMyPage} />
         )}
+
+        {/* 관심 목록 (본인 전용) */}
+        {activeTab === "favorites" && isMyPage && <FavoritesTab />}
 
       </section>
 

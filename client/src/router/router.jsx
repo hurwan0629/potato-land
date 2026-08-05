@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import MainLayout from "../components/layout/MainLayout";
+import AdminLayout from "../components/layout/AdminLayout";
 import constRole from "./role";
 import Auth from "./Auth";
 
@@ -12,8 +13,12 @@ import ProductRegister from "../pages/ProductRegister";
 import Chat from "../pages/Chat";
 import Payment from "../pages/Payment";
 import MyPage from "../pages/MyPage";
-import EditProfilePage from "../pages/MyPage/EditProfilePage";
-import Admin from "../pages/Admin";
+import EditProfilePage from "../pages/MyPage/EditProfilePage"
+import AdminDashboard from "../pages/Admin/Dashboard";
+import AdminUsers from "../pages/Admin/Users";
+import AdminUserDetail from "../pages/Admin/UserDetail";
+import AdminAuctions from "../pages/Admin/Auctions";
+import AdminUsed from "../pages/Admin/Used";
 import Signup from "../pages/Auth/Signup";
 import NotFoundPage from "../pages/error/NotFoundPage";
 import ErrorPage from "../pages/error/ErrorPage";
@@ -35,18 +40,37 @@ export const router = createBrowserRouter([
       { path: "payment/:id", element: <Auth role={constRole.LOGIN}><Payment /></Auth> },
       {
         path: "mypage/:id",
-        element: <Auth role={constRole.LOGIN}><MyPage /></Auth>,
-        children: [{ path: "edit", element: <EditProfilePage /> },
-        ],
-      },
-      {
-        path: "admin",
-        element: <Auth role={constRole.ADMIN} />,
+        element: <Auth role={constRole.LOGIN} />,
         children: [
-          { index: true, element: <Admin /> },
+          {
+            index: true,
+            element: <MyPage />,
+          },
+
+          {
+            path: "editprofile",
+            element: <EditProfilePage />,
+          },
+
+          {
+            path: "edituser",
+            element: <EditProfilePage />,
+          },
         ],
       },
       { path: "*", element: <NotFoundPage /> },
+    ],
+  },
+  {
+    path: "admin",
+    element: <Auth role={constRole.ADMIN}><AdminLayout /></Auth>,
+    errorElement: <ErrorPage />,
+    children: [
+      { index: true, element: <AdminDashboard /> },
+      { path: "users", element: <AdminUsers /> },
+      { path: "users/:userIdx", element: <AdminUserDetail /> },
+      { path: "auctions", element: <AdminAuctions /> },
+      { path: "used", element: <AdminUsed /> },
     ],
   },
 ])
