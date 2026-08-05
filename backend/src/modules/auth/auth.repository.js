@@ -1,4 +1,4 @@
-import { db } from "../../config/db.js";
+import { db } from "../../infrastructure/database/database.js";
 
 /** 로그인 아이디로 사용자 인증에 필요한 전체 계정 정보를 조회한다. */
 export async function findUserByLoginId(loginId) {

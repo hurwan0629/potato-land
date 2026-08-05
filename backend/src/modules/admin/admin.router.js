@@ -8,6 +8,8 @@ import {
   getUser,
   listAuctionWinners,
   listAuctionsForAdmin,
+  listUserReviewsForAdmin,
+  listUserTransactionsForAdmin,
   listUsedForAdmin,
   listUsers,
   updateUserMemo,
@@ -17,11 +19,13 @@ export const adminRouter = Router();
 
 adminRouter.get("/dashboard", getDashboard);
 adminRouter.get("/users", listUsers);
+adminRouter.get("/users/:userIdx/transactions", listUserTransactionsForAdmin);
+adminRouter.get("/users/:userIdx/reviews", listUserReviewsForAdmin);
 adminRouter.get("/users/:userIdx", getUser);
 adminRouter.patch("/users/:userIdx/ban", banUser);
 adminRouter.patch("/users/:userIdx/memo", updateUserMemo);
 adminRouter.get("/used", listUsedForAdmin);
 adminRouter.delete("/used/:listingIdx", deleteUsedForAdmin);
 adminRouter.get("/auctions", listAuctionsForAdmin);
-adminRouter.delete("/auctions/:listingIdx", deleteAuctionForAdmin);
 adminRouter.get("/auctions/winners", listAuctionWinners);
+adminRouter.delete("/auctions/:listingIdx", deleteAuctionForAdmin);

@@ -5,8 +5,8 @@ import { AppError } from "../../common/errors/AppError.js";
 import { env } from "../../config/env.js";
 import { solapiSmsService } from "../../infrastructure/sms/solapiSms.service.js";
 import { createUser, findSignupConflict, findUserById, findUserByLoginId, findUserByPhone, updateUserPassword } from "./auth.repository.js";
-import { deletePhoneCode, deletePhoneVerified, getPhoneCode, getPhoneCooldown, getPhoneVerified, savePhoneCode, savePhoneVerified, saveRefreshSession, updatePhoneCode } from "./auth.redis.js";
-import { createLoginTokens } from "./auth.token.js";
+import { deleteAllRefreshSessions, deletePhoneCode, deletePhoneVerified, deleteRefreshSession, getPhoneCode, getPhoneCooldown, getPhoneVerified, listRefreshSessions, rotateRefreshSession, savePhoneCode, savePhoneVerified, saveRefreshSession, updatePhoneCode } from "./auth.redis.js";
+import { createLoginTokens, verifyRefreshToken } from "./auth.token.js";
 import { validateFindLoginId, validateLogin, validateLoginId, validatePhoneSend, validatePhoneStatus, validatePhoneVerify, validateResetPassword, validateSignup } from "./auth.validator.js";
 
 const CONFLICT_MESSAGES = { loginId: "이미 사용 중인 아이디입니다.", nickname: "이미 사용 중인 닉네임입니다.", phone: "이미 가입된 휴대전화 번호입니다.", email: "이미 사용 중인 이메일입니다." };
@@ -106,6 +106,7 @@ export async function resetUserPassword(body) {
   const user = await findUserByPhone(data.phone);
   if (!user || user.login_id !== data.loginId || user.name !== data.name || user.deleted_at) throw new AppError(404, "ACCOUNT_NOT_FOUND", "입력한 정보와 일치하는 계정을 찾을 수 없습니다.");
   await updateUserPassword(user.idx, await bcrypt.hash(data.password, env.bcrypt.saltRounds));
+  await deleteAllRefreshSessions(user.idx);
   await deletePhoneVerified(data.phone, "RESET_PASSWORD");
   return { reset: true };
 }
@@ -127,6 +128,73 @@ export async function loginUser(body, requestMeta) {
   const tokens = createLoginTokens(user);
   await saveRefreshSession({ userIdx: user.idx, sessionId: tokens.sessionId, refreshJti: tokens.refreshJti, ...requestMeta });
   return { tokens, user: { userIdx: Number(user.idx), loginId: user.login_id, nickname: user.nickname, role: user.role, profileImageUrl: user.profile_image } };
+}
+
+/** Refresh Token을 검증하고 같은 기기 세션의 access/refresh 토큰을 모두 교체한다. */
+export async function refreshLoginSession(refreshToken, requestMeta = {}) {
+  if (!refreshToken) throw new AppError(401, "REFRESH_TOKEN_INVALID", "다시 로그인해주세요.");
+  let tokenSession;
+  try { tokenSession = verifyRefreshToken(refreshToken); }
+  catch { throw new AppError(401, "REFRESH_TOKEN_INVALID", "다시 로그인해주세요."); }
+
+  const user = await findUserById(tokenSession.userIdx);
+  if (!user) {
+    await deleteRefreshSession(tokenSession.userIdx, tokenSession.sessionId);
+    throw new AppError(401, "REFRESH_TOKEN_INVALID", "다시 로그인해주세요.");
+  }
+  if (user.banned_at) {
+    await deleteAllRefreshSessions(user.idx);
+    throw new AppError(403, "BANNED_USER", "이용이 제한된 계정입니다.");
+  }
+  if (user.deleted_at) {
+    await deleteAllRefreshSessions(user.idx);
+    throw new AppError(403, "DELETED_USER", "탈퇴한 계정입니다.");
+  }
+
+  const tokens = createLoginTokens(user, { sessionId: tokenSession.sessionId });
+  const rotated = await rotateRefreshSession({
+    userIdx: user.idx,
+    sessionId: tokenSession.sessionId,
+    currentRefreshJti: tokenSession.refreshJti,
+    nextRefreshJti: tokens.refreshJti,
+    ...requestMeta,
+  });
+  if (rotated !== 1) throw new AppError(401, "REFRESH_TOKEN_INVALID", "다시 로그인해주세요.");
+  return { tokens, refreshed: true };
+}
+
+/** 유효한 Refresh Token이 가리키는 현재 기기 세션만 서버에서 폐기한다. */
+export async function logoutCurrentSession(refreshToken) {
+  if (!refreshToken) return { loggedOut: true };
+  try {
+    const tokenSession = verifyRefreshToken(refreshToken);
+    await deleteRefreshSession(tokenSession.userIdx, tokenSession.sessionId);
+  } catch {
+    // 로그아웃은 만료되거나 변조된 쿠키가 있어도 쿠키 삭제 후 성공 처리한다.
+  }
+  return { loggedOut: true };
+}
+
+/** 로그인 사용자의 모든 기기 Refresh 세션을 폐기한다. */
+export async function logoutAllSessions(userIdx) {
+  const deletedCount = await deleteAllRefreshSessions(userIdx);
+  return { loggedOut: true, deletedCount };
+}
+
+/** 로그인 사용자의 기기별 Refresh 세션 목록과 현재 기기 여부를 반환한다. */
+export async function getLoginSessions(userIdx, currentSessionId) {
+  const sessions = await listRefreshSessions(userIdx);
+  return sessions.map((session) => ({ ...session, current: session.sessionId === currentSessionId }));
+}
+
+/** 로그인 사용자가 지정한 한 기기의 Refresh 세션을 폐기한다. */
+export async function logoutSession(userIdx, sessionId) {
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (typeof sessionId !== "string" || !uuidPattern.test(sessionId)) {
+    throw new AppError(400, "VALIDATION_ERROR", "종료할 세션을 선택해주세요.", { field: "sessionId" });
+  }
+  const deletedCount = await deleteRefreshSession(userIdx, sessionId);
+  return { loggedOut: deletedCount > 0, sessionId };
 }
 
 /** 인증된 사용자 식별자로 현재 활성 계정 정보를 반환한다. */

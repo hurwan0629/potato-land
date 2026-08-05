@@ -27,12 +27,12 @@
 
 | Role | Name | Responsibility |
 |---|---|---|
-| Team Lead | 박건희 | 의견 조율 |
-| Member 1 | 심형준 | 피그마 UI |
-| Member 2 | 양수연 | 피그마 UI |
-| Member 3 | 윤재빈 | 피그마 UI |
-| Member 4 | 최한빈 | 프론트 구조 |
-| Member 5 | 허완 | 설계 및 문서화 |
+| Team Lead | 박건희 | `의견 조율`, `인증/회원 ` |
+| Member 1 | 심형준 | `피그마 UI`, `탐색/중고거래` |
+| Member 2 | 양수연 | `피그마 UI`, `경매` |
+| Member 3 | 윤재빈 | `피그마 UI`, `채팅/알림` |
+| Member 4 | 최한빈 | `프론트 구조`, `마이페이지/관리자` |
+| Member 5 | 허완 | `설계 및 문서화`, `공통 모듈`, `병합` |
 
 ## Notes
 

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 import { AppError } from "../../common/errors/AppError.js";
 import { env } from "../../config/env.js";
-import { deletePhoneVerified, getPhoneVerified } from "../auth/auth.redis.js";
+import { deleteAllRefreshSessions, deletePhoneVerified, getPhoneVerified } from "../auth/auth.redis.js";
 import { findEditableUser, findProfileConflict, softDeleteUser, updateUserAccount } from "./users.repository.js";
 import { validateAccountUpdate, validatePasswordVerification, validateWithdrawal } from "./users.validator.js";
 
@@ -48,6 +48,7 @@ export async function updateMyAccount(userIdx, body) {
   const passwordHash = data.password ? await bcrypt.hash(data.password, env.bcrypt.saltRounds) : null;
   const updated = await updateUserAccount(userIdx, { ...data, passwordHash });
   if (data.phone !== current.phone) await deletePhoneVerified(data.phone, "CHANGE_PHONE");
+  if (data.password) await deleteAllRefreshSessions(userIdx);
   return { userIdx: Number(updated.idx), loginId: updated.login_id, name: updated.name, nickname: updated.nickname, phone: updated.phone, email: updated.email, profileImageUrl: updated.profile_image, role: updated.role, requiresLogin: Boolean(data.password) };
 }
 
@@ -55,5 +56,6 @@ export async function updateMyAccount(userIdx, body) {
 export async function withdrawMyAccount(userIdx, body) {
   verifyEditToken(validateWithdrawal(body), userIdx);
   await softDeleteUser(userIdx);
+  await deleteAllRefreshSessions(userIdx);
   return { withdrawn: true };
 }

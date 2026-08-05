@@ -1,4 +1,4 @@
-import { db } from "../../config/db.js";
+import { db } from "../../infrastructure/database/database.js";
 
 /** 사용자 식별자로 회원정보 수정에 필요한 전체 계정 정보를 조회한다. */
 export async function findEditableUser(userIdx) {

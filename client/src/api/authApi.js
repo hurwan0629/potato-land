@@ -24,4 +24,10 @@ export const authApi = {
   me: async () => unwrap(await http.get("/auth/me")),
   /** refresh cookie 회전으로 access/refresh 쿠키를 재발급한다. */
   refresh: async () => unwrap(await http.post("/auth/refresh")),
+  /** 현재 계정으로 로그인된 모든 기기의 Refresh 세션을 조회한다. */
+  getSessions: async () => unwrap(await http.get("/auth/sessions")),
+  /** 선택한 기기의 Refresh 세션 하나를 종료한다. */
+  deleteSession: async (sessionId) => unwrap(await http.delete(`/auth/sessions/${encodeURIComponent(sessionId)}`)),
+  /** 현재 계정의 모든 기기 세션을 종료한다. */
+  logoutAll: async () => unwrap(await http.post("/auth/logout-all")),
 };
