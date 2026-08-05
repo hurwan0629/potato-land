@@ -5,10 +5,11 @@ import { env } from "./config/env.js";
 import { app } from "./app.js";
 import { closeDatabase, connectDatabase } from "./infrastructure/database/database.js";
 import { connectRedis, disconnectRedis } from "./infrastructure/redis/redisClient.js";
-import { stopAuctionRecoveryScheduler } from "./schedulers/auctionRecoveryScheduler.js";
+import { startAuctionRecoveryScheduler, stopAuctionRecoveryScheduler } from "./schedulers/auctionRecoveryScheduler.js";
 import { clearAuctionTimers } from "./schedulers/auctionTimer.js";
 import { createSocketServer } from "./sockets/index.js";
 import { configureSmsProvider } from "./infrastructure/sms/sms.interface.js";
+import { recoverAuctions } from "./modules/auctions/auctions.service.js";
 
 const log = logger.child("server");
 const httpServer = http.createServer(app);
@@ -28,6 +29,8 @@ async function startServer() {
     
     await connectDatabase();
     await connectRedis();
+    await recoverAuctions();
+    startAuctionRecoveryScheduler(recoverAuctions);
     httpServer.listen(env.server.port, env.server.host, () => {
       log.info("HTTP 서버가 요청을 기다립니다.", {
         host: env.server.host,

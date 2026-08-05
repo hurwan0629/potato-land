@@ -97,3 +97,22 @@ export function validateAuctionDelete(body = {}) {
   if (deleteReason.length > 500) throw new AppError(400, "VALIDATION_ERROR", "삭제 사유를 확인해주세요.", { field: "deleteReason" });
   return { deleteReason };
 }
+
+/** 입찰 금액을 양의 정수로 검증한다. */
+export function validateBidAmount(value) {
+  const bidAmount = Number(value);
+  if (!Number.isSafeInteger(bidAmount) || bidAmount <= 0) {
+    throw new AppError({ status: 400, code: "VALIDATION_ERROR", message: "입찰 금액을 확인해주세요.", details: { field: "bidAmount" } });
+  }
+  return bidAmount;
+}
+
+/** 입찰 목록 페이지 조건을 검증한다. */
+export function validateBidList(query = {}) {
+  const page = Number(query.page ?? 1);
+  const limit = Number(query.limit ?? 20);
+  if (!Number.isSafeInteger(page) || page <= 0 || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    throw new AppError({ status: 400, code: "VALIDATION_ERROR", message: "입찰 목록 조건을 확인해주세요." });
+  }
+  return { page, limit, offset: (page - 1) * limit };
+}
