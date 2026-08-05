@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import AccountRecoveryModal from "../features/auth/AccountRecoveryModal";
+import AccountRecoveryModal from "../features/Auth/AccountRecoveryModal";
 import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
