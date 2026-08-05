@@ -51,3 +51,9 @@ export function getCategories(req, res) {
   }
 }
 
+// export function listCategories(req, res) {
+//   // TODO 처리 순서:
+//   // 1. categories에서 is_active=true인 행만 sort_order 순서로 조회한다.
+//   // 2. categoryIdx, name, sortOrder만 공개 DTO로 반환한다.
+//   return notImplemented(res, "카테고리 조회");
+// }

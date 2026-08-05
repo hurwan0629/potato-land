@@ -26,16 +26,17 @@ jobs:
       HOST: ${{ vars.HOST }}
       PORT: ${{ vars.PORT }}
       CLIENT_ORIGIN: ${{ vars.CLIENT_ORIGIN }}
-    
-      DATABASE_HOST: ${{ vars.DATABASE_HOST }}
-      DATABASE_PORT: ${{ vars.DATABASE_PORT }}
-      DATABASE_NAME: ${{ vars.DATABASE_NAME }}
-      DATABASE_USER: ${{ vars.DATABASE_USER }}
-      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-    
-      REDIS_HOST: ${{ vars.REDIS_HOST }}
-      REDIS_PORT: ${{ vars.REDIS_PORT }}
-      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
+      DATABASE_URL: postgresql://${{ vars.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@127.0.0.1:5432/${{ vars.DATABASE_NAME }}
+      # DATABASE_HOST: ${{ vars.DATABASE_HOST }}
+      # DATABASE_PORT: ${{ vars.DATABASE_PORT }}
+      # DATABASE_NAME: ${{ vars.DATABASE_NAME }}
+      # DATABASE_USER: ${{ vars.DATABASE_USER }}
+      # DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+
+      REDIS_URL: redis://127.0.0.1:6379
+      # REDIS_HOST: ${{ vars.REDIS_HOST }}
+      # REDIS_PORT: ${{ vars.REDIS_PORT }}
 
       BCRYPT_SALT_ROUNDS: ${{ vars.BCRYPT_SALT_ROUNDS }}
 
@@ -72,14 +73,6 @@ jobs:
       
       redis:
         image: redis:7
-        env:
-          REDISCLI_AUTH: 1234
-        
-        command: >-
-          redis-server
-          --requirepass
-          1234
-
 
         ports: 
           - 6379:6379
@@ -104,6 +97,6 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       
       - run: npm ci
-      - run: npm run db:migrate
+      - run: npm run db:setup
       - run: npm test
 

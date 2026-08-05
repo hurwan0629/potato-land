@@ -14,8 +14,11 @@ const log = logger.child("redis");
  */
 const redisClient = createClient({
   url: env.redis.url,
+  // password: env.redis.password,
   // 연결할 redis 서버의 재접속 주기를 설정해줍니다.
   socket: {
+    // host: env.redis.host,
+    // port: env.redis.port,
     reconnectStrategy(retries) {
       return Math.min(retries * 100, 3000);
     },

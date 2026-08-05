@@ -21,7 +21,7 @@ import ErrorPage from "../pages/error/ErrorPage";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout />,
+    element: <MainLayout />, // header + footer
     errorElement: <ErrorPage />,
     children: [
       { index: true, element: <Auth role={constRole.PUBLIC}><Home /></Auth> },

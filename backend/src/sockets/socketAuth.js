@@ -4,13 +4,13 @@
 // socket.join(user:{user_idx}) 에 넣어주는 절차를 가짐
 // 정확한건 아래의 TODO와 문서를 참고해야함
 export function socketAuth(socket, next) {
-  // TODO:
-  // 1. Read access token from cookie first, then optional handshake auth token.
-  // 2. Verify JWT signature, exp, and type === "access".
-  // 3. Load user from DB and check deleted_at/banned_at.
-  // 4. Set socket.data.auth and socket.data.user only after successful verification.
-  // 5. Join SOCKET_ROOM.user(userIdx) only after user verification.
-  //
-  // Auth is not implemented yet. Do not create fake socket.data.auth/user here.
+  // TODO 처리 순서:
+  // 1. cookie의 access token을 먼저 읽고 없으면 handshake.auth의 token을 확인한다.
+  
+  // 2. JWT 서명, 만료 시각, type=access를 검증한다.
+  // 3. DB에서 사용자를 다시 조회해 탈퇴·영구정지 상태를 차단한다.
+  // 4. 성공한 경우에만 socket.data.auth와 socket.data.user를 채운다.
+  // 5. 개인 알림을 받을 SOCKET_ROOM.user(userIdx)에 가입시킨 뒤 next()를 호출한다.
+  // 인증 구현 전에는 가짜 auth/user 데이터를 만들지 않는다.
   next();
 }
