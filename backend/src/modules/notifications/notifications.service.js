@@ -7,6 +7,23 @@ import {
 
 const log = logger.child("notification-service");
 
+/**
+ * 일반 query 함수와 PostgreSQL transaction client를 동일한 방식으로 실행한다.
+ */
+async function executeQuery(executor, sql, params) {
+  // database.js의 query 함수가 전달된 경우
+  if (typeof executor === "function") {
+    return executor(sql, params);
+  }
+
+  // withTransaction의 client가 전달된 경우
+  if (executor && typeof executor.query === "function") {
+    return executor.query(sql, params);
+  }
+
+  throw new TypeError("올바른 데이터베이스 실행 객체가 필요합니다.");
+}
+
 export const SUPPORTED_NOTIFICATION_TYPES = Object.freeze([
   "NEW_CHAT_ROOM",
   "NEW_MESSAGE",
@@ -24,7 +41,8 @@ export const SUPPORTED_NOTIFICATION_TYPES = Object.freeze([
 ]);
 
 export async function getUnreadNotificationCount(executor, userIdx) {
-  const { rows } = await executor.query(
+  const { rows } = await executeQuery(
+    executor,
     `
       SELECT COUNT(*)::integer AS "unreadCount"
       FROM notifications
@@ -41,7 +59,8 @@ export async function createNotification(
   executor,
   { receiverIdx, notificationType, referenceType, referenceIdx, content },
 ) {
-  const { rows } = await executor.query(
+  const { rows } = await executeQuery(
+    executor,
     `
       INSERT INTO notifications (
         receiver_idx,

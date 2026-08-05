@@ -7,7 +7,7 @@ import { useAuth } from "./AuthContext";
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef(null);
@@ -48,8 +48,10 @@ export function SocketProvider({ children }) {
           // 아래에서 로그인 상태를 정리한다.
         }
       }
+      // 실시간 서버 장애가 HTTP 로그인 세션을 종료시키면 안 된다.
+      // 재발급까지 실패하면 소켓만 중단하고 로그인 상태와 쿠키는 유지한다.
       nextSocket.disconnect();
-      await logout();
+      setIsConnected(false);
     };
 
     nextSocket.on("connect", handleConnect);
@@ -64,7 +66,7 @@ export function SocketProvider({ children }) {
       nextSocket.disconnect();
       if (socketRef.current === nextSocket) socketRef.current = null;
     };
-  }, [isLoggedIn, logout]);
+  }, [isLoggedIn]);
 
   const emitWithAck = useCallback((event, payload, timeout = 10_000) => {
     const currentSocket = socketRef.current;
