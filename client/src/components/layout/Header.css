@@ -1,0 +1,117 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88px;
+  padding: 0 32px;
+  background: #fff;
+  border-bottom: 1px solid #f1e3cf;
+  gap: 24px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+/* 로고: 메인 화면(랜딩/홈)에서는 마스코트 포함 큰 로고,
+   그 외 페이지에서는 텍스트만 있는 작은 로고 */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: #5c3a21;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header-logo.is-main {
+  font-size: 26px;
+}
+
+.header-logo.is-sub {
+  font-size: 20px;
+}
+
+.header-logo-mascot {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.header-hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #5c3a21;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.header-hamburger:hover {
+  background: #fbe8cf;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.header-nav-link {
+  font-size: 16px;
+  font-weight: 700;
+  color: #33291f;
+  text-decoration: none;
+  padding: 6px 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+
+.header-nav-link:hover {
+  color: #5c3a21;
+}
+
+.header-nav-link.active {
+  color: #5c3a21;
+  border-bottom-color: #eab54f;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.header-nickname {
+  font-size: 15px;
+  font-weight: 700;
+  color: #5c3a21;
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.header-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #5c3a21;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.header-icon-btn:hover {
+  background: #fbe8cf;
+}
