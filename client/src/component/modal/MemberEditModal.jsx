@@ -104,7 +104,7 @@ export default function MemberEditModal({ loginId, returnPath, onClose }) {
     setStatus({ loading: true, message: "", success: false });
     try {
       // 2. 비밀번호 확인 토큰과 선택적으로 완료된 전화번호 인증 식별자를 함께 전달한다.
-      const result = await usersApi.updateMe({ editToken, nickname: form.nickname, phone: normalizePhone(form.phone), phoneVerificationId: phoneAuth.phoneVerificationId, email: form.email, password: form.password, passwordConfirm: form.passwordConfirm });
+      const result = await usersApi.updateMe({ editToken, nickname: form.nickname, phone: normalizePhone(form.phone), phoneVerificationId: phoneAuth.phoneVerificationId, email: form.email, newPassword: form.password, newPasswordConfirm: form.passwordConfirm });
 
       // 3. 비밀번호 변경 시 서버가 모든 세션을 폐기하므로 로그인 화면 이동을 준비한다.
       setRequiresLogin(result.requiresLogin);
