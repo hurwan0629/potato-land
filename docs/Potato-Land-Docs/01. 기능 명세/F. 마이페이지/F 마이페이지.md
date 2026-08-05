@@ -26,7 +26,7 @@
 ## 4. 내 마이페이지 플로우
 
 1. 사용자가 마이페이지에 접근한다.
-2. 서버는 사용자 기본 정보와 판매 상품 목록을 조회한다.
+2. 서버는 사용자 기본 정보, 소개글, 판매/구매 수, 평균 평점, 후기 수와 판매 상품 목록을 조회한다.
 3. 사용자는 탭을 이동해 관심 품목, 거래내역, 후기를 조회한다.
 4. 사용자는 프로필 수정 화면에서 프로필 이미지와 소개글을 수정한다.
 5. 회원 정보 수정은 현재 비밀번호 확인 후 진입한다.
@@ -45,7 +45,7 @@
 
 ## 6. 노출 정책
 
-- 공개 가능: 닉네임, 프로필 이미지, 소개글, 판매 상품, 거래 후기
+- 공개 가능: 닉네임, 프로필 이미지, 소개글, 판매/구매 수, 평균 평점, 후기 수, 판매 상품, 거래 후기
 - 비공개: login_id, phone, email, password_hash, admin_memo
 - 정지/탈퇴 사용자는 일반 사용자 화면에서 `삭제된 사용자`로 표시한다.
 - 정지/탈퇴 사용자의 프로필 이미지는 기본 이미지 또는 비활성 상태로 표시한다.
@@ -70,6 +70,8 @@
 - 이메일 변경은 형식과 중복 검증을 거친다.
 - 전화번호 변경은 `CHANGE_PHONE` 전화번호 인증을 완료해야 한다.
 - 비밀번호 변경은 새 비밀번호와 새 비밀번호 확인 일치, 비밀번호 규칙 검증을 거친다.
+- 닉네임·이메일·전화번호·비밀번호 변경은 하나의 `PATCH /api/users/me`로 처리한다.
+- 회원 정보 수정 요청에는 비밀번호 확인으로 받은 `verificationToken`이 항상 필요하다.
 - 탈퇴하기 버튼은 항상 활성화하지만 재확인 절차를 거친다.
 
 ## 9. 관련 DB
@@ -89,14 +91,14 @@
 - `PATCH /api/users/me/profile`
 - `POST /api/users/me/verify-password`
 - `PATCH /api/users/me`
-- `PATCH /api/users/me/password`
 - `DELETE /api/users/me`
 - `GET /api/mypage/me/listings`
 - `GET /api/mypage/me/favorites`
 - `GET /api/mypage/me/history`
 - `GET /api/mypage/me/reviews`
 - `GET /api/mypage/:userIdx/listings`
-- `GET /api/mypage/:userIdx/reviews`
+- `GET /api/users/:userIdx/reviews`
+- `POST /api/reviews`
 
 ## 11. 구현 체크리스트
 

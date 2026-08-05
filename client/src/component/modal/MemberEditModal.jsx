@@ -17,7 +17,7 @@ function isValidPassword(password) {
 export default function MemberEditModal({ loginId, returnPath, onClose }) {
   const [stage, setStage] = useState("password");
   const [currentPassword, setCurrentPassword] = useState("");
-  const [editToken, setEditToken] = useState("");
+  const [verificationToken, setVerificationToken] = useState("");
   const [originalPhone, setOriginalPhone] = useState("");
   const [form, setForm] = useState({ loginId: "", nickname: "", phone: "", code: "", email: "", password: "", passwordConfirm: "" });
   const [phoneAuth, setPhoneAuth] = useState({ phoneVerificationId: "", verified: false, resendSeconds: 0 });
@@ -55,7 +55,7 @@ export default function MemberEditModal({ loginId, returnPath, onClose }) {
     setStatus({ loading: true, message: "", success: false });
     try {
       const result = await usersApi.verifyPassword(currentPassword);
-      setEditToken(result.editToken);
+      setVerificationToken(result.verificationToken);
       setOriginalPhone(result.profile.phone);
       setForm((current) => ({ ...current, loginId: result.profile.loginId, nickname: result.profile.nickname, phone: result.profile.phone, email: result.profile.email ?? "" }));
       setStage("edit");
@@ -91,7 +91,10 @@ export default function MemberEditModal({ loginId, returnPath, onClose }) {
     if (phoneChanged && !phoneAuth.verified) return setStatus({ loading: false, message: "변경할 휴대전화 인증을 완료해주세요.", success: false });
     setStatus({ loading: true, message: "", success: false });
     try {
-      const result = await usersApi.updateMe({ editToken, nickname: form.nickname, phone: normalizePhone(form.phone), phoneVerificationId: phoneAuth.phoneVerificationId, email: form.email, password: form.password, passwordConfirm: form.passwordConfirm });
+      const result = await usersApi.updateMe({ 
+        verificationToken, nickname: form.nickname, phone: normalizePhone(form.phone), 
+        phoneVerificationId: phoneAuth.phoneVerificationId, email: form.email, password: form.password, passwordConfirm: form.passwordConfirm 
+      });
       setRequiresLogin(result.requiresLogin);
       setStage("saved");
       setStatus({ loading: false, message: result.requiresLogin ? "비밀번호가 변경되어 다시 로그인해야 합니다." : "회원정보가 수정되었습니다.", success: true });
@@ -102,7 +105,7 @@ export default function MemberEditModal({ loginId, returnPath, onClose }) {
   async function withdrawAccount() {
     setStatus({ loading: true, message: "", success: false });
     try {
-      await usersApi.withdrawMe(editToken);
+      await usersApi.withdrawMe(verificationToken);
       setStage("withdrawn");
       setStatus({ loading: false, message: "", success: true });
     } catch (error) { setStatus({ loading: false, message: error.message, success: false }); }

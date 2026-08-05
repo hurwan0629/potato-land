@@ -9,5 +9,5 @@ export const usersApi = {
   /** 수정 토큰과 검증된 회원정보를 서버에 저장한다. */
   updateMe: async (payload) => unwrap(await http.patch("/users/me", payload)),
   /** 별도 추가 정보 없이 확인된 현재 계정을 탈퇴 처리한다. */
-  withdrawMe: async (editToken) => unwrap(await http.delete("/users/me", { editToken })),
+  withdrawMe: async (verificationToken) => unwrap(await http.delete("/users/me", { verificationToken })),
 };

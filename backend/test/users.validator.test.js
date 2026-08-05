@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { validateAccountUpdate, validatePasswordVerification, validateWithdrawal } from "../src/modules/users/users.validator.js";
 
-const validUpdate = { editToken: "edit-token", nickname: "감자왕", phone: "010-1234-5678", email: "potato@example.com", password: "", passwordConfirm: "" };
+const validUpdate = { verificationToken: "verification-token", nickname: "감자왕", phone: "010-1234-5678", email: "potato@example.com", password: "", passwordConfirm: "" };
 
 /** 회원정보 수정 전 현재 비밀번호 입력을 필수로 검증한다. */
 test("validatePasswordVerification requires password", () => {
@@ -24,5 +24,5 @@ test("validateAccountUpdate rejects weak new password", () => {
 
 /** 추가 개인정보 없이 탈퇴용 수정 토큰만 검증한다. */
 test("validateWithdrawal accepts edit token only", () => {
-  assert.equal(validateWithdrawal({ editToken: "edit-token" }), "edit-token");
+  assert.equal(validateWithdrawal({ verificationToken: "verification-token" }), "verification-token");
 });

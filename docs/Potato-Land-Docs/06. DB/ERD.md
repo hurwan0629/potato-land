@@ -184,6 +184,7 @@
       title varchar(200) [not null]
       description text [not null]
       preferred_trade_location varchar(255)
+      product_status product_status [not null]
     
       view_count bigint [not null, default: 0]
     
@@ -236,7 +237,6 @@
       listing_idx bigint [pk]
     
       price bigint [not null]
-      product_status product_status [not null]
       trade_status used_trade_status [
         not null,
         default: 'ON_SALE'
@@ -509,13 +509,17 @@
         `rating BETWEEN 1 AND 10` [
           name: 'chk_reviews_rating'
         ]
+
+        `content IS NULL OR char_length(content) <= 50` [
+          name: 'chk_reviews_content_length'
+        ]
     
         `reviewer_idx <> reviewee_idx` [
           name: 'chk_reviews_participants'
         ]
       }
     }
-    
+
     /* =========================================================
        관계
        ========================================================= */
@@ -554,6 +558,7 @@
     Ref: reviews.transaction_idx > transactions.idx
     Ref: reviews.reviewer_idx > users.idx
     Ref: reviews.reviewee_idx > users.idx
+
     ```
 
 ![[Potato Land.png]]
@@ -605,6 +610,7 @@
     - name
     - sort_order
     - is_active
+    - 초기 seed 순서: 의류, 전자기기, 뷰티, 반려동물 용품, 도서, 악세사리, 신발, 헬스
 - 4. 관심 품목 `favorites`
     
     > `PRIMARY KEY(user_idx, listing_idx)`  
@@ -623,6 +629,7 @@
     - title
     - description
     - preferred_trade_location
+    - product_status [ `NEW`, `LIKE_NEW`, `USED`, `DAMAGED` ]
     - view_count
     - created_at
     - updated_at
@@ -637,7 +644,6 @@
     
     - listing_idx
     - price ( 상품 가격 )
-    - product_status ( 상품 상태 )
     - trade_status [ `ON_SALE`, `SOLD` ]
 - 7. 경매글 `auction_posts`
     
@@ -722,17 +728,3 @@
     - 취소 상태는 `status = CANCELED`로 판단한다.
     - 취소 시각은 별도 컬럼을 두지 않고 `updated_at`으로 판단한다.
     - 취소 사유는 저장하지 않는다.
-- 13. 거래 후기 `reviews`
-    
-    > CHECK(rating BETWEEN 1 AND 10)  
-    > CHECK(reviewer_idx <> reviewee_idx)  
-    > UNIQUE(transaction_idx, reviewer_idx)
-    
-    - idx
-    - transaction_idx (거래 기록)
-    - reviewer_idx
-    - reviewee_idx
-    - rating
-    - content
-    - created_at
-    - updated_at

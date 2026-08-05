@@ -3,6 +3,8 @@
 > Prefix 후보는 `/api`이다. 실제 구현 시 팀 라우터 스타일에 맞춰 경로명은 조정할 수 있다.
 > API별 `params/query/body/cookie/response` 상세는 [[05. API와 이벤트/HTTP API 상세 명세]]를 기준으로 한다.
 
+현재 계약은 업무 API 68개이며 별도로 `GET /health` 1개를 둔다.
+
 ## 1. 공통 응답 규칙
 
 ### 성공
@@ -30,9 +32,9 @@
 |---|---|---|---|
 | `POST` | `/api/auth/signup` | 회원가입 | 비회원 |
 | `GET` | `/api/auth/check-id` | 아이디 중복 확인 | 비회원 |
-| `POST` | `/api/auth/phone/send` | 전화번호 인증번호 발송 | 비회원 |
-| `POST` | `/api/auth/phone/verify` | 전화번호 인증번호 검증 | 비회원 |
-| `GET` | `/api/auth/phone/status` | 전화번호 인증 상태 조회 | 비회원 |
+| `POST` | `/api/auth/phone/send` | 전화번호 인증번호 발송 | purpose별 비회원/USER |
+| `POST` | `/api/auth/phone/verify` | 전화번호 인증번호 검증 | purpose별 비회원/USER |
+| `GET` | `/api/auth/phone/status` | 전화번호 인증 상태 조회 | purpose별 비회원/USER |
 | `POST` | `/api/auth/login` | 로그인 및 쿠키 발급 | 비회원 |
 | `POST` | `/api/auth/refresh` | Access/Refresh Token 재발급과 rotation | refresh cookie |
 | `POST` | `/api/auth/refresh/logout` | 현재 refresh session 폐기 및 쿠키 만료 | refresh cookie |
@@ -48,8 +50,7 @@
 | `GET` | `/api/users/me` | 내 회원 정보 조회 | USER |
 | `PATCH` | `/api/users/me/profile` | 프로필 이미지/소개글 수정 | USER |
 | `POST` | `/api/users/me/verify-password` | 회원 정보 수정 전 비밀번호 확인 | USER |
-| `PATCH` | `/api/users/me` | 닉네임/이메일/전화번호 수정 | USER |
-| `PATCH` | `/api/users/me/password` | 비밀번호 변경 | USER |
+| `PATCH` | `/api/users/me` | 닉네임/이메일/전화번호/비밀번호 선택 수정 | USER/수정 token |
 | `DELETE` | `/api/users/me` | 회원 탈퇴 | USER |
 
 ## 4. 메인/검색
@@ -58,7 +59,8 @@
 |---|---|---|---|
 | `GET` | `/api/main` | 메인 페이지 데이터 | optional |
 | `GET` | `/api/categories` | 카테고리 목록 | optional |
-| `GET` | `/api/search` | 통합 검색 | optional |
+
+통합 `/api/search`는 MVP에서 사용하지 않는다. 중고와 경매 목록의 `q`, `categoryIdx`, `sort` query를 사용한다.
 
 ## 5. 중고거래
 
@@ -79,7 +81,7 @@
 | `GET`    | `/api/auctions`                      | 경매 목록/검색 | optional |
 | `POST`   | `/api/auctions`                      | 경매 글 작성  | USER     |
 | `GET`    | `/api/auctions/:listingIdx`          | 경매 상세    | optional |
-| `PATCH`  | `/api/auctions/:listingIdx`          | 경매 글 수정  | 판매자      |
+| `PATCH`  | `/api/auctions/:listingIdx`          | 경매 설명 필드 수정(시작가 등 경매 조건 고정) | 판매자 |
 | `DELETE` | `/api/auctions/:listingIdx`          | 경매 글 삭제  | 판매자      |
 | `POST`   | `/api/auctions/:listingIdx/bids`     | 입찰       | USER     |
 | `GET`    | `/api/auctions/:listingIdx/bids`     | 입찰 내역 조회 | optional |
@@ -116,7 +118,8 @@
 | `GET` | `/api/mypage/me/history` | 내 거래 내역 | USER |
 | `GET` | `/api/mypage/me/reviews` | 내 후기 | USER |
 | `GET` | `/api/mypage/:userIdx/listings` | 상대방 판매 상품 | optional |
-| `GET` | `/api/mypage/:userIdx/reviews` | 상대방 후기 | optional |
+
+상대방이 받은 후기는 `GET /api/users/:userIdx/reviews`를 재사용한다.
 
 ## 10. 알림
 
@@ -134,6 +137,8 @@
 | `GET` | `/api/admin/dashboard` | 대시보드 통계 | ADMIN |
 | `GET` | `/api/admin/users` | 회원 목록/검색 | ADMIN |
 | `GET` | `/api/admin/users/:userIdx` | 회원 상세 | ADMIN |
+| `GET` | `/api/admin/users/:userIdx/transactions` | 회원 전체 거래 활동 | ADMIN |
+| `GET` | `/api/admin/users/:userIdx/reviews` | 회원 전체 후기 활동 | ADMIN |
 | `PATCH` | `/api/admin/users/:userIdx/ban` | 회원 삭제 UI에 대응하는 영구정지 | ADMIN |
 | `PATCH` | `/api/admin/users/:userIdx/memo` | 관리자 메모 저장 | ADMIN |
 | `GET` | `/api/admin/used` | 중고거래 관리 목록 | ADMIN |
@@ -150,6 +155,7 @@
 | `FORBIDDEN` | 권한 없음 |
 | `BANNED_USER` | 정지 사용자 |
 | `VALIDATION_ERROR` | 입력값 오류 |
+| `IMMUTABLE_FIELD` | 생성 후 변경할 수 없는 필드 수정 시도 |
 | `NOT_FOUND` | 대상 없음 |
 | `CONFLICT` | 중복 또는 상태 충돌 |
 | `AUCTION_CLOSED` | 종료된 경매 |
