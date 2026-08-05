@@ -6,22 +6,26 @@ import { env } from "../../config/env.js";
 // log.[level](message, scope) -> [time] [level] [scope] message {data} 형태로 출력합니다.
 const log = logger.child("redis");
 
+
 /**
- * redisClient에서 password까지 포함하여 연결해주게 됩니다.
+ * Upstash Redis 연결 클라이언트
  * 
+ * REDIS_URL 안에 username, password, host, port 정보가 모두 포함되어 있습니다.
  * 
  */
 const redisClient = createClient({
-  password: env.redis.password,
-  // 연결할 redis 서버의 호스트와 포트, 그리고 재접속 주기를 설정해줍니다.
+  url: env.redis.url,
+  // password: env.redis.password,
+  // 연결할 redis 서버의 재접속 주기를 설정해줍니다.
   socket: {
-    host: env.redis.host,
-    port: env.redis.port,
+    // host: env.redis.host,
+    // port: env.redis.port,
     reconnectStrategy(retries) {
       return Math.min(retries * 100, 3000);
     },
   },
 });
+
 
 // 에러가 발생하면 로그 출력을 해줍니다.
 redisClient.on("error", (error) => {

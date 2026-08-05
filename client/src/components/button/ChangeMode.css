@@ -1,0 +1,86 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+  width: 20%;
+}
+
+/* 트리거 버튼 - 공통 */
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* outline variant - 흰 배경 + 브라운 테두리 (검색 필터용) */
+.dropdown-trigger-outline {
+  background: white;
+  border: 2px solid #eab676;
+  border-radius: 999px;
+  color: #5c3a21;
+  font-size: 18px;
+  padding: 12px 24px;
+}
+
+/* solid variant - 오렌지 배경 (상품 등록 버튼용) */
+.dropdown-trigger-solid {
+  background-color: #eab54f;
+  border: none;
+  border-radius: 999px;
+  color: white;
+  font-size: 22px;
+  padding: 18px 32px;
+}
+
+/* 화살표 아이콘 */
+.dropdown-arrow {
+  font-size: 20px;
+  transition: transform 0.2s;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-trigger-outline .dropdown-arrow {
+  color: #5c3a21;
+}
+
+.dropdown-trigger-solid .dropdown-arrow {
+  color: #7a7a7a;
+}
+
+/* 펼쳐지는 메뉴 */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 200px;
+  background: white;
+  border: 2px solid #eab676;
+  border-radius: 20px;
+  list-style: none;
+  padding: 10px;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 14px 18px;
+  border-radius: 14px;
+  color: #5c3a21;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dropdown-item.active {
+  background-color: #fbe8cf;
+}
+
+.dropdown-item:hover {
+  background-color: #fbe8cf;
+}

@@ -4,6 +4,7 @@ node_modules/
 # Environment
 .env
 .env.*
+*.local
 !.env*.example
 
 # Logs
@@ -13,9 +14,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
+
+
 
 # Build output
 dist/
+dist-ssr/
 build/
 coverage/
 
@@ -32,7 +37,7 @@ backend/uploads/profiles/*
 !backend/uploads/profiles/.gitkeep
 *.zip
 
-# OS / Editor
+# OS / Editor 
 .DS_Store
 Thumbs.db
 desktop.ini
@@ -40,6 +45,12 @@ desktop.ini
 .idea/
 .agent/
 .agents/
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # Obsidian workspace state
 **/.obsidian/
