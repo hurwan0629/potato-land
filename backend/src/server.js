@@ -8,7 +8,6 @@ import { connectRedis, disconnectRedis } from "./infrastructure/redis/redisClien
 import { stopAuctionRecoveryScheduler } from "./schedulers/auctionRecoveryScheduler.js";
 import { clearAuctionTimers } from "./schedulers/auctionTimer.js";
 import { createSocketServer } from "./sockets/index.js";
-import { configureSolApiSmsService } from "./infrastructure/sms/solapiSms.service.js";
 import { configureSmsProvider } from "./infrastructure/sms/sms.interface.js";
 
 const log = logger.child("server");
@@ -19,12 +18,13 @@ app.set("io", socketServer.io);
 /** PostgreSQL과 Redis 연결을 확인한 뒤 HTTP 서버를 시작한다. */
 async function startServer() {
   try {
-    // solapi 서버 연결
-    // configureSolApiSmsService()
-    // 콘솔 출력
-    configureSmsProvider(({ from, to, text }) => {
-      logger.info(`[dev-sms-service]`, { from, to, text })
-    })
+    // 개발 provider는 인증번호·본문을 로그에 남기지 않는다.
+    configureSmsProvider(({ to }) => {
+      const maskedTo = typeof to === "string" && to.length >= 4
+        ? `${"*".repeat(to.length - 4)}${to.slice(-4)}`
+        : "[REDACTED]";
+      log.info("개발 SMS 발송 요청을 처리했습니다.", { to: maskedTo });
+    });
     
     await connectDatabase();
     await connectRedis();
