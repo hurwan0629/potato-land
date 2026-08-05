@@ -73,17 +73,19 @@ export const env = {
   },
 
   database: {
-    host: required("DATABASE_HOST", "127.0.0.1"),
-    port: requiredInt("DATABASE_PORT", 5432),
-    name: required("DATABASE_NAME"),
-    user: required("DATABASE_USER"),
-    password: required("DATABASE_PASSWORD"),
+    url: required("DATABASE_URL"),
+    // host: required("DATABASE_HOST", "127.0.0.1"),
+    // port: requiredInt("DATABASE_PORT", 5432),
+    // name: required("DATABASE_NAME"),
+    // user: required("DATABASE_USER"),
+    // password: required("DATABASE_PASSWORD"),
   },
 
   redis: {
-    host: required("REDIS_HOST", "127.0.0.1"),
-    port: requiredInt("REDIS_PORT", 6379),
-    password: required("REDIS_PASSWORD"), 
+    url: required("REDIS_URL"),
+    // host: required("REDIS_HOST", "127.0.0.1"),
+    // port: requiredInt("REDIS_PORT", 6379),
+    // password: required("REDIS_PASSWORD"), 
   },
 
   jwt: {

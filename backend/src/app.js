@@ -10,11 +10,15 @@ import { env } from "./config/env.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/notFound.middleware.js";
 import { indexRouter } from "./routes/index.router.js";
+import { logger } from "./common/logging/logger.js";
+import { query } from "./infrastructure/database/database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const app = express();
+
+const log = logger.child("app")
 
 app.use(
   cors({
@@ -39,6 +43,32 @@ app.get("/health", (_req, res) => {
       status: "ok",
     },
   });
+});
+
+// API 주소로 DATABASE 연결 확인
+// http://localhost:8080/health/database
+app.get("/health/database", async (_req, res, next) => {
+  try {
+    const { rows } = await query(`
+      SELECT
+        CURRENT_DATABASE() AS database_name,
+        CURRENT_USER AS database_user,
+        NOW() AS database_time,
+        TO_REGCLASS('public.users') AS users_table
+    `);
+
+    log.info("/health/database rows[0]:", rows[0])
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        connected: true,
+        usersTableExists: rows[0].users_table !== null,
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
 });
 
 app.use("/api", indexRouter);
