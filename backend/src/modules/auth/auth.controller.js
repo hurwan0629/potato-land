@@ -34,13 +34,17 @@ export const getPhoneStatus = asyncHandler(async (req, res) => res.status(200).j
 
 /** 로그인 자격 증명을 확인하고 access/refresh HttpOnly 쿠키를 발급한다. */
 export const login = asyncHandler(async (req, res) => {
+  // Service에는 브라우저·IP 정보를 함께 전달해 기기별 세션 정보로 기록한다.
   const result = await loginUser(req.body, { userAgent: req.get("user-agent") ?? "", ip: req.ip });
+
+  // JWT 원문은 응답 body가 아닌 HttpOnly 쿠키로만 전달한다.
   setLoginCookies(res, result.tokens);
   return res.status(200).json({ success: true, data: result.user });
 });
 
 /** Refresh Token이 가리키는 현재 기기 세션을 폐기하고 인증 쿠키를 만료시킨다. */
 export const logout = asyncHandler(async (req, res) => {
+  // 서버의 현재 Refresh 세션을 먼저 폐기한 뒤 브라우저 쿠키를 제거한다.
   const result = await logoutCurrentSession(req.cookies.refresh_token);
   clearLoginCookies(res);
   return res.status(200).json({ success: true, data: result });
@@ -49,10 +53,14 @@ export const logout = asyncHandler(async (req, res) => {
 /** Refresh Token을 rotation하고 새 access/refresh 쿠키를 함께 발급한다. */
 export const refresh = asyncHandler(async (req, res) => {
   try {
+    // Refresh 쿠키와 현재 요청 정보를 이용해 같은 기기의 토큰을 rotation한다.
     const result = await refreshLoginSession(req.cookies.refresh_token, { userAgent: req.get("user-agent") ?? "", ip: req.ip });
+
+    // Rotation에 성공한 경우에만 두 쿠키를 새 토큰으로 덮어쓴다.
     setLoginCookies(res, result.tokens);
     return res.status(200).json({ success: true, data: { refreshed: result.refreshed } });
   } catch (error) {
+    // 재발급 실패 후 잘못된 쿠키로 반복 요청하지 않도록 두 쿠키를 함께 만료시킨다.
     clearLoginCookies(res);
     throw error;
   }
@@ -60,6 +68,7 @@ export const refresh = asyncHandler(async (req, res) => {
 
 /** 로그인 사용자의 모든 기기 세션을 폐기하고 현재 브라우저 쿠키도 만료시킨다. */
 export const logoutAll = asyncHandler(async (req, res) => {
+  // Access Token의 사용자 식별자로 다른 기기를 포함한 모든 세션을 제거한다.
   const result = await logoutAllSessions(req.auth.userIdx);
   clearLoginCookies(res);
   return res.status(200).json({ success: true, data: result });
@@ -74,6 +83,8 @@ export const getSessions = asyncHandler(async (req, res) => res.status(200).json
 /** 선택한 기기의 Refresh 세션을 폐기한다. */
 export const deleteSession = asyncHandler(async (req, res) => {
   const result = await logoutSession(req.auth.userIdx, req.params.sessionId);
+
+  // 사용자가 현재 기기 세션을 선택했다면 Access 쿠키까지 제거해 즉시 로그아웃한다.
   if (req.params.sessionId === req.auth.sessionId) clearLoginCookies(res);
   return res.status(200).json({ success: true, data: result });
 });

@@ -1,8 +1,9 @@
-import { db } from "../../infrastructure/database/database.js";
+import { query } from "../../infrastructure/database/database.js";
 
 /** 로그인 아이디로 사용자 인증에 필요한 전체 계정 정보를 조회한다. */
 export async function findUserByLoginId(loginId) {
-  const result = await db.query(
+  // 로그인 Service가 비밀번호와 계정 상태를 한 번의 조회로 검증하도록 필요한 필드를 반환한다.
+  const result = await query(
     `SELECT idx, login_id, password_hash, name, nickname, phone, email,
             profile_image, role, deleted_at, banned_at
        FROM users
@@ -14,7 +15,7 @@ export async function findUserByLoginId(loginId) {
 
 /** 사용자 식별자로 현재 권한과 활성 상태를 포함한 계정 정보를 조회한다. */
 export async function findUserById(userIdx) {
-  const result = await db.query(
+  const result = await query(
     `SELECT idx, login_id, nickname, profile_image, role, deleted_at, banned_at
        FROM users
       WHERE idx = $1`,
@@ -25,18 +26,19 @@ export async function findUserById(userIdx) {
 
 /** 휴대전화 번호로 가입된 사용자가 있는지 조회한다. */
 export async function findUserByPhone(phone) {
-  const result = await db.query("SELECT idx, login_id, name, phone, deleted_at, banned_at FROM users WHERE phone = $1 LIMIT 1", [phone]);
+  const result = await query("SELECT idx, login_id, name, phone, deleted_at, banned_at FROM users WHERE phone = $1 LIMIT 1", [phone]);
   return result.rows[0] ?? null;
 }
 
 /** 사용자 식별자에 해당하는 비밀번호 해시를 새 값으로 변경한다. */
 export async function updateUserPassword(userIdx, passwordHash) {
-  await db.query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE idx = $2", [passwordHash, userIdx]);
+  await query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE idx = $2", [passwordHash, userIdx]);
 }
 
 /** 가입 필드 중 이미 사용 중인 값을 찾아 충돌 필드명을 반환한다. */
 export async function findSignupConflict({ loginId, nickname, phone, email }) {
-  const result = await db.query(
+  // CASE 순서가 충돌 응답에서 사용자에게 안내할 필드의 우선순위를 결정한다.
+  const result = await query(
     `SELECT CASE
        WHEN login_id = $1 THEN 'loginId'
        WHEN nickname = $2 THEN 'nickname'
@@ -54,7 +56,8 @@ export async function findSignupConflict({ loginId, nickname, phone, email }) {
 
 /** 비밀번호 hash가 포함된 신규 사용자를 PostgreSQL에 저장한다. */
 export async function createUser({ loginId, passwordHash, name, nickname, phone, email }) {
-  const result = await db.query(
+  // SQL parameter를 사용해 입력값이 쿼리 문자열로 직접 결합되지 않도록 한다.
+  const result = await query(
     `INSERT INTO users (login_id, password_hash, name, nickname, phone, email)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING idx, login_id, nickname, role, profile_image`,

@@ -3,10 +3,8 @@ import test from "node:test";
 
 Object.assign(process.env, {
   CLIENT_ORIGIN: "http://localhost:5173",
-  DATABASE_NAME: "test",
-  DATABASE_USER: "test",
-  DATABASE_PASSWORD: "test",
-  REDIS_PASSWORD: "test",
+  DATABASE_URL: "postgresql://test:test@127.0.0.1:5432/test",
+  REDIS_URL: "redis://default:test@127.0.0.1:6379",
   ACCESS_TOKEN_SECRET: "test-access-secret-with-sufficient-length",
   REFRESH_TOKEN_SECRET: "test-refresh-secret-with-sufficient-length",
 });
