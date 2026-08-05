@@ -1,8 +1,5 @@
-export default function ProductRegister() {
-  return (
-    <div style={{ padding: 40 }}>
-      <h2>상품 등록</h2>
-      <p>이미지 업로드, 카테고리, 가격, 설명 입력 폼이 들어갈 페이지입니다.</p>
-    </div>
-  );
-}
+import { useEffect,useState } from "react";
+import { useNavigate,useSearchParams } from "react-router";
+import { mainApi } from "../../api/mainApi";
+import { usedApi } from "../../api/usedApi";
+export default function ProductRegister(){const navigate=useNavigate();const[params]=useSearchParams();const editId=params.get("editId");const[categories,setCategories]=useState([]);const[form,setForm]=useState({title:"",description:"",categoryIdx:"",productStatus:"LIKE_NEW",price:"",preferredTradeLocation:""});const[images,setImages]=useState([]);const[error,setError]=useState("");useEffect(()=>{mainApi.getCategories().then((r)=>setCategories(r.data.items));if(editId)usedApi.get(editId).then((r)=>{const d=r.data;setForm({title:d.title,description:d.description,categoryIdx:String(d.category.categoryIdx),productStatus:d.productStatus,price:String(d.price),preferredTradeLocation:d.preferredTradeLocation??""});});},[editId]);const change=(e)=>setForm({...form,[e.target.name]:e.target.value});const submit=async(e)=>{e.preventDefault();try{const body=new FormData();Object.entries(form).forEach(([k,v])=>body.append(k,v));images.forEach((file)=>body.append("images",file));const r=editId?await usedApi.update(editId,body):await usedApi.create(body);navigate(`/products/${editId??r.data.listingIdx}`);}catch(cause){setError(cause.message);}};return <div style={{padding:40}}><h2>{editId?"중고 상품 수정":"중고 상품 등록"}</h2><form onSubmit={submit}>{["title","description","price","preferredTradeLocation"].map((name)=><div key={name}><label>{name}<input name={name} value={form[name]} onChange={change} required={name!=="preferredTradeLocation"}/></label></div>)}<select name="categoryIdx" value={form.categoryIdx} onChange={change} required><option value="">카테고리</option>{categories.map((c)=><option key={c.categoryIdx} value={c.categoryIdx}>{c.name}</option>)}</select><select name="productStatus" value={form.productStatus} onChange={change}>{["NEW","LIKE_NEW","USED","DAMAGED"].map((v)=><option key={v}>{v}</option>)}</select><input type="file" accept="image/*" multiple onChange={(e)=>setImages([...e.target.files].slice(0,4))}/><button type="submit">저장</button>{error&&<p role="alert">{error}</p>}</form></div>;}
