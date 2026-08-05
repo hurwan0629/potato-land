@@ -10,17 +10,31 @@ const { Pool } = pg;
 // 를 출력하게 됩니다.
 const log = logger.child("database");
 
-// pool 관리 객체를 사용합니다.
+const databaseUrl = new URL(env.database.url);
+
+const isLocalDatabase = [
+  "localhost",
+  "127.0.0.1",
+  "postgres",
+].includes(databaseUrl.hostname);
+
 const pool = new Pool({
+  // host: env.database.host,
+  // port: env.database.port,
+  // database: env.database.name,
+  // user: env.database.user,
+  // password: env.database.password,
   connectionString: env.database.url,
 
   max: 10,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 10_000,
 
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl: isLocalDatabase
+    ? false
+    : {
+        rejectUnauthorized: false,
+      },
 });
 
 let connected = false;
@@ -35,21 +49,26 @@ pool.on("error", (error) => {
  * server.js에서 동작하게 됩니다.
  */
 export async function connectDatabase() {
+  // if (connected) return;
+
+  // await pool.query("SELECT 1");
+  // connected = true;
+  // log.info("PostgreSQL 연결을 확인했습니다.");
   if (connected) return;
 
   const { rows } = await pool.query(`
-    SELECT
-      CURRENT_DATABASE() AS database_name,
-      CURRENT_USER AS database_user,
-      NOW() AS conneted_at,
-      TO_REGCLASS('public.users') AS users_table
-    `);
+  SELECT
+    CURRENT_DATABASE() AS database_name,
+    CURRENT_USER AS database_user,
+    NOW() AS connected_at,
+    TO_REGCLASS('public.users') AS users_table
+  `);
 
   connected = true;
-  log.info("Supabase PostgreSQL 연결을 확인했습니다.", {
+  log.info("PostgreSQL 연결을 확인했습니다.", {
     databaseName: rows[0].database_name,
     databaseUser: rows[0].database_user,
-    connectedAt: rows[0].connedted_at,
+    connectedAt: rows[0].connected_at,
     usersTable: rows[0].users_table,
   });
 }

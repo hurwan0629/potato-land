@@ -10,12 +10,15 @@ import { env } from "./config/env.js";
 import { errorMiddleware } from "./common/middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./common/middlewares/notFound.middleware.js";
 import { indexRouter } from "./routes/index.router.js";
+import { logger } from "./common/logging/logger.js";
 import { query } from "./infrastructure/database/database.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const app = express();
+
+const log = logger.child("app")
 
 app.use(
   cors({
@@ -54,9 +57,14 @@ app.get("/health/database", async (_req, res, next) => {
         TO_REGCLASS('public.users') AS users_table
     `);
 
+    log.info("/health/database rows[0]:", rows[0])
+
     return res.status(200).json({
       success: true,
-      data: rows[0],
+      data: {
+        connected: true,
+        usersTableExists: rows[0].users_table !== null,
+      }
     });
   } catch (error) {
     return next(error);

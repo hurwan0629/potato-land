@@ -8,6 +8,8 @@ import { connectRedis, disconnectRedis } from "./infrastructure/redis/redisClien
 import { stopAuctionRecoveryScheduler } from "./schedulers/auctionRecoveryScheduler.js";
 import { clearAuctionTimers } from "./schedulers/auctionTimer.js";
 import { createSocketServer } from "./sockets/index.js";
+import { configureSolApiSmsService } from "./infrastructure/sms/solapiSms.service.js";
+import { configureSmsProvider } from "./infrastructure/sms/sms.interface.js";
 
 const log = logger.child("server");
 const httpServer = http.createServer(app);
@@ -17,6 +19,13 @@ app.set("io", socketServer.io);
 /** PostgreSQL과 Redis 연결을 확인한 뒤 HTTP 서버를 시작한다. */
 async function startServer() {
   try {
+    // solapi 서버 연결
+    // configureSolApiSmsService()
+    // 콘솔 출력
+    configureSmsProvider(({ from, to, text }) => {
+      logger.info(`[dev-sms-service]`, { from, to, text })
+    })
+    
     await connectDatabase();
     await connectRedis();
     httpServer.listen(env.server.port, env.server.host, () => {

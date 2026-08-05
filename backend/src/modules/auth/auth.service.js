@@ -3,7 +3,6 @@ import { randomInt, randomUUID } from "node:crypto";
 
 import { AppError } from "../../common/errors/AppError.js";
 import { env } from "../../config/env.js";
-import { solapiSmsService } from "../../infrastructure/sms/solapiSms.service.js";
 import { PHONE_VERIFICATION_POLICY } from "./auth.constants.js";
 import {
   createUser,
@@ -39,6 +38,8 @@ import {
   validateResetPassword,
   validateSignup,
 } from "./auth.validator.js";
+import { sendVerificationCode } from "../../infrastructure/sms/sms.interface.js";
+import { logger } from "../../common/logging/logger.js";
 
 const CONFLICT_MESSAGES = {
   loginId: "이미 사용 중인 아이디입니다.",
@@ -46,6 +47,8 @@ const CONFLICT_MESSAGES = {
   phone: "이미 가입된 휴대전화 번호입니다.",
   email: "이미 사용 중인 이메일입니다.",
 };
+
+const log = logger.child("auth.service.js")
 
 /** 회원가입 요청의 휴대전화 인증 완료 상태를 확인하고 신규 회원을 생성한다. */
 export async function signupUser(body) {
@@ -121,7 +124,8 @@ export async function sendPhoneVerification(body) {
   await savePhoneCode({ phone, purpose, payload });
   try {
     // 5. Redis 저장에 성공한 뒤 실제 SMS를 발송한다.
-    await solapiSmsService.sendVerificationCode({ to: phone, code });
+    log.info("send phone code", { code, purpose, payload}) // things to delete
+    await sendVerificationCode({ to: phone, code });
   } catch (error) {
     // 발송 실패 시 사용할 수 없는 인증번호와 재발송 제한을 즉시 제거한다.
     await deletePhoneCode(phone, purpose);
