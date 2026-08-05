@@ -12,6 +12,7 @@ import { createSocketServer } from "./sockets/index.js";
 const log = logger.child("server");
 const httpServer = http.createServer(app);
 const socketServer = createSocketServer(httpServer);
+app.set("io", socketServer.io);
 
 /** PostgreSQL과 Redis 연결을 확인한 뒤 HTTP 서버를 시작한다. */
 async function startServer() {

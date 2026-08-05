@@ -1,0 +1,5 @@
+ALTER TABLE chat_messages
+  ADD COLUMN IF NOT EXISTS image_url VARCHAR(2048);
+
+ALTER TABLE notifications
+  ADD COLUMN IF NOT EXISTS read_at TIMESTAMPTZ;
