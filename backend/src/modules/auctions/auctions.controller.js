@@ -1,5 +1,7 @@
 import { notImplemented } from "../../common/utils/notImplemented.js";
 // import { asyncHandler } from "../../common/utils/asyncHandler.js";
+import * as auctionService from "./auctions.service.js";
+
 
 // export const listAuctions = asyncHandler( async(req, res) => {
 //   try {
@@ -248,7 +250,7 @@ export const getAuctionDetail = asyncHandler(async (req, res) => {
 // 경매 글 수정하기
 export const updateAuction = asyncHandler(async (req, res) => {
     const access_token = req.cookies?.access_token
-    const {listingIdx} = req.params
+    const { listingIdx } = req.params
     const updateData = req.body
     const newImages = req.files
 
@@ -270,8 +272,8 @@ export const updateAuction = asyncHandler(async (req, res) => {
 // 경매 글 삭제하기
 export const deleteAuction = asyncHandler(async (req, res) => {
     const access_token = req.cookies?.access_token
-    const {listingIdx} = req.params
-    const {reason} = req.body
+    const { listingIdx } = req.params
+    const { reason } = req.body
 
     const result = await auctionService.deleteAuctionData({
         access_token,
@@ -287,10 +289,11 @@ export const deleteAuction = asyncHandler(async (req, res) => {
     // return notImplemented(res, "경매글 삭제")
 })
 
+//입찰 등록
 export const createAuctionBid = asyncHandler(async (req, res) => {
     const access_token = req.cookies?.access_token
-    const {listingIdx} = req.params
-    const {bidMount} = req.body
+    const { listingIdx } = req.params
+    const { bidMount } = req.body
 
     const result = await createAuctionBidData({
         access_token: access_token,
@@ -305,14 +308,53 @@ export const createAuctionBid = asyncHandler(async (req, res) => {
     // return notImplemented(res, "경매 입찰")
 })
 
+// 입찰 목록
 export const listAuctionBids = asyncHandler(async (req, res) => {
+    const access_token = req.cookies?.access_token
+    const { listingIdx } = req.params
+
+    const result = await auctionService.listAuctionBidsData({
+        access_token,
+        listingIdx
+    })
+
+    return res.status(200).json({
+        success: true,
+        data: result
+    })
     // return notImplemented(res, "경매 입찰 내역 조회")
 })
 
+
+// 관심 등록
 export const addAuctionFavorite = asyncHandler(async (req, res) => {
-    return notImplemented(res, "경매 관심 추가")
+    const access_token = req.cookies?.access_token
+    const { listingIdx } = req.params
+
+    const result = await auctionService.onAuctionLike({
+        access_token,
+        listingIdx
+    })
+
+    return res.status(200).json9({
+        success: true,
+        data: result
+    })
+    // return notImplemented(res, "경매 관심 추가")
 })
 
 export const removeAuctionFavorite = asyncHandler(async (req, res) => {
-    return notImplemented(res, "경매 관심 해제")
+    const access_token = req.cookies?.access_token
+    const {listingIdx} = req.params
+
+    const result = await auctionService.deleteAuctionLike({
+        access_token,
+        listingIdx
+    })
+
+    return res.status(200).json({
+        success: true,
+        data: result
+    })
+    // return notImplemented(res, "경매 관심 해제")
 })
