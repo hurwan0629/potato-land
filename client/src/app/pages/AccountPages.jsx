@@ -13,8 +13,9 @@ import {
   Trash2,
   Upload,
   UserRound,
+  X,
 } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 
 import {
   authApi,
@@ -38,6 +39,7 @@ import {
   ImageWithFallback,
   InlineAlert,
   LoadingState,
+  Modal,
   PageHeader,
   Pagination,
   ProductGrid,
@@ -111,35 +113,36 @@ export function MyPage() {
 
   return (
     <div className="page-container account-page">
-      <section className="profile-hero">
-        <Avatar user={profile} size="large" />
-        <div className="profile-hero__copy">
-          <p className="eyebrow">{isOwner ? "나의 감자나라" : "판매자 프로필"}</p>
-          <h1>{profile.nickname}</h1>
-          <p>{profile.bio || "아직 작성한 소개가 없습니다."}</p>
+      <aside className="mypage-sidebar">
+        <section className="profile-hero">
+          <Avatar user={profile} size="large" />
+          <div className="profile-hero__copy">
+            <h1>{profile.nickname}</h1>
+            <p>{profile.bio || "아직 작성한 소개가 없습니다."}</p>
+          </div>
+          {isOwner && (
+            <div className="profile-edit-actions">
+              <button type="button" className="button button--secondary" onClick={() => navigate("/mypage/me/edit?mode=profile")}><UserRound size={16} />프로필 수정</button>
+              <button type="button" className="button button--secondary" onClick={() => navigate("/mypage/me/edit?mode=account")}><FileText size={16} />회원 정보 수정</button>
+            </div>
+          )}
+        </section>
+
+        <Tabs items={tabs.map(({ value, label }) => ({ value, label }))} value={activeTab} onChange={handleTab} ariaLabel="마이페이지 메뉴" />
+
+        <div className="mypage-trade-stats">
+          <StatCard label="판매" value={Number(profile.sellCount ?? 0)} icon={<Package size={20} />} />
+          <StatCard label="구매" value={Number(profile.buyCount ?? 0)} icon={<BadgeCheck size={20} />} />
+        </div>
+        <div className="mypage-rating-card">
+          <span>평균 평점</span>
+          <strong>{Number(profile.averageRating ?? 0).toFixed(1)}</strong>
           <Rating value={profile.averageRating} reviewCount={profile.reviewCount} />
         </div>
-        {isOwner && (
-          <button type="button" className="button button--secondary" onClick={() => navigate("/mypage/me/edit")}>
-            <UserRound size={18} />
-            내 정보 수정
-          </button>
-        )}
-      </section>
-
-      <div className="stat-grid stat-grid--profile">
-        <StatCard label="판매" value={`${Number(profile.sellCount ?? 0)}건`} icon={<Package size={22} />} />
-        <StatCard label="구매" value={`${Number(profile.buyCount ?? 0)}건`} icon={<BadgeCheck size={22} />} />
-        <StatCard label="받은 후기" value={`${Number(profile.reviewCount ?? 0)}개`} icon={<Star size={22} />} />
-      </div>
+      </aside>
 
       <section className="content-card profile-content">
-        <Tabs
-          items={tabs.map(({ value, label }) => ({ value, label }))}
-          value={activeTab}
-          onChange={handleTab}
-          ariaLabel="마이페이지 메뉴"
-        />
+        <h2>{tabs.find((tab) => tab.value === activeTab)?.label ?? "판매 상품"}</h2>
 
         {tabRemote.isLoading && <LoadingState />}
         {tabRemote.error && <ErrorState error={tabRemote.error} onRetry={tabRemote.reload} />}
@@ -188,7 +191,7 @@ function ProfileTabContent({ type, items, isOwner }) {
             <Link to={listingPath(item)} className="history-card__media">
               <ImageWithFallback src={item.thumbnailUrl} alt={item.title} />
             </Link>
-            <div>
+            <div className="history-card__info">
               <div className="history-card__top">
                 <span>{item.listingType === "AUCTION" ? "경매" : "중고거래"}</span>
                 <StatusBadge status={item.status} />
@@ -199,7 +202,7 @@ function ProfileTabContent({ type, items, isOwner }) {
               <small>{formatDate(item.displayDate ?? item.endsAt)}</small>
             </div>
             {item.transactionIdx && (
-              <Link className="button button--secondary button--small" to={`/payment/${item.transactionIdx}`}>
+              <Link className="button button--secondary button--small history-card__action" to={`/payment/${item.transactionIdx}`}>
                 거래 보기
               </Link>
             )}
@@ -231,6 +234,8 @@ function ProfileTabContent({ type, items, isOwner }) {
 
 export function AccountEditPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editMode = searchParams.get("mode") === "profile" ? "profile" : "account";
   const { refreshUser, logout } = useAuth();
   const { notify } = useToast();
   const [profileImage, setProfileImage] = useState(null);
@@ -250,6 +255,14 @@ export function AccountEditPage() {
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const nicknameValid = publicForm.nickname.length >= 2 && publicForm.nickname.length <= 12;
+  const newPasswordValid = !accountForm.newPassword || (
+    accountForm.newPassword.length >= 8
+    && accountForm.newPassword.length <= 20
+    && [/[A-Za-z]/, /\d/, /[^A-Za-z\d]/].filter((pattern) => pattern.test(accountForm.newPassword)).length >= 2
+  );
+  const newPasswordMatches = accountForm.newPassword === accountForm.newPasswordConfirm;
 
   const loadAccount = useCallback(async () => {
     const account = await usersApi.me();
@@ -319,6 +332,7 @@ export function AccountEditPage() {
       setProfileImage(null);
       accountRemote.reload();
       notify("프로필을 저장했습니다.", "success");
+      navigate(`/mypage/${accountRemote.data.userIdx}`, { replace: true });
     } catch (error) {
       notify(error.message, "error");
     } finally {
@@ -372,8 +386,16 @@ export function AccountEditPage() {
       notify("현재 비밀번호 확인이 필요합니다.", "error");
       return;
     }
+    if (!nicknameValid) {
+      notify("닉네임은 2~12자로 입력해주세요.", "error");
+      return;
+    }
     if (accountForm.newPassword !== accountForm.newPasswordConfirm) {
       notify("새 비밀번호가 일치하지 않습니다.", "error");
+      return;
+    }
+    if (!newPasswordValid) {
+      notify("새 비밀번호 형식을 확인해주세요.", "error");
       return;
     }
 
@@ -395,6 +417,7 @@ export function AccountEditPage() {
       await refreshUser();
       accountRemote.reload();
       notify("계정 정보를 저장했습니다.", "success");
+      navigate(`/mypage/${accountRemote.data.userIdx}`, { replace: true });
     } catch (error) {
       notify(error.message, "error");
     } finally {
@@ -426,10 +449,6 @@ export function AccountEditPage() {
       notify("탈퇴 전에 현재 비밀번호 확인이 필요합니다.", "error");
       return;
     }
-    if (!globalThis.confirm("정말 감자나라를 탈퇴할까요? 진행 중 상태가 함께 정리됩니다.")) {
-      return;
-    }
-
     try {
       await usersApi.withdraw(editToken);
       await logout();
@@ -450,7 +469,8 @@ export function AccountEditPage() {
   const account = accountRemote.data;
 
   return (
-    <div className="page-container account-edit-page">
+    <div className={`page-container account-edit-page mode-${editMode} ${editToken ? "is-verified" : "is-unverified"}`}>
+      <button type="button" className="account-edit-close" aria-label="회원정보 수정 닫기" onClick={() => navigate(`/mypage/${account.userIdx}`)}><X size={28} /></button>
       <PageHeader
         eyebrow="계정 설정"
         title="내 정보 수정"
@@ -462,7 +482,7 @@ export function AccountEditPage() {
         <form className="content-card settings-card" onSubmit={savePublicProfile}>
           <div className="settings-card__title">
             <UserRound size={22} />
-            <div><h2>공개 프로필</h2><p>다른 사용자에게 표시되는 정보입니다.</p></div>
+            <div><h2>프로필 수정</h2><p>다른 사용자에게 표시되는 정보입니다.</p></div>
           </div>
           <div className="profile-image-editor">
             <Avatar
@@ -488,41 +508,35 @@ export function AccountEditPage() {
           <button className="button" disabled={isWorking} type="submit"><Save size={18} />프로필 저장</button>
         </form>
 
-        <section className="content-card settings-card">
+        <form className="content-card settings-card" onSubmit={(event) => { event.preventDefault(); verifyCurrentPassword(); }}>
           <div className="settings-card__title">
             <KeyRound size={22} />
-            <div><h2>본인 확인</h2><p>개인정보 수정과 탈퇴 전에 필요합니다.</p></div>
+            <div><h2>비밀번호 확인</h2><p>회원정보 수정을 위해 현재 비밀번호를 입력해주세요.</p></div>
           </div>
+          <label className="form-field account-verify-id"><span>아이디</span><input value={account.loginId ?? ""} disabled /></label>
           <label className="form-field"><span>현재 비밀번호</span><input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
-          <button type="button" className="button button--secondary" disabled={isWorking || Boolean(editToken)} onClick={verifyCurrentPassword}>
+          <button type="submit" className="button button--secondary" disabled={isWorking || Boolean(editToken)}>
             <ShieldCheck size={18} />
-            {editToken ? "확인 완료" : "현재 비밀번호 확인"}
+            {editToken ? "확인 완료" : "로그인 하기"}
           </button>
           {editToken && <InlineAlert type="success">10분 동안 개인정보 수정과 탈퇴가 가능합니다.</InlineAlert>}
-        </section>
+        </form>
 
         <form className="content-card settings-card settings-card--wide" onSubmit={saveAccount}>
           <div className="settings-card__title">
             <FileText size={22} />
-            <div><h2>계정 정보</h2><p>전화번호나 비밀번호를 변경할 수 있습니다.</p></div>
+            <div><h2>회원 정보 수정</h2><p>전화번호나 비밀번호를 변경할 수 있습니다.</p></div>
           </div>
           <div className="form-grid form-grid--two">
-            <label className="form-field"><span>아이디</span><input value={account.loginId ?? ""} disabled /></label>
-            <label className="form-field"><span>이름</span><input value={account.name ?? ""} disabled /></label>
+            <label className="form-field"><span>닉네임</span><input value={publicForm.nickname} maxLength={12} onChange={(event) => setPublicForm((current) => ({ ...current, nickname: event.target.value }))} /><small className={nicknameValid ? "field-message--success" : "field-message--error"}>{nicknameValid ? "✓ 사용 가능한 닉네임입니다." : "X 닉네임은 2~12자로 입력해주세요."}</small></label>
+            <label className="form-field"><span>현재 비밀번호</span><input type="password" value={currentPassword} disabled /></label>
+            <label className="form-field"><span>새 비밀번호</span><input type="password" autoComplete="new-password" value={accountForm.newPassword} onChange={(event) => setAccountForm((current) => ({ ...current, newPassword: event.target.value }))} placeholder="변경하지 않으면 비워두세요" />{accountForm.newPassword && <small className={newPasswordValid ? "field-message--success" : "field-message--error"}>{newPasswordValid ? "✓ 영문·숫자·특수문자 중 2가지 이상 조합(8~20자)" : "X 영문·숫자·특수문자 중 2가지 이상 조합(8~20자)"}</small>}</label>
+            <label className="form-field"><span>새 비밀번호 확인</span><input type="password" autoComplete="new-password" value={accountForm.newPasswordConfirm} onChange={(event) => setAccountForm((current) => ({ ...current, newPasswordConfirm: event.target.value }))} />{accountForm.newPasswordConfirm && <small className={newPasswordMatches ? "field-message--success" : "field-message--error"}>{newPasswordMatches ? "✓ 비밀번호가 일치합니다." : "X 비밀번호가 일치하지 않습니다."}</small>}</label>
+            <label className="form-field account-phone-field"><span>전화번호</span><div className="field-inline"><input value={accountForm.phone} onChange={(event) => { setAccountForm((current) => ({ ...current, phone: event.target.value })); setPhoneVerified(false); }} /><button type="button" className="button button--small" disabled={!editToken || isWorking} onClick={sendPhoneCode}>휴대폰 인증</button></div></label>
+            {phoneVerificationId && !phoneVerified && <label className="form-field"><span>인증번호</span><div className="field-inline"><input value={phoneCode} maxLength={6} placeholder="인증번호를 입력해주세요" onChange={(event) => setPhoneCode(event.target.value.replace(/\D/g, ""))} /><button type="button" className="button button--small" onClick={verifyPhoneCode}>확인</button></div></label>}
             <label className="form-field"><span>이메일</span><input type="email" value={accountForm.email} onChange={(event) => setAccountForm((current) => ({ ...current, email: event.target.value }))} /></label>
-            <label className="form-field"><span>휴대전화</span><input value={accountForm.phone} onChange={(event) => { setAccountForm((current) => ({ ...current, phone: event.target.value })); setPhoneVerified(false); }} /></label>
           </div>
-          <div className="phone-edit-row">
-            <button type="button" className="button button--secondary button--small" disabled={!editToken || isWorking} onClick={sendPhoneCode}>새 번호 인증</button>
-            {phoneVerificationId && !phoneVerified && (
-              <><input value={phoneCode} maxLength={6} placeholder="인증번호 6자리" onChange={(event) => setPhoneCode(event.target.value.replace(/\D/g, ""))} /><button type="button" className="button button--small" onClick={verifyPhoneCode}>확인</button></>
-            )}
-            {phoneVerified && <span className="field-success">인증 완료</span>}
-          </div>
-          <div className="form-grid form-grid--two">
-            <label className="form-field"><span>새 비밀번호</span><input type="password" autoComplete="new-password" value={accountForm.newPassword} onChange={(event) => setAccountForm((current) => ({ ...current, newPassword: event.target.value }))} placeholder="변경하지 않으면 비워두세요" /></label>
-            <label className="form-field"><span>새 비밀번호 확인</span><input type="password" autoComplete="new-password" value={accountForm.newPasswordConfirm} onChange={(event) => setAccountForm((current) => ({ ...current, newPasswordConfirm: event.target.value }))} /></label>
-          </div>
+          <InlineAlert>비밀번호 변경 시 다시 로그인해야 합니다.</InlineAlert>
           <button className="button" disabled={!editToken || isWorking} type="submit"><Save size={18} />계정 정보 저장</button>
         </form>
 
@@ -549,9 +563,21 @@ export function AccountEditPage() {
 
         <section className="content-card settings-card danger-zone settings-card--wide">
           <div className="settings-card__title"><Trash2 size={22} /><div><h2>회원 탈퇴</h2><p>탈퇴하면 진행 중 거래와 경매 상태가 정리됩니다.</p></div></div>
-          <button type="button" className="button button--danger" disabled={!editToken} onClick={withdraw}><Trash2 size={18} />회원 탈퇴</button>
+          <button type="button" className="button button--danger" disabled={!editToken} onClick={() => setWithdrawOpen(true)}><Trash2 size={18} />회원 탈퇴</button>
         </section>
       </div>
+      <Modal
+        open={withdrawOpen}
+        title="회원 탈퇴"
+        description="정말 탈퇴하시겠습니까?"
+        onClose={() => setWithdrawOpen(false)}
+        footer={(
+          <>
+            <button type="button" className="button button--secondary" onClick={() => setWithdrawOpen(false)}>취소</button>
+            <button type="button" className="button button--danger" onClick={withdraw}>탈퇴하기</button>
+          </>
+        )}
+      />
     </div>
   );
 }

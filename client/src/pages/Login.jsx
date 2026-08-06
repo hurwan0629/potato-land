@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 
 import AccountRecoveryModal from "../features/Auth/AccountRecoveryModal";
 import { useAuth } from "../context/AuthContext";
+import loginPotato from "../assets/potato/login-potato.png";
 import "./Login.css";
 
 /** 로그인 폼과 계정 찾기 모달의 표시 상태를 관리한다. */
@@ -32,7 +33,7 @@ export default function Login() {
 
   return (
     <section className="auth-login">
-      <div className="auth-login-mascot" aria-hidden="true">🥔<span>🌱</span></div>
+      <div className="auth-login-mascot" aria-hidden="true"><img src={loginPotato} alt="" /></div>
       <form className="auth-login-panel" onSubmit={handleSubmit}>
         <h1>감자 나라</h1>
         <p className="auth-login-copy">귀여운 감자와 함께하는 안전한 중고거래!</p>

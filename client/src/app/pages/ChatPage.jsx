@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
-import { ImagePlus, MessageCircle, Search, Send, WalletCards } from "lucide-react";
+import { ImagePlus, Search, Send, WalletCards } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 
 import { chatApi, transactionsApi } from "../../api/appApi";
+import primaryPotato from "../../assets/potato/primary-potato.png";
 import { SOCKET_EVENT } from "../../constants/socketEvents";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
@@ -408,8 +409,8 @@ export default function ChatPage() {
         {!selectedRoomIdx && (
           <EmptyState
             title="대화를 선택해주세요."
-            description="왼쪽 채팅 목록에서 대화를 선택하면 메시지가 표시됩니다."
-            action={<MessageCircle size={42} />}
+            description="판매자와 상품에 대해 편하게 이야기해 보세요!"
+            action={<img className="chat-empty-potato" src={primaryPotato} alt="" />}
           />
         )}
 
@@ -450,7 +451,7 @@ export default function ChatPage() {
             <div className="chat-messages" aria-live="polite">
               {messages.length === 0 && (
                 <div className="chat-first-message">
-                  <span aria-hidden="true">🥔</span>
+                  <img src={primaryPotato} alt="" />
                   <strong>첫 메시지를 보내보세요.</strong>
                 </div>
               )}

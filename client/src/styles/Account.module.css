@@ -1,0 +1,272 @@
+.page { width: min(1126px, calc(100% - 48px)); margin: 0 auto; padding: 34px 0; }
+.moduleRoot { --account-module-ready: 1; }
+.layout { display: grid; grid-template-columns: 310px 1fr; gap: 32px; }
+.sidebar { display: grid; align-content: start; gap: 28px; }
+.profileCard, .content, .statCard { border: 1px solid #eadaca; border-radius: 15px; background: #fff; box-shadow: 0 5px 14px rgb(75 43 24 / 14%); }
+.profileCard { padding: 25px; text-align: center; }
+.avatar { width: 132px; height: 132px; margin: 0 auto 20px; border-radius: 50%; object-fit: cover; background: #ffb632; }
+.nickname { font-size: 24px; font-weight: 900; }
+.profileActions { display: flex; gap: 10px; justify-content: center; margin-top: 24px; }
+.tabs { display: grid; gap: 16px; }
+.tab { display: flex; align-items: center; gap: 16px; min-height: 60px; border: 1px solid #eadaca; border-radius: 13px; padding: 0 22px; color: #61391f; background: #fff; font-size: 17px; font-weight: 800; box-shadow: 0 4px 10px rgb(75 43 24 / 12%); }
+.tabActive { border-color: #ffb632; color: #fff; background: #ffb632; }
+.statCard { padding: 26px; text-align: center; }
+.content { min-height: 870px; padding: 30px; }
+.contentTitle { margin: 0 0 28px; font-size: 25px; }
+.listing { display: grid; grid-template-columns: 200px 1fr auto; gap: 20px; align-items: center; margin-bottom: 16px; border-radius: 15px; padding: 16px; box-shadow: 0 4px 12px rgb(75 43 24 / 13%); }
+.listingImage { width: 200px; height: 150px; border-radius: 10px; object-fit: cover; background: #cfcaef; }
+.settings { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.settingsCard { border: 1px solid #eadaca; border-radius: 15px; padding: 28px; background: #fff; }
+.danger { color: #c43e42; border-color: #edb8b8; }
+
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } .settings { grid-template-columns: 1fr; } }
+
+:global(.account-page), :global(.account-edit-page) { color: #4b2b18; }
+:global(.profile-hero) { min-height: 230px; display: flex; align-items: center; gap: 30px; border-radius: 24px; padding: 35px 45px; background: linear-gradient(120deg, #ffe4a2, #fff4d8); }
+:global(.profile-hero__copy) { flex: 1; }
+:global(.eyebrow) { color: #d58600; font-weight: 900; letter-spacing: .08em; }
+:global(.stat-grid) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 24px 0; }
+:global(.stat-grid > *) { border: 1px solid #eadaca; border-radius: 14px; padding: 20px; text-align: center; background: #fff; }
+:global(.profile-content) { min-height: 480px; }
+:global(.settings-grid) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+:global(.settings-card) { display: grid; align-content: start; gap: 17px; }
+:global(.settings-card--wide) { grid-column: 1 / -1; }
+:global(.settings-card__title) { display: flex; align-items: flex-start; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #eee0d2; }
+:global(.settings-card__title h2) { margin-bottom: 4px; }
+:global(.settings-card__title p) { margin: 0; color: #8f7663; }
+:global(.profile-image-editor) { display: flex; align-items: center; gap: 18px; }
+:global(.profile-image-editor img) { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; background: #ffcd62; }
+:global(.phone-edit-row) { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+:global(.phone-edit-row input) { min-height: 42px; border: 1px solid #dec5aa; border-radius: 9px; padding: 0 12px; }
+:global(.session-list) { display: grid; gap: 12px; }
+:global(.session-list > *) { display: flex; align-items: center; justify-content: space-between; border-radius: 10px; padding: 14px; background: #fff8ed; }
+:global(.danger-zone) { border-color: #efc3c3; background: #fffafa; }
+:global(.history-list), :global(.review-list) { display: grid; gap: 16px; }
+:global(.history-card), :global(.review-card) { border: 1px solid #eadaca; border-radius: 14px; padding: 16px; background: #fff; }
+
+@media (max-width: 800px) {
+  :global(.settings-grid), :global(.stat-grid) { grid-template-columns: 1fr; }
+  :global(.profile-hero) { align-items: flex-start; flex-direction: column; padding: 28px; }
+}
+
+/* 회원정보 수정 피그마: 인증 단계와 편집 단계를 명확히 분리한다. */
+:global(.account-edit-page.mode-account.is-unverified > .settings-grid) { width: min(900px, calc(100% - 40px)); }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2)) { padding: 44px 40px 38px; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .button) { width: 100%; justify-content: center; }
+:global(.account-edit-page.mode-account.is-verified > .settings-grid) { width: min(720px, calc(100% - 40px)); border-radius: 0; }
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide) { padding: 24px 12px; }
+
+/* 피그마 프로필·회원정보 수정 모달 흐름 */
+:global(.account-edit-page) { min-height: 900px; }
+:global(.account-edit-page::before) { content: ""; position: fixed; inset: 0; z-index: 80; background: rgb(0 0 0 / 58%); }
+:global(.account-edit-page > .page-header) { display: none; }
+:global(.account-edit-page > .settings-grid) { position: fixed; z-index: 90; left: 50%; top: 50%; width: min(700px, calc(100% - 36px)); max-height: calc(100vh - 50px); overflow-y: auto; transform: translate(-50%, -50%); display: grid; grid-template-columns: 1fr; gap: 0; margin: 0; border-radius: 28px; background: #fff; }
+:global(.account-edit-page .settings-card) { border: 0; border-radius: 0; box-shadow: none; }
+:global(.account-edit-page .settings-card__title) { justify-content: center; text-align: center; }
+:global(.account-edit-page .settings-card__title > svg) { display: none; }
+:global(.account-edit-page .settings-card__title h2) { font-size: 34px; color: #60391f; }
+:global(.account-edit-page.mode-profile .settings-grid > :not(:first-child)) { display: none; }
+:global(.account-edit-page.mode-account.is-unverified .settings-grid > :not(:nth-child(2))) { display: none; }
+:global(.account-edit-page.mode-account.is-verified .settings-grid > :first-child),
+:global(.account-edit-page.mode-account.is-verified .settings-grid > :nth-child(2)) { display: none; }
+:global(.account-edit-page.mode-account.is-verified .settings-grid > :nth-child(4)) { border-top: 1px solid #eadaca; }
+:global(.account-edit-page .danger-zone) { border-top: 1px solid #eadaca; }
+:global(.account-edit-page .danger-zone .button) { color: #60391f; background: #fff; border: 1px solid #dec5aa; }
+:global(.account-edit-page > .modal-backdrop) { z-index: 110; }
+
+/* Figma 마이페이지·회원정보 수정 최종 규격 */
+:global(.account-page) { width: min(1075px, calc(100% - 48px)); display: grid; grid-template-columns: 302px 1fr; align-items: start; gap: 30px; padding-top: 24px; }
+:global(.mypage-sidebar) { display: grid; gap: 30px; }
+:global(.account-page .profile-hero) { min-height: 300px; display: flex; align-items: center; flex-direction: column; gap: 12px; border: 0; border-radius: 12px; padding: 18px; text-align: center; background: #fff; box-shadow: 0 3px 9px rgb(72 47 30 / 20%); }
+:global(.account-page .avatar--large) { width: 128px; height: 128px; border: 0; background: #ffb632; }
+:global(.profile-hero__copy h1) { margin: 4px 0 12px; font-size: 23px; }
+:global(.profile-hero__copy p) { margin: 0; font-size: 13px; }
+:global(.profile-edit-actions) { display: flex; gap: 10px; }
+:global(.profile-edit-actions .button) { min-height: 32px; padding: 0 10px; border-radius: 4px; font-size: 11px; }
+:global(.account-page .tabs) { display: grid; gap: 22px; border-radius: 12px; padding: 22px; background: #fff; box-shadow: 0 3px 9px rgb(72 47 30 / 20%); }
+:global(.account-page .tabs__button) { min-height: 58px; border: 0; border-radius: 10px; color: #60391f; background: #fff; box-shadow: 0 3px 9px rgb(72 47 30 / 19%); font-size: 16px; font-weight: 900; }
+:global(.account-page .tabs__button.is-active) { color: #fff; background: #ffb632; }
+:global(.mypage-trade-stats) { display: grid; grid-template-columns: 1fr 1fr; border-radius: 12px; padding: 20px 12px; background: #fff; box-shadow: 0 3px 9px rgb(72 47 30 / 20%); }
+:global(.mypage-trade-stats .stat-card) { display: grid; justify-items: center; gap: 6px; border: 0; border-radius: 0; padding: 5px; box-shadow: none; }
+:global(.mypage-trade-stats .stat-card + .stat-card) { border-left: 1px solid #eadaca; }
+:global(.mypage-trade-stats .stat-card__icon) { order: 3; color: #fff; border-radius: 50%; padding: 7px; background: #ffb632; }
+:global(.mypage-rating-card) { display: grid; justify-items: center; gap: 14px; border-radius: 12px; padding: 24px; background: #fff; box-shadow: 0 3px 9px rgb(72 47 30 / 20%); }
+:global(.mypage-rating-card strong) { font-size: 36px; }
+:global(.account-page .profile-content) { min-height: 1195px; border: 0; border-radius: 12px; padding: 34px 30px; box-shadow: 0 3px 9px rgb(72 47 30 / 20%); }
+:global(.profile-content > h2) { margin-bottom: 30px; font-size: 22px; }
+:global(.profile-content .product-grid) { grid-template-columns: 1fr; gap: 18px; }
+:global(.profile-content .product-card) { display: grid; grid-template-columns: 205px 1fr; min-height: 180px; }
+:global(.profile-content .product-card__media) { width: 200px; height: 150px; }
+:global(.profile-content .product-card__body) { padding: 25px 16px; }
+:global(.account-edit-page) { width: min(1075px, calc(100% - 48px)); }
+:global(.account-edit-page .page-header) { text-align: center; }
+:global(.account-edit-page .settings-grid) { grid-template-columns: 1fr; width: min(720px, 100%); margin: 25px auto; }
+:global(.account-edit-page .settings-card), :global(.account-edit-page .settings-card--wide) { grid-column: 1; border: 0; border-radius: 18px; padding: 32px; box-shadow: 0 3px 10px rgb(72 47 30 / 18%); }
+:global(.account-edit-page .form-grid--two) { grid-template-columns: 1fr; }
+
+@media (max-width: 800px) {
+  :global(.account-page) { grid-template-columns: 1fr; }
+  :global(.profile-content .product-card) { grid-template-columns: 1fr; }
+}
+
+/* 회원정보 수정 원본 모달 규격 및 입력별 유효성 메시지 */
+:global(.account-edit-page.mode-account.is-verified > .settings-grid) { width: min(700px, calc(100% - 36px)); border-radius: 28px; padding: 30px 50px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide) { padding: 0; }
+:global(.account-edit-page.mode-account.is-verified .settings-card__title) { margin-bottom: 20px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card__title h2) { font-size: 32px; }
+:global(.account-edit-page.mode-account.is-verified .form-grid--two) { display: grid; grid-template-columns: 130px 1fr; gap: 14px; }
+:global(.account-edit-page.mode-account.is-verified .form-field) { display: contents; }
+:global(.account-edit-page.mode-account.is-verified .form-field > span) { align-self: center; font-weight: 800; }
+:global(.account-edit-page.mode-account.is-verified .form-field > input) { min-height: 48px; }
+:global(.account-edit-page.mode-account.is-verified .form-field > small) { grid-column: 2; margin-top: -10px; font-size: 12px; }
+:global(.account-edit-page.mode-account.is-verified .field-message--success) { color: #21834c; }
+:global(.account-edit-page.mode-account.is-verified .field-message--error) { color: #e7462d; }
+:global(.account-edit-page.mode-account.is-verified .phone-edit-row) { margin: 8px 0 18px 130px; }
+:global(.account-edit-page.mode-account.is-verified form > .button) { width: 46%; justify-self: end; justify-content: center; margin-top: 22px; }
+@media (max-width: 650px) {
+  :global(.account-edit-page.mode-account.is-verified > .settings-grid) { padding: 24px; }
+  :global(.account-edit-page.mode-account.is-verified .form-grid--two) { grid-template-columns: 1fr; }
+  :global(.account-edit-page.mode-account.is-verified .form-field) { display: grid; }
+  :global(.account-edit-page.mode-account.is-verified .form-field > small) { grid-column: 1; }
+  :global(.account-edit-page.mode-account.is-verified .phone-edit-row) { margin-left: 0; }
+}
+
+/* 수정 모달을 한 화면 안에 표시하고 저장·닫기 동작을 항상 노출한다. */
+:global(.account-edit-close) { position: fixed; z-index: 101; left: calc(50% + min(350px, calc(50vw - 18px)) - 52px); top: max(30px, calc(50% - min(390px, calc(50vh - 25px)) + 18px)); display: grid; width: 38px; height: 38px; place-items: center; border: 0; color: #60391f; background: transparent; cursor: pointer; }
+:global(.account-edit-page.mode-account.is-verified > .settings-grid) { max-height: min(780px, calc(100vh - 50px)); overflow-y: auto; padding: 24px 46px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card__title) { margin-bottom: 12px; padding-bottom: 10px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card__title p) { font-size: 13px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide > .form-grid:first-of-type .form-field:nth-child(1)),
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide > .form-grid:first-of-type .form-field:nth-child(2)) { display: none; }
+:global(.account-edit-page.mode-account.is-verified .form-grid--two) { gap: 9px 14px; }
+:global(.account-edit-page.mode-account.is-verified .form-field > input) { min-height: 43px; padding: 9px 14px; }
+:global(.account-edit-page.mode-account.is-verified .phone-edit-row) { margin-top: 2px; margin-bottom: 9px; }
+:global(.account-edit-page.mode-account.is-verified form > .button) { position: sticky; bottom: 0; min-height: 46px; margin-top: 14px; }
+
+/* 피그마 인증 전 비밀번호 확인 모달 */
+:global(.account-edit-page.mode-account.is-unverified > .settings-grid) { width: min(700px, calc(100% - 36px)); min-height: 540px; border-radius: 28px; padding: 44px 50px 38px; align-content: start; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2)) { display: grid; grid-template-columns: 130px 1fr; gap: 22px 15px; padding: 0; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2)) { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .settings-card__title) { grid-column: 1 / -1; margin-bottom: 52px; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .settings-card__title h2) { font-size: 36px; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .settings-card__title p) { display: none; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .form-field) { display: contents; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .form-field > span) { align-self: center; font-weight: 800; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) .form-field input) { min-height: 48px; }
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) > .button) { grid-column: 1 / -1; width: 240px; justify-self: center; justify-content: center; margin-top: 48px; color: #fff; background: #ffbf45; }
+
+/* 피그마 인증 성공 후 회원정보 수정 모달 */
+:global(.account-edit-page.mode-account.is-verified > .settings-grid) { width: min(700px, calc(100% - 36px)); max-height: calc(100vh - 40px); border-radius: 28px; padding: 34px 50px 30px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card),
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide) { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+:global(.account-edit-page.mode-account.is-verified .settings-grid > :nth-child(4)) { display: none; }
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide > .form-grid:first-of-type .form-field:nth-child(1)),
+:global(.account-edit-page.mode-account.is-verified .settings-card--wide > .form-grid:first-of-type .form-field:nth-child(2)) { display: contents; }
+:global(.account-edit-page.mode-account.is-verified .settings-card__title h2) { font-size: 34px; }
+:global(.account-edit-page.mode-account.is-verified .settings-card__title p) { display: none; }
+:global(.account-edit-page.mode-account.is-verified .form-grid--two) { grid-template-columns: 130px 1fr; gap: 11px 15px; }
+:global(.account-edit-page.mode-account.is-verified .field-inline) { width: 100%; }
+:global(.account-edit-page.mode-account.is-verified .field-inline .button) { flex: 0 0 116px; min-height: 43px; }
+:global(.account-edit-page.mode-account.is-verified form > .inline-alert) { margin: 15px 0 10px 130px; color: #f2a51c; background: transparent; }
+:global(.account-edit-page.mode-account.is-verified form > .button) { position: static; width: 46%; margin: 8px 0 0 auto; }
+:global(.account-edit-page.mode-account.is-verified .danger-zone) { width: 46%; margin-top: -46px; padding: 0; border: 0; }
+:global(.account-edit-page.mode-account.is-verified .danger-zone .settings-card__title) { display: none; }
+:global(.account-edit-page.mode-account.is-verified .danger-zone .button) { width: 100%; min-height: 46px; justify-content: center; }
+
+/* 거래 내역은 피그마 시안처럼 이미지와 거래 정보를 한 줄에서 비교할 수 있는 목록으로 표시한다. */
+:global(.account-page .history-list) { display: grid; gap: 14px; }
+:global(.account-page .history-card) {
+  display: grid;
+  grid-template-columns: 94px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 112px;
+  border: 1px solid #e8d9ca;
+  border-radius: 15px;
+  padding: 14px 16px;
+  background: #fff;
+  box-shadow: none;
+}
+:global(.account-page .history-card__media) {
+  display: block;
+  width: 94px;
+  height: 84px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #d8d4f5;
+}
+:global(.account-page .history-card__media img),
+:global(.account-page .history-card__media .image-fallback) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+:global(.account-page .history-card__info) {
+  display: grid;
+  grid-template-columns: minmax(155px, 1.4fr) minmax(82px, .7fr) minmax(92px, .8fr) minmax(90px, .75fr);
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+:global(.account-page .history-card__top) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  color: #795d49;
+  font-size: 12px;
+}
+:global(.account-page .history-card__info h3) {
+  grid-column: 1;
+  grid-row: 1;
+  overflow: hidden;
+  margin: 0;
+  font-size: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:global(.account-page .history-card__info strong) {
+  grid-column: 1;
+  grid-row: 2;
+  color: #f0a51b;
+  font-size: 17px;
+}
+:global(.account-page .history-card__info p) {
+  grid-column: 3;
+  grid-row: 1 / span 3;
+  margin: 0;
+  color: #725642;
+  font-size: 12px;
+}
+:global(.account-page .history-card__info small) {
+  grid-column: 4;
+  grid-row: 1 / span 3;
+  color: #725642;
+  white-space: nowrap;
+}
+:global(.account-page .history-card__action) {
+  min-width: 82px;
+  min-height: 38px;
+  justify-content: center;
+  border-color: #ffb632;
+  color: #fff;
+  background: #ffb632;
+}
+
+@media (max-width: 1100px) {
+  :global(.account-page .history-card__info) { grid-template-columns: minmax(140px, 1fr) minmax(80px, .7fr); }
+  :global(.account-page .history-card__info p) { grid-column: 1; grid-row: 3; }
+  :global(.account-page .history-card__info small) { grid-column: 2; grid-row: 3; }
+  :global(.account-page .history-card__top) { grid-column: 2; grid-row: 1 / span 2; }
+}
+
+@media (max-width: 680px) {
+  :global(.account-page .history-card) { grid-template-columns: 82px minmax(0, 1fr); gap: 13px; }
+  :global(.account-page .history-card__media) { width: 82px; height: 82px; }
+  :global(.account-page .history-card__info) { grid-template-columns: 1fr auto; gap: 5px 10px; }
+  :global(.account-page .history-card__top) { grid-column: 2; grid-row: 1; }
+  :global(.account-page .history-card__info p) { grid-column: 1 / -1; grid-row: 3; }
+  :global(.account-page .history-card__info small) { grid-column: 1 / -1; grid-row: 4; }
+  :global(.account-page .history-card__action) { grid-column: 1 / -1; width: 100%; }
+}

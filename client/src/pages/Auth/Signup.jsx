@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { authApi } from "../../api/authApi";
+import signupPotato from "../../assets/potato/signup-potato.png";
 import "./Signup.css";
 
 const initialForm = { name: "", nickname: "", loginId: "", password: "", passwordConfirm: "", phone: "", verificationCode: "", email: "", termsAgreed: false };
@@ -101,7 +102,7 @@ export default function Signup() {
         {status.message && <p className="auth-form-message error" role="alert">{status.message}</p>}
         <button className="auth-signup-submit" disabled={status.isSubmitting} type="submit">{status.isSubmitting ? "가입 중..." : "회원가입"}</button>
       </form>
-      <div className="auth-signup-mascot" aria-hidden="true">🥔<span>🌱</span></div>
+      <div className="auth-signup-mascot" aria-hidden="true"><img src={signupPotato} alt="" /></div>
     </section>
   );
 }

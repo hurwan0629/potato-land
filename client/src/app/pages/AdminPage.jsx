@@ -11,6 +11,7 @@ import {
 import { Link } from "react-router";
 
 import { adminApi } from "../../api/appApi";
+import primaryPotato from "../../assets/potato/primary-potato.png";
 import { useToast } from "../../context/ToastContext";
 import { useRemote } from "../../hooks/useRemote";
 import { formatCurrency, formatDate, listingPath } from "../../utils/format";
@@ -32,28 +33,30 @@ import { TimeSeriesChart } from "../../lib/charts/TimeSeriesChart";
 const ADMIN_TABS = [
   { value: "dashboard", label: "대시보드" },
   { value: "users", label: "회원 관리" },
-  { value: "used", label: "중고상품" },
-  { value: "auctions", label: "경매" },
-  { value: "winners", label: "낙찰 내역" },
+  { value: "used", label: "중고거래 관리" },
+  { value: "auctions", label: "경매 관리" },
+  { value: "winners", label: "거래 정보" },
 ];
 
 export default function AdminPage() {
   const [tab, setTab] = useState("dashboard");
+  const currentTitle = ADMIN_TABS.find((item) => item.value === tab)?.label ?? "대시보드";
 
   return (
-    <div className="page-container admin-page">
-      <PageHeader
-        eyebrow="Potato Land Admin"
-        title="관리자 센터"
-        description="회원과 상품, 거래 상태를 한곳에서 확인하고 관리합니다."
-        actions={<span className="admin-secure-badge"><ShieldAlert size={17} /> 관리자 전용</span>}
-      />
-      <Tabs items={ADMIN_TABS} value={tab} onChange={setTab} ariaLabel="관리자 메뉴" />
-      {tab === "dashboard" && <DashboardPanel />}
-      {tab === "users" && <UsersPanel />}
-      {tab === "used" && <ListingsPanel listingType="USED" />}
-      {tab === "auctions" && <ListingsPanel listingType="AUCTION" />}
-      {tab === "winners" && <WinnersPanel />}
+    <div className="admin-page">
+      <aside className="admin-sidebar">
+        <div className="admin-brand"><img src={primaryPotato} alt="" /><div><strong>감자 나라</strong><span>관리자 페이지</span></div></div>
+        <Tabs items={ADMIN_TABS} value={tab} onChange={setTab} ariaLabel="관리자 메뉴" />
+        <div className="admin-sidebar__footer"><Link to="/">사이트 바로가기</Link></div>
+      </aside>
+      <main className="admin-content">
+        <PageHeader title={currentTitle} actions={<span className="admin-secure-badge"><ShieldAlert size={17} /> 관리자 전용</span>} />
+        {tab === "dashboard" && <DashboardPanel />}
+        {tab === "users" && <UsersPanel />}
+        {tab === "used" && <ListingsPanel listingType="USED" />}
+        {tab === "auctions" && <ListingsPanel listingType="AUCTION" />}
+        {tab === "winners" && <WinnersPanel />}
+      </main>
     </div>
   );
 }
@@ -71,10 +74,10 @@ function DashboardPanel() {
   return (
     <section className="admin-panel">
       <div className="stat-grid">
-        <StatCard label="활성 회원" value={`${data.activeUserCount}명`} icon={<Users size={22} />} />
-        <StatCard label="전체 상품" value={`${data.totalListingCount}개`} icon={<Package size={22} />} />
-        <StatCard label="완료 거래" value={`${data.completedTransactionCount}건`} icon={<ShoppingBag size={22} />} />
-        <StatCard label="완료 거래액" value={formatCurrency(data.totalCompletedAmount)} icon={<Banknote size={22} />} />
+        <StatCard label="총 회원 수" value={`${data.activeUserCount}명`} icon={<Users size={22} />} />
+        <StatCard label="총 게시글 수" value={`${data.totalListingCount}건`} icon={<Package size={22} />} />
+        <StatCard label="총 거래 수" value={`${data.completedTransactionCount}건`} icon={<ShoppingBag size={22} />} />
+        <StatCard label="총 거래 금액" value={formatCurrency(data.totalCompletedAmount)} icon={<Banknote size={22} />} />
       </div>
 
       <div className="admin-chart-grid">

@@ -24,6 +24,7 @@ import {
   ImageWithFallback,
   InlineAlert,
   LoadingState,
+  ListingTypeSelector,
   PageHeader,
   Rating,
   StatusBadge,
@@ -487,8 +488,9 @@ export function UsedFormPage() {
     <div className="page-container form-page">
       <PageHeader
         eyebrow="중고거래"
-        title={isEdit ? "상품 정보 수정" : "중고상품 등록"}
-        description="사진과 상품 정보를 입력하면 바로 판매를 시작할 수 있습니다."
+        title={isEdit ? "중고 거래 수정" : "중고 거래 등록"}
+        description="판매할 상품 정보를 입력해 주세요."
+        actions={!isEdit ? <ListingTypeSelector type="USED" /> : undefined}
       />
 
       {isLoading && <LoadingState label="등록 화면을 준비하는 중입니다." />}

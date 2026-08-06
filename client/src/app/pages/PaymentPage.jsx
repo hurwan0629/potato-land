@@ -92,9 +92,8 @@ export default function PaymentPage() {
   return (
     <div className="page-container payment-page">
       <PageHeader
-        eyebrow="안전 거래"
-        title="거래 확인"
-        description="거래 상대와 상품, 송금 요청 상태를 확인하세요."
+        title="송금"
+        description="거래 내용을 확인하고 상대방에게 안전하게 송금하세요"
         actions={<StatusBadge status={transaction.status} />}
       />
 

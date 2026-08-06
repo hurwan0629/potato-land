@@ -3,6 +3,7 @@ import { Heart, Search, ShoppingBag, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import { mainApi } from "../../api/mainApi";
+import homeHeroPotato from "../../assets/potato/home-hero-potato.png";
 import "./Home.css";
 
 const sectionDefinitions = [
@@ -85,8 +86,7 @@ export default function Home() {
         </div>
 
         <div className="guest-hero-mascot" aria-hidden="true">
-          <span className="guest-magnifier">⌕</span>
-          <span className="guest-potato">🥔</span>
+          <img className="guest-potato" src={homeHeroPotato} alt="" />
         </div>
       </section>
 
