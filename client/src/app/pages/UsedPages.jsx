@@ -300,8 +300,23 @@ function UsedFormBody({ categories, listing }) {
   };
 
   const handleFiles = (event) => {
-    const selected = [...(event.target.files ?? [])].slice(0, 4);
-    setFiles(selected);
+    const selectedFiles = Array.from(event.target.files ?? []);
+
+    setFiles((currentFiles) => {
+      const mergedFiles = [...currentFiles, ...selectedFiles];
+      const uniqueFiles = mergedFiles.filter(
+        (file, index, allFiles) => index === allFiles.findIndex(
+          (candidate) => candidate.name === file.name
+            && candidate.size === file.size
+            && candidate.lastModified === file.lastModified,
+        ),
+      );
+
+      return uniqueFiles.slice(0, 4);
+    });
+
+    // Reset the input so selecting the same file again still emits change.
+    event.target.value = "";
   };
 
   const handleSubmit = async (event) => {

@@ -15,7 +15,6 @@ import {
   Menu,
   MessageCircle,
   Search,
-  Settings,
   ShieldCheck,
   ShoppingBag,
   UserRound,
@@ -182,7 +181,7 @@ function Header() {
                 <button type="button" className="icon-button" aria-label="로그아웃" onClick={handleLogout}>
                   <LogOut size={20} />
                 </button>
-                <Link to="/mypage/me" className="icon-button" aria-label="관심 상품"><Heart size={21} /></Link>
+                <Link to="/mypage/me?tab=favorites" className="icon-button" aria-label="관심 상품"><Heart size={21} /></Link>
               </>
             ) : (
               <Link to="/login" className="header-login-button">로그인</Link>

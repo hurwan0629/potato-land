@@ -591,7 +591,25 @@ function AuctionFormBody({ categories, auction }) {
             type="file"
             accept="image/jpeg,image/png,image/gif,image/webp"
             multiple
-            onChange={(event) => setFiles([...(event.target.files ?? [])].slice(0, 4))}
+            onChange={(event) => {
+              const selectedFiles = Array.from(event.target.files ?? []);
+
+              setFiles((currentFiles) => {
+                const mergedFiles = [...currentFiles, ...selectedFiles];
+                const uniqueFiles = mergedFiles.filter(
+                            (file, index, allFiles) => index === allFiles.findIndex(
+                              (candidate) => candidate.name === file.name
+                                          && candidate.size === file.size
+                                          && candidate.lastModified === file.lastModified,
+                            ),
+                );
+
+                return uniqueFiles.slice(0, 4);
+              });
+
+              // Reset the input so selecting the same file again still emits change.
+              event.target.value = "";
+            }}
           />
         </label>
         <div className="upload-preview-list">

@@ -35,7 +35,7 @@ const ADMIN_TABS = [
   { value: "users", label: "회원 관리" },
   { value: "used", label: "중고거래 관리" },
   { value: "auctions", label: "경매 관리" },
-  { value: "winners", label: "거래 정보" },
+  { value: "winners", label: "낙찰 내역" },
 ];
 
 export default function AdminPage() {
@@ -74,10 +74,10 @@ function DashboardPanel() {
   return (
     <section className="admin-panel">
       <div className="stat-grid">
-        <StatCard label="총 회원 수" value={`${data.activeUserCount}명`} icon={<Users size={22} />} />
-        <StatCard label="총 게시글 수" value={`${data.totalListingCount}건`} icon={<Package size={22} />} />
-        <StatCard label="총 거래 수" value={`${data.completedTransactionCount}건`} icon={<ShoppingBag size={22} />} />
-        <StatCard label="총 거래 금액" value={formatCurrency(data.totalCompletedAmount)} icon={<Banknote size={22} />} />
+        <StatCard label="활성 회원" value={`${data.activeUserCount}명`} icon={<Users size={22} />} />
+        <StatCard label="전체 상품" value={`${data.totalListingCount}건`} icon={<Package size={22} />} />
+        <StatCard label="완료 거래" value={`${data.completedTransactionCount}건`} icon={<ShoppingBag size={22} />} />
+        <StatCard label="완료 거래액" value={formatCurrency(data.totalCompletedAmount)} icon={<Banknote size={22} />} />
       </div>
 
       <div className="admin-chart-grid">
@@ -174,6 +174,8 @@ function UsersPanel() {
 function UserDetailModal({ userIdx, onClose, onChanged }) {
   const { notify } = useToast();
   const [memo, setMemo] = useState("");
+  const [banOpen, setBanOpen] = useState(false);
+  const [banReason, setBanReason] = useState("");
   const loadUser = useCallback(
     async () => {
       if (!userIdx) return null;
@@ -195,10 +197,16 @@ function UserDetailModal({ userIdx, onClose, onChanged }) {
   };
 
   const banUser = async () => {
-    const reason = globalThis.prompt("영구 정지 사유를 입력해주세요.");
-    if (!reason?.trim()) return;
+    const reason = banReason.trim();
+    if (!reason) {
+      notify("영구 정지 사유를 입력해주세요.", "error");
+      return;
+    }
+
     try {
-      await adminApi.banUser(userIdx, reason.trim());
+      await adminApi.banUser(userIdx, reason);
+      setBanOpen(false);
+      setBanReason("");
       onChanged();
       onClose();
     } catch (error) {
@@ -215,7 +223,24 @@ function UserDetailModal({ userIdx, onClose, onChanged }) {
           <div className="admin-user-detail__profile"><Avatar user={remote.data} size="large" /><div><h3>{remote.data.nickname}</h3><p>{remote.data.loginId} · {remote.data.name}</p><StatusBadge status={remote.data.deletedAt ? "WITHDRAWN" : remote.data.bannedAt ? "BANNED" : "ACTIVE"} /></div></div>
           <div className="mini-stat-grid"><span><b>{remote.data.tradeCount}</b> 거래</span><span><b>{remote.data.listingCount}</b> 상품</span><span><b>{Number(remote.data.averageRating).toFixed(1)}</b> 평점</span></div>
           <label className="form-field"><span>관리자 메모</span><textarea rows={4} value={memo} onChange={(event) => setMemo(event.target.value)} /></label>
-          <div className="modal-actions"><button type="button" className="button button--secondary" onClick={saveMemo}>메모 저장</button>{!remote.data.bannedAt && !remote.data.deletedAt && <button type="button" className="button button--danger" onClick={banUser}>회원 영구정지</button>}</div>
+          <div className="modal-actions">
+            <button type="button" className="button button--secondary" onClick={saveMemo}>메모 저장</button>
+            {!remote.data.bannedAt && !remote.data.deletedAt && (
+              <button type="button" className="button button--danger" onClick={() => setBanOpen(true)}>회원 영구정지</button>
+            )}
+          </div>
+          {banOpen && (
+            <div className="content-card">
+              <label className="form-field">
+                <span>영구 정지 사유</span>
+                <textarea rows={3} maxLength={200} value={banReason} onChange={(event) => setBanReason(event.target.value)} />
+              </label>
+              <div className="modal-actions">
+                <button type="button" className="button button--secondary" onClick={() => setBanOpen(false)}>취소</button>
+                <button type="button" className="button button--danger" disabled={!banReason.trim()} onClick={banUser}>영구 정지</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Modal>
@@ -227,6 +252,8 @@ function ListingsPanel({ listingType }) {
   const [queryInput, setQueryInput] = useState("");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [pendingRemoval, setPendingRemoval] = useState(null);
+  const [deleteReason, setDeleteReason] = useState("");
   const isAuction = listingType === "AUCTION";
 
   const loadListings = useCallback(
@@ -235,12 +262,23 @@ function ListingsPanel({ listingType }) {
   );
   const remote = useRemote(loadListings, { items: [], page: 1, totalPages: 0 });
 
-  const remove = async (item) => {
-    const reason = globalThis.prompt("관리자 삭제 사유를 입력해주세요.");
-    if (!reason?.trim()) return;
+  const openRemovalModal = (item) => {
+    setPendingRemoval(item);
+    setDeleteReason("");
+  };
+
+  const remove = async () => {
+    const reason = deleteReason.trim();
+    if (!pendingRemoval || !reason) {
+      notify("관리자 삭제 사유를 입력해주세요.", "error");
+      return;
+    }
+
     try {
-      if (isAuction) await adminApi.removeAuction(item.listingIdx, reason.trim());
-      else await adminApi.removeUsed(item.listingIdx, reason.trim());
+      if (isAuction) await adminApi.removeAuction(pendingRemoval.listingIdx, reason);
+      else await adminApi.removeUsed(pendingRemoval.listingIdx, reason);
+      setPendingRemoval(null);
+      setDeleteReason("");
       remote.reload();
       notify("상품을 삭제했습니다.", "success");
     } catch (error) {
@@ -264,13 +302,30 @@ function ListingsPanel({ listingType }) {
               <ImageWithFallback src={item.thumbnailUrl} alt={item.title} className="admin-listing-list__image" />
               <div className="admin-listing-list__copy"><span>{isAuction ? "경매" : "중고"} #{item.listingIdx}</span><h3><Link to={listingPath(item)}>{item.title}</Link></h3><p>{item.sellerNickname} ({item.sellerLoginId})</p><strong>{formatCurrency(item.currentPrice ?? item.price)}</strong></div>
               <StatusBadge status={item.auctionStatus ?? item.tradeStatus ?? (item.deletedAt ? "DELETED" : "ACTIVE")} />
-              <button type="button" className="button button--danger button--small" disabled={Boolean(item.deletedAt)} onClick={() => remove(item)}>삭제</button>
+              <button type="button" className="button button--danger button--small" disabled={Boolean(item.deletedAt)} onClick={() => openRemovalModal(item)}>삭제</button>
             </article>
           ))}
           {!remote.data.items.length && <EmptyState title="표시할 상품이 없습니다." />}
         </div>
       )}
       <Pagination page={page} totalPages={remote.data.totalPages} onChange={setPage} />
+      <Modal
+        open={Boolean(pendingRemoval)}
+        title={isAuction ? "경매 삭제" : "중고상품 삭제"}
+        description="삭제 후에는 복구할 수 없습니다. 관리자 삭제 사유를 기록해주세요."
+        onClose={() => setPendingRemoval(null)}
+        footer={(
+          <>
+            <button type="button" className="button button--secondary" onClick={() => setPendingRemoval(null)}>취소</button>
+            <button type="button" className="button button--danger" disabled={!deleteReason.trim()} onClick={remove}>삭제</button>
+          </>
+        )}
+      >
+        <label className="form-field">
+          <span>삭제 사유</span>
+          <textarea rows={4} maxLength={200} value={deleteReason} onChange={(event) => setDeleteReason(event.target.value)} />
+        </label>
+      </Modal>
     </section>
   );
 }

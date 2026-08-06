@@ -164,6 +164,28 @@ export function StatusBadge({ status }) {
 export function ProductCard({ item, compact = false }) {
   const isAuction = String(item?.listingType).toUpperCase() === "AUCTION";
   const price = item?.displayPrice ?? item?.currentPrice ?? item?.price ?? 0;
+  const [now, setNow] = useState(() => Date.now());
+
+  // Keep the auction countdown moving even when no Socket event re-renders the card.
+  useEffect(() => {
+    if (!isAuction || !item?.endsAt) {
+      return undefined;
+    }
+
+    const timer = globalThis.setInterval(() => setNow(Date.now()), 1_000);
+    return () => globalThis.clearInterval(timer);
+  }, [isAuction, item?.endsAt]);
+  const [now, setNow] = useState(() => Date.now());
+
+  // 목록 카드도 상세 화면처럼 남은 시간이 실제로 흐르도록 갱신한다.
+  useEffect(() => {
+    if (!isAuction || !item?.endsAt) {
+      return undefined;
+    }
+
+    const timer = globalThis.setInterval(() => setNow(Date.now()), 1_000);
+    return () => globalThis.clearInterval(timer);
+  }, [isAuction, item?.endsAt]);
 
   return (
     <Link
@@ -185,7 +207,7 @@ export function ProductCard({ item, compact = false }) {
           </span>
         )}
         {isAuction && item?.endsAt && (
-          <span className="product-card__timer">{formatRemainingTime(item.endsAt)}</span>
+          <span className="product-card__timer">{formatRemainingTime(item.endsAt, now)}</span>
         )}
       </div>
 

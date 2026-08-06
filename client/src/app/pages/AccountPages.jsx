@@ -60,11 +60,18 @@ export function MyPage() {
   const { userIdx } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("listings");
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const requestedUserIdx = userIdx === "me" ? Number(user.userIdx) : Number(userIdx);
   const isOwner = requestedUserIdx === Number(user.userIdx);
+  const requestedTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(() => {
+    const accessible = PROFILE_TABS.some(
+      (tab) => tab.value === requestedTab && (isOwner || !tab.ownOnly),
+    );
+    return accessible ? requestedTab : "listings";
+  });
+  const [page, setPage] = useState(1);
 
   const loadProfile = useCallback(
     () => isOwner ? usersApi.me() : usersApi.profile(requestedUserIdx),
@@ -100,6 +107,11 @@ export function MyPage() {
   const handleTab = (value) => {
     setActiveTab(value);
     setPage(1);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("tab", value);
+      return next;
+    }, { replace: true });
   };
 
   if (profileRemote.isLoading) {
@@ -255,6 +267,7 @@ export function AccountEditPage() {
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
   const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [logoutAllOpen, setLogoutAllOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const nicknameValid = publicForm.nickname.length >= 2 && publicForm.nickname.length <= 12;
   const newPasswordValid = !accountForm.newPassword || (
@@ -436,12 +449,14 @@ export function AccountEditPage() {
   };
 
   const logoutAll = async () => {
-    if (!globalThis.confirm("모든 기기에서 로그아웃할까요?")) {
-      return;
+    try {
+      await authApi.logoutAll();
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setLogoutAllOpen(false);
+      notify(error.message, "error");
     }
-    await authApi.logoutAll();
-    await logout();
-    navigate("/login", { replace: true });
   };
 
   const withdraw = async () => {
@@ -556,7 +571,7 @@ export function AccountEditPage() {
                   <button type="button" className="button button--ghost button--small" onClick={() => deleteSession(session.sessionId)}>로그아웃</button>
                 </article>
               ))}
-              <button type="button" className="button button--danger button--small" onClick={logoutAll}>모든 기기 로그아웃</button>
+              <button type="button" className="button button--danger button--small" onClick={() => setLogoutAllOpen(true)}>모든 기기 로그아웃</button>
             </div>
           )}
         </section>
@@ -566,6 +581,18 @@ export function AccountEditPage() {
           <button type="button" className="button button--danger" disabled={!editToken} onClick={() => setWithdrawOpen(true)}><Trash2 size={18} />회원 탈퇴</button>
         </section>
       </div>
+      <Modal
+        open={logoutAllOpen}
+        title="모든 기기 로그아웃"
+        description="현재 기기를 포함한 모든 로그인 세션을 종료합니다."
+        onClose={() => setLogoutAllOpen(false)}
+        footer={(
+          <>
+            <button type="button" className="button button--secondary" onClick={() => setLogoutAllOpen(false)}>취소</button>
+            <button type="button" className="button button--danger" onClick={logoutAll}>모두 로그아웃</button>
+          </>
+        )}
+      />
       <Modal
         open={withdrawOpen}
         title="회원 탈퇴"
