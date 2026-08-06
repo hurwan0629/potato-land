@@ -10,6 +10,7 @@ import { clearAuctionTimers } from "./schedulers/auctionTimer.js";
 import { createSocketServer } from "./sockets/index.js";
 import { configureSmsProvider } from "./infrastructure/sms/sms.interface.js";
 import { recoverAuctions } from "./modules/auctions/auctions.service.js";
+import { configureSolApiSmsService } from "./infrastructure/sms/solapiSms.service.js";
 
 const log = logger.child("server");
 const httpServer = http.createServer(app);
@@ -20,12 +21,19 @@ app.set("io", socketServer.io);
 async function startServer() {
   try {
     // 개발 provider는 인증번호·본문을 로그에 남기지 않는다.
-    configureSmsProvider(({ to }) => {
-      const maskedTo = typeof to === "string" && to.length >= 4
-        ? `${"*".repeat(to.length - 4)}${to.slice(-4)}`
-        : "[REDACTED]";
-      log.info("개발 SMS 발송 요청을 처리했습니다.", { to: maskedTo });
-    });
+    if(["development", "test"].includes(env.nodeEnv)) {
+      log.info("configureSmsProvider [console mode]")
+      configureSmsProvider(({ to, code }) => {
+        const maskedTo = typeof to === "string" && to.length >= 4
+          ? `${"*".repeat(to.length - 4)}${to.slice(-4)}`
+          : "[REDACTED]";
+        log.info("개발 SMS 발송 요청을 처리했습니다.", { to: maskedTo, code });
+      });
+    } else {
+      log.info("configureSolApiSmsService [SolAPI mode]")
+
+      configureSolApiSmsService()
+    }
     
     await connectDatabase();
     await connectRedis();
