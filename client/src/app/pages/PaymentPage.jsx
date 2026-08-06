@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   BadgeCheck,
   Ban,
@@ -205,29 +205,7 @@ function ReviewModal({ open, transaction, reviewee, onClose, onComplete }) {
   const { notify } = useToast();
   const [rating, setRating] = useState(10);
   const [content, setContent] = useState("");
-  const [selectedTags, setSelectedTags] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const loadTags = useCallback(
-    () => open ? reviewsApi.tags() : Promise.resolve({ strength: [], weakness: [] }),
-    [open],
-  );
-  const tagsRemote = useRemote(loadTags, { strength: [], weakness: [] });
-  const tags = useMemo(
-    () => [
-      ...(tagsRemote.data?.strength ?? []),
-      ...(tagsRemote.data?.weakness ?? []),
-    ],
-    [tagsRemote.data],
-  );
-
-  const toggleTag = (tagIdx) => {
-    setSelectedTags((current) => (
-      current.includes(tagIdx)
-        ? current.filter((value) => value !== tagIdx)
-        : current.length < 5 ? [...current, tagIdx] : current
-    ));
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -238,7 +216,6 @@ function ReviewModal({ open, transaction, reviewee, onClose, onComplete }) {
         revieweeIdx: reviewee.userIdx,
         rating,
         content: content.trim(),
-        tagIds: selectedTags,
       });
       onComplete();
     } catch (error) {
@@ -261,21 +238,7 @@ function ReviewModal({ open, transaction, reviewee, onClose, onComplete }) {
           <div><strong>{rating / 2}점</strong><span>10점 만점 기준 {rating}점</span></div>
         </div>
         <input type="range" min={1} max={10} value={rating} onChange={(event) => setRating(Number(event.target.value))} />
-        <fieldset className="review-tags">
-          <legend>어떤 점이 인상적이었나요? 최대 5개</legend>
-          {tagsRemote.isLoading && <LoadingState label="후기 태그를 불러오는 중입니다." />}
-          {tags.map((tag) => (
-            <button
-              key={tag.tagIdx}
-              type="button"
-              className={selectedTags.includes(tag.tagIdx) ? "is-selected" : undefined}
-              onClick={() => toggleTag(tag.tagIdx)}
-            >
-              {tag.name}
-            </button>
-          ))}
-        </fieldset>
-        <label className="form-field"><span>후기 내용</span><textarea rows={5} maxLength={1000} value={content} placeholder="거래 경험을 간단히 남겨주세요." onChange={(event) => setContent(event.target.value)} /></label>
+        <label className="form-field"><span>후기 내용</span><textarea rows={5} maxLength={50} value={content} placeholder="거래 경험을 간단히 남겨주세요." onChange={(event) => setContent(event.target.value)} /></label>
         <button type="submit" className="button" disabled={isSubmitting}>{isSubmitting ? "등록 중..." : "후기 등록"}</button>
       </form>
     </Modal>

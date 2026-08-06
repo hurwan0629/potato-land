@@ -222,11 +222,6 @@ function ProfileTabContent({ type, items, isOwner }) {
             <Rating value={Number(review.rating ?? 0) / 2} compact />
           </div>
           <p>{review.content || "내용 없이 평점만 남긴 후기입니다."}</p>
-          {review.tags?.length > 0 && (
-            <div className="tag-list">
-              {review.tags.map((tag) => <span key={tag.tagIdx ?? tag.name}>{tag.name}</span>)}
-            </div>
-          )}
           {review.listingTitle && <small>거래 상품: {review.listingTitle}</small>}
         </article>
       ))}

@@ -181,10 +181,6 @@ export const transactionsApi = {
 };
 
 export const reviewsApi = {
-  tags() {
-    return data(http.get("/reviews/tags"));
-  },
-
   create(payload) {
     return data(http.post("/reviews", payload));
   },
