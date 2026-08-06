@@ -1,8 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Gavel, Plus, Search, SlidersHorizontal } from "lucide-react";
 
 import { auctionsApi, mainApi, usedApi } from "../../api/appApi";
+import { SOCKET_EVENT } from "../../constants/socketEvents";
+import { useSocket } from "../../context/SocketContext";
 import { useRemote } from "../../hooks/useRemote";
 import {
   ErrorState,
@@ -46,6 +48,7 @@ function getFilterState(searchParams, forcedType) {
 
 function CatalogPage({ forcedType = null }) {
   const navigate = useNavigate();
+  const { socket, emitWithAck, isConnected } = useSocket();
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = useMemo(
     () => getFilterState(searchParams, forcedType),
@@ -76,7 +79,96 @@ function CatalogPage({ forcedType = null }) {
     };
   }, [filter.categoryIdx, filter.page, filter.q, filter.sort, filter.status, filter.type]);
 
-  const { data, error, isLoading, reload } = useRemote(loadCatalog);
+  const {
+    data,
+    error,
+    isLoading,
+    reload,
+    setData,
+  } = useRemote(loadCatalog);
+
+  const visibleAuctionIds = filter.type === "AUCTION"
+    ? (data?.listings?.items ?? [])
+        .map((item) => Number(item.listingIdx))
+        .filter(Number.isSafeInteger)
+        .join(",")
+    : "";
+
+  useEffect(() => {
+    if (!socket || !isConnected || !visibleAuctionIds) {
+      return undefined;
+    }
+
+    const listingIds = visibleAuctionIds.split(",").map(Number);
+    const listingIdSet = new Set(listingIds);
+
+    listingIds.forEach((listingIdx) => {
+      emitWithAck(SOCKET_EVENT.AUCTION_JOIN, { listingIdx }).catch(() => {});
+    });
+
+    const updateAuctionCard = (listingIdx, updater) => {
+      if (!listingIdSet.has(Number(listingIdx))) {
+        return;
+      }
+
+      setData((current) => current ? {
+        ...current,
+        listings: {
+          ...current.listings,
+          items: (current.listings?.items ?? []).map((item) =>
+            Number(item.listingIdx) === Number(listingIdx)
+              ? updater(item)
+              : item),
+        },
+      } : current);
+    };
+
+    const handleBidUpdated = (payload) => {
+      updateAuctionCard(payload.listingIdx, (item) => ({
+        ...item,
+        currentPrice: Number(payload.currentPrice ?? item.currentPrice),
+        displayPrice: Number(payload.currentPrice ?? item.displayPrice),
+        bidCount: Number(item.bidCount ?? 0) + 1,
+      }));
+    };
+
+    const handleEnded = (payload) => {
+      updateAuctionCard(payload.listingIdx, (item) => ({
+        ...item,
+        status: "FINISHED",
+        currentPrice: Number(payload.winningPrice ?? item.currentPrice),
+        displayPrice: Number(payload.winningPrice ?? item.displayPrice),
+      }));
+    };
+
+    const handleDeleted = (payload) => {
+      setData((current) => current ? {
+        ...current,
+        listings: {
+          ...current.listings,
+          items: (current.listings?.items ?? []).filter(
+            (item) => Number(item.listingIdx) !== Number(payload.listingIdx),
+          ),
+          totalCount: Math.max(0, Number(current.listings?.totalCount ?? 0) - 1),
+        },
+      } : current);
+    };
+
+    socket.on(SOCKET_EVENT.AUCTION_BID_UPDATED, handleBidUpdated);
+    socket.on(SOCKET_EVENT.AUCTION_ENDED, handleEnded);
+    socket.on(SOCKET_EVENT.AUCTION_DELETED, handleDeleted);
+
+    return () => {
+      socket.off(SOCKET_EVENT.AUCTION_BID_UPDATED, handleBidUpdated);
+      socket.off(SOCKET_EVENT.AUCTION_ENDED, handleEnded);
+      socket.off(SOCKET_EVENT.AUCTION_DELETED, handleDeleted);
+      listingIds.forEach((listingIdx) => {
+        if (socket.connected) {
+          emitWithAck(SOCKET_EVENT.AUCTION_LEAVE, { listingIdx }).catch(() => {});
+        }
+      });
+    };
+  }, [emitWithAck, isConnected, setData, socket, visibleAuctionIds]);
 
   const updateFilter = (changes) => {
     const next = new URLSearchParams(searchParams);

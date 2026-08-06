@@ -8,7 +8,6 @@ import {
   Heart,
   History,
   MapPin,
-  MessageCircle,
   Trophy,
   Trash2,
   Upload,
@@ -16,7 +15,6 @@ import {
 
 import {
   auctionsApi,
-  chatApi,
   mainApi,
 } from "../../api/appApi";
 import { SOCKET_EVENT } from "../../constants/socketEvents";
@@ -37,6 +35,7 @@ import {
   ImageWithFallback,
   InlineAlert,
   LoadingState,
+  Modal,
   PageHeader,
   Pagination,
   Rating,
@@ -72,6 +71,8 @@ export function AuctionDetailPage() {
   const [bidAmount, setBidAmount] = useState("");
   const [bidPage, setBidPage] = useState(1);
   const [isWorking, setIsWorking] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("판매자가 직접 삭제");
 
   const loadAuction = useCallback(
     () => auctionsApi.get(listingIdx),
@@ -231,36 +232,17 @@ export function AuctionDetailPage() {
     }
   };
 
-  const handleChat = async () => {
-    if (!isLoggedIn) {
-      navigate("/login", { state: { from: `/auction/${listingIdx}` } });
-      return;
-    }
-
-    setIsWorking(true);
-    try {
-      const room = await chatApi.create(Number(listingIdx));
-      navigate(`/chat/${room.chatRoomIdx}`);
-    } catch (chatError) {
-      notify(chatError.message, "error");
-    } finally {
-      setIsWorking(false);
-    }
-  };
-
   const handleDelete = async () => {
-    if (!globalThis.confirm("이 경매를 삭제할까요?")) {
-      return;
-    }
-
-    const reason = globalThis.prompt("삭제 사유를 입력해주세요.", "판매자가 직접 삭제") ?? "";
-    if (!reason.trim()) {
+    const reason = deleteReason.trim();
+    if (!reason) {
+      notify("삭제 사유를 입력해주세요.", "error");
       return;
     }
 
     setIsWorking(true);
     try {
-      await auctionsApi.remove(listingIdx, reason.trim());
+      await auctionsApi.remove(listingIdx, reason);
+      setDeleteModalOpen(false);
       notify("경매를 삭제했습니다.", "success");
       navigate("/auction");
     } catch (deleteError) {
@@ -427,15 +409,9 @@ export function AuctionDetailPage() {
                   <Heart size={19} fill={auction.viewer.isFavorite ? "currentColor" : "none"} />
                   {auction.viewer.isFavorite ? "관심 해제" : "관심 경매"}
                 </button>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={isWorking || !auction.viewer.canChat}
-                  onClick={handleChat}
-                >
-                  <MessageCircle size={19} />
-                  판매자와 채팅
-                </button>
+                <InlineAlert type="info">
+                  경매가 종료되면 판매자와 낙찰자의 채팅방이 자동으로 연결됩니다.
+                </InlineAlert>
               </div>
             </>
           )}
@@ -453,7 +429,7 @@ export function AuctionDetailPage() {
                 type="button"
                 className="button button--danger"
                 disabled={isWorking || !auction.viewer.canDelete}
-                onClick={handleDelete}
+                onClick={() => setDeleteModalOpen(true)}
               >
                 <Trash2 size={18} />
                 삭제
@@ -513,6 +489,45 @@ export function AuctionDetailPage() {
           현재 회원님이 최고 입찰자입니다.
         </InlineAlert>
       )}
+
+      <Modal
+        open={deleteModalOpen}
+        title="경매 삭제"
+        description="삭제 후에는 복구할 수 없으며 모든 입찰자에게 알림이 전송됩니다."
+        onClose={() => {
+          if (!isWorking) setDeleteModalOpen(false);
+        }}
+        footer={(
+          <>
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={isWorking}
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              className="button button--danger"
+              disabled={isWorking || !deleteReason.trim()}
+              onClick={handleDelete}
+            >
+              {isWorking ? "삭제 중..." : "경매 삭제"}
+            </button>
+          </>
+        )}
+      >
+        <label className="form-field">
+          <span>삭제 사유</span>
+          <textarea
+            rows={4}
+            maxLength={200}
+            value={deleteReason}
+            onChange={(event) => setDeleteReason(event.target.value)}
+          />
+        </label>
+      </Modal>
     </div>
   );
 }

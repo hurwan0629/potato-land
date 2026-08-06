@@ -122,9 +122,9 @@ export function LoginPage() {
           <p>다시 만나서 반가워요</p>
           <h1>감자나라에서<br />좋은 거래를 시작해요.</h1>
           <ul>
-            <li><ShieldCheck size={18} />HttpOnly 쿠키 기반 안전한 로그인</li>
-            <li><MessageSquareText size={18} />실시간 채팅과 알림</li>
-            <li><KeyRound size={18} />Redis 세션 관리</li>
+            <li><ShieldCheck size={18} />안전하게 계정을 보호해요</li>
+            <li><MessageSquareText size={18} />거래 상대와 편하게 대화해요</li>
+            <li><KeyRound size={18} />로그인한 기기를 직접 관리해요</li>
           </ul>
         </div>
       </section>
