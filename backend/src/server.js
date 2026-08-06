@@ -11,11 +11,19 @@ import { createSocketServer } from "./sockets/index.js";
 import { configureSmsProvider } from "./infrastructure/sms/sms.interface.js";
 import { recoverAuctions } from "./modules/auctions/auctions.service.js";
 import { configureSolApiSmsService } from "./infrastructure/sms/solapiSms.service.js";
+import { createDemoBot } from "./demo/demoBot.js";
 
 const log = logger.child("server");
 const httpServer = http.createServer(app);
 const socketServer = createSocketServer(httpServer);
 app.set("io", socketServer.io);
+
+const demoBot = createDemoBot({
+  io: socketServer.io,
+  nodeEnv: env.nodeEnv,
+  enabled: env.demoBot.enabled,
+  intervalMs: env.demoBot.intervalMs,
+});
 
 /** PostgreSQL과 Redis 연결을 확인한 뒤 HTTP 서버를 시작한다. */
 async function startServer() {
@@ -45,6 +53,12 @@ async function startServer() {
         port: env.server.port,
         nodeEnv: env.nodeEnv,
       });
+
+      if (demoBot.start()) {
+        log.info("개발 데모 봇을 시작했습니다.", {
+          intervalMs: env.demoBot.intervalMs,
+        });
+      }
     });
   } catch (error) {
     log.error("서버 시작에 실패했습니다.", { error });
@@ -67,6 +81,7 @@ async function shutdown(signal) {
   log.info("서버 종료 신호를 받았습니다.", { signal });
   stopAuctionRecoveryScheduler();
   clearAuctionTimers();
+  demoBot.stop();
 
   const results = await Promise.allSettled([closeSocketServer(), disconnectRedis(), closeDatabase()]);
   const failed = results.filter((result) => result.status === "rejected");

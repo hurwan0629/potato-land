@@ -29,9 +29,13 @@
     "db:migrate": "node ./database/migrate.js",
     "db:seed": "node ./database/seed.js",
     "db:setup": "npm run db:migrate && npm run db:seed",
+    "db:demo": "cross-env NODE_ENV=development node ./database/demo/loadDemoData.js",
+    "db:setup:demo": "npm run db:migrate && npm run db:seed && npm run db:demo",
+    "demo:bot:once": "cross-env NODE_ENV=development node ./database/demo/runDemoBotOnce.js",
     "test:fixtures": "cross-env NODE_ENV=test node ./test-support/loadScenarioFixtures.js",
     "test:integration": "cross-env NODE_ENV=test node --test ./integration/*.integration.js",
-    "test:server": "cross-env NODE_ENV=test node ./src/server.js"
+    "test:server": "cross-env NODE_ENV=test node ./src/server.js",
+    "test:demo-bot": "cross-env NODE_ENV=test node --test ./test/demoBotScheduler.test.js"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

@@ -130,4 +130,9 @@ export const env = {
   recoveryScheduler: {
     recoveryCron: required("AUCTION_RECOVERY_CRON", "*/5 * * * *"),
   },
+
+  demoBot: {
+    enabled: requiredBoolean("DEMO_BOT_ENABLED", false),
+    intervalMs: requiredInt("DEMO_BOT_INTERVAL_MS", 5000),
+  },
 }
