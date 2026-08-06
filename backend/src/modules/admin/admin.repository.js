@@ -34,28 +34,66 @@ export async function findDashboard({ from, to, interval }) {
     `),
     query(
       `
+        WITH periods AS (
+          SELECT generate_series(
+            date_trunc($1, $2::timestamptz),
+            date_trunc(
+              $1,
+              $3::timestamptz - INTERVAL '1 microsecond'
+            ),
+            CASE
+              WHEN $1 = 'hour' THEN INTERVAL '1 hour'
+              ELSE INTERVAL '1 day'
+            END
+          ) AS period
+        ), listing_counts AS (
+          SELECT
+            date_trunc($1, created_at) AS period,
+            COUNT(*)::int AS count
+          FROM listings
+          WHERE created_at >= $2
+            AND created_at < $3
+          GROUP BY period
+        )
         SELECT
-          date_trunc($1, created_at) AS period,
-          COUNT(*)::int AS count
-        FROM listings
-        WHERE created_at >= $2
-          AND created_at < $3
-        GROUP BY period
-        ORDER BY period
+          periods.period,
+          COALESCE(listing_counts.count, 0)::int AS count
+        FROM periods
+        LEFT JOIN listing_counts USING (period)
+        ORDER BY periods.period
       `,
       [unit, from, to],
     ),
     query(
       `
+        WITH periods AS (
+          SELECT generate_series(
+            date_trunc($1, $2::timestamptz),
+            date_trunc(
+              $1,
+              $3::timestamptz - INTERVAL '1 microsecond'
+            ),
+            CASE
+              WHEN $1 = 'hour' THEN INTERVAL '1 hour'
+              ELSE INTERVAL '1 day'
+            END
+          ) AS period
+        ), transaction_counts AS (
+          SELECT
+            date_trunc($1, completed_at) AS period,
+            COUNT(*)::int AS count
+          FROM transactions
+          WHERE status = 'COMPLETED'
+            AND completed_at >= $2
+            AND completed_at < $3
+          GROUP BY period
+        )
         SELECT
-          date_trunc($1, completed_at) AS period,
-          COUNT(*)::int AS count
-        FROM transactions
-        WHERE status = 'COMPLETED'
-          AND completed_at >= $2
-          AND completed_at < $3
-        GROUP BY period
-        ORDER BY period
+          periods.period,
+          COALESCE(transaction_counts.count, 0)::int AS count
+        FROM periods
+        LEFT JOIN transaction_counts USING (period)
+        ORDER BY periods.period
       `,
       [unit, from, to],
     ),
