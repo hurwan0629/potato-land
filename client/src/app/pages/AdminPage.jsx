@@ -13,7 +13,6 @@ import { Link } from "react-router";
 import { adminApi } from "../../api/appApi";
 import { useToast } from "../../context/ToastContext";
 import { useRemote } from "../../hooks/useRemote";
-import { TimeSeriesChart } from "../../lib/charts/TimeSeriesChart";
 import { formatCurrency, formatDate, listingPath } from "../../utils/format";
 import {
   Avatar,
