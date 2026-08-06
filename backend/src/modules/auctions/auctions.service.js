@@ -23,7 +23,20 @@ function imageUrls(files){return files.map((file)=>file.resourceUrl);}
 function emitSafely(name,work,context){try{work();}catch(error){log.warn(`${name} Socket 전송에 실패했습니다.`,{error,...context});}}
 function listItem(row){return{listingIdx:Number(row.idx),listingType:"AUCTION",title:row.title,thumbnailUrl:row.thumbnail_url,category:{categoryIdx:Number(row.category_idx),name:row.category_name},startPrice:Number(row.start_price),currentPrice:Number(row.current_price),displayPrice:Number(row.current_price),status:row.status,bidCount:Number(row.bid_count),favoriteCount:Number(row.favorite_count),startedAt:row.started_at,endsAt:row.ends_at,hasMyBid:Boolean(row.has_my_bid),myBidAmount:row.my_bid_amount==null?null:Number(row.my_bid_amount),isFavorite:Boolean(row.is_favorite)};}
 
-export async function getAuctions(query,viewerUserIdx=null){const data=validateAuctionList(query);const result=await findAuctions(data,viewerUserIdx);return{items:result.rows.map(listItem),page:data.page,limit:data.limit,totalCount:result.totalCount,totalPages:Math.ceil(result.totalCount/data.limit)};}
+export async function getAuctions(query,viewerUserIdx=null) {
+
+  const data=validateAuctionList(query);
+  
+  const result=await findAuctions(data,viewerUserIdx);
+  
+  return{
+    items:result.rows.map(listItem),
+    page:data.page,
+    limit:data.limit,
+    totalCount:result.totalCount,
+    totalPages:Math.ceil(result.totalCount/data.limit)
+  };
+}
 
 /** 1. 입력과 이미지를 검증한다. 2. DB에 경매를 저장한다. 3. commit 후 종료 Timer와 Redis cache를 등록한다. */
 export async function createAuction(userIdx,body,files=[]){const data=validateAuctionCreate(body,files);const startedAt=new Date(),endsAt=new Date(startedAt.getTime()+24*60*60*1000),bidUnit=1000;let listingIdx;try{listingIdx=await insertAuction({sellerIdx:userIdx,...data,imageUrls:imageUrls(files),startedAt,endsAt,bidUnit});}catch(error){if(error.code==="23503")throw new AppError({status:400,code:"VALIDATION_ERROR",message:"카테고리를 확인해주세요.",details:{field:"categoryIdx"}});throw error;}scheduleAuctionEnd(listingIdx,endsAt,finalizeAuction);await writeAuctionCache(listingIdx,{currentPrice:data.startPrice,bidUnit,endsAt,status:"ON_GOING"});return{listingIdx:Number(listingIdx),listingType:"AUCTION",status:"ON_GOING",startPrice:data.startPrice,currentPrice:data.startPrice,bidUnit,startedAt,endsAt};}
