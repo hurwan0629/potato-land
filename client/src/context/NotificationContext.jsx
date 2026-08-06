@@ -14,6 +14,10 @@ import { useSocket } from "./SocketContext";
 
 const NotificationContext = createContext(null);
 
+function unreadNotifications(items) {
+  return (items ?? []).filter((notification) => !notification.isRead);
+}
+
 export function NotificationProvider({ children }) {
   const { isLoggedIn } = useAuth();
   const { socket } = useSocket();
@@ -32,7 +36,7 @@ export function NotificationProvider({ children }) {
         notificationsApi.list(),
         notificationsApi.unreadCount(),
       ]);
-      setNotifications(notificationData?.items ?? []);
+      setNotifications(unreadNotifications(notificationData?.items));
       setUnreadCount(Number(unreadData?.unreadCount ?? 0));
     } finally {
       setIsLoading(false);
@@ -58,7 +62,7 @@ export function NotificationProvider({ children }) {
     notificationsApi.list()
       .then((result) => {
         if (active) {
-          setNotifications(result?.items ?? []);
+          setNotifications(unreadNotifications(result?.items));
         }
       })
       .catch(() => {});
@@ -82,6 +86,10 @@ export function NotificationProvider({ children }) {
     }
 
     const handleNewNotification = (notification) => {
+      if (notification.isRead) {
+        return;
+      }
+
       setNotifications((current) => {
         const exists = current.some(
           (item) => Number(item.notificationIdx) === Number(notification.notificationIdx),
@@ -105,20 +113,17 @@ export function NotificationProvider({ children }) {
 
   const read = useCallback(async (notificationIdx) => {
     await notificationsApi.read(notificationIdx);
-    setNotifications((current) => current.map((notification) => (
-      Number(notification.notificationIdx) === Number(notificationIdx)
-        ? { ...notification, isRead: true }
-        : notification
-    )));
+
+    // 읽은 알림은 목록에서 즉시 제거해 서버 재조회 전에도 UI가 맞게 보이도록 한다.
+    setNotifications((current) => current.filter(
+      (notification) => Number(notification.notificationIdx) !== Number(notificationIdx),
+    ));
     setUnreadCount((current) => Math.max(0, current - 1));
   }, []);
 
   const readAll = useCallback(async () => {
     await notificationsApi.readAll();
-    setNotifications((current) => current.map((notification) => ({
-      ...notification,
-      isRead: true,
-    })));
+    setNotifications([]);
     setUnreadCount(0);
   }, []);
 

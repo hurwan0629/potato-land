@@ -15,6 +15,7 @@ import {
   Menu,
   MessageCircle,
   Search,
+  Settings,
   ShieldCheck,
   ShoppingBag,
   UserRound,
@@ -120,6 +121,7 @@ function Header() {
         await read(notification.notificationIdx);
       } catch (error) {
         notify(error.message, "error");
+        return;
       }
     }
 
@@ -205,48 +207,48 @@ function Header() {
 
         {mobileMenuOpen && (
           <>
-          <button type="button" className="mobile-menu-backdrop" aria-label="전체 메뉴 닫기" onClick={() => setMobileMenuOpen(false)} />
-          <div className="mobile-menu" onClick={(event) => event.stopPropagation()}>
-            <img
-              className="mobile-menu__figma"
-              src={headerMenuImage}
-              alt="감자나라 전체 메뉴"
-            />
-            <div className="mobile-menu__links" aria-label="전체 메뉴 바로가기">
-              <Link to="/search" onClick={() => setMobileMenuOpen(false)}>중고거래 둘러보기</Link>
-              <Link to="/search?sort=POPULAR" onClick={() => setMobileMenuOpen(false)}>인기 상품</Link>
-              <Link to="/search" onClick={() => setMobileMenuOpen(false)}>카테고리별 상품</Link>
-              <Link to="/products/register" onClick={() => setMobileMenuOpen(false)}>상품 등록</Link>
-              <Link to="/mypage/me" onClick={() => setMobileMenuOpen(false)}>판매 관리</Link>
-              <Link to="/auction" onClick={() => setMobileMenuOpen(false)}>경매 둘러보기</Link>
-              <Link to="/auction?sort=ENDING_SOON" onClick={() => setMobileMenuOpen(false)}>마감 임박</Link>
-              <Link to="/auction?status=FINISHED" onClick={() => setMobileMenuOpen(false)}>낙찰 결과</Link>
-              <Link to="/chat" onClick={() => setMobileMenuOpen(false)}>채팅 바로가기</Link>
-            </div>
-            <form className="header-search header-search--mobile" onSubmit={handleSearch}>
-              <Search size={19} />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="상품 검색"
+            <button type="button" className="mobile-menu-backdrop" aria-label="전체 메뉴 닫기" onClick={() => setMobileMenuOpen(false)} />
+            <div className="mobile-menu" onClick={(event) => event.stopPropagation()}>
+              <img
+                className="mobile-menu__figma"
+                src={headerMenuImage}
+                alt="감자나라 전체 메뉴"
               />
-              <button type="submit">검색</button>
-            </form>
-            <nav aria-label="모바일 메뉴">
-              {navigation.map(({ to, label, icon: Icon }) => (
-                <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}>
-                  <Icon size={19} />
-                  {label}
-                </NavLink>
-              ))}
-              {!isLoggedIn && (
-                <NavLink to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <UserRound size={19} />
-                  회원가입
-                </NavLink>
-              )}
-            </nav>
-          </div>
+              <div className="mobile-menu__links" aria-label="전체 메뉴 바로가기">
+                <Link to="/search" onClick={() => setMobileMenuOpen(false)}>중고거래 둘러보기</Link>
+                <Link to="/search?sort=POPULAR" onClick={() => setMobileMenuOpen(false)}>인기 상품</Link>
+                <Link to="/search" onClick={() => setMobileMenuOpen(false)}>카테고리별 상품</Link>
+                <Link to="/products/register" onClick={() => setMobileMenuOpen(false)}>상품 등록</Link>
+                <Link to="/mypage/me" onClick={() => setMobileMenuOpen(false)}>판매 관리</Link>
+                <Link to="/auction" onClick={() => setMobileMenuOpen(false)}>경매 둘러보기</Link>
+                <Link to="/auction?sort=ENDING_SOON" onClick={() => setMobileMenuOpen(false)}>마감 임박</Link>
+                <Link to="/auction?status=FINISHED" onClick={() => setMobileMenuOpen(false)}>낙찰 결과</Link>
+                <Link to="/chat" onClick={() => setMobileMenuOpen(false)}>채팅 바로가기</Link>
+              </div>
+              <form className="header-search header-search--mobile" onSubmit={handleSearch}>
+                <Search size={19} />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="상품 검색"
+                />
+                <button type="submit">검색</button>
+              </form>
+              <nav aria-label="모바일 메뉴">
+                {navigation.map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}>
+                    <Icon size={19} />
+                    {label}
+                  </NavLink>
+                ))}
+                {!isLoggedIn && (
+                  <NavLink to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                    <UserRound size={19} />
+                    회원가입
+                  </NavLink>
+                )}
+              </nav>
+            </div>
           </>
         )}
       </header>
@@ -281,7 +283,7 @@ function Header() {
               <button
                 key={notification.notificationIdx}
                 type="button"
-                className={`notification-item ${notification.isRead ? "" : "is-unread"}`}
+                className="notification-item is-unread"
                 onClick={() => handleNotificationClick(notification)}
               >
                 <span className="notification-item__icon"><Bell size={18} /></span>
@@ -383,7 +385,7 @@ export function AccountQuickLinks() {
   return (
     <div className="account-quick-links">
       <Link to="/chat"><MessageCircle size={18} />채팅</Link>
-      <Link to="/mypage/me"><Heart size={18} />관심상품</Link>
+      <Link to="/mypage/me?tab=favorites"><Heart size={18} />관심상품</Link>
       <Link to="/mypage/me/edit"><Settings size={18} />정보 수정</Link>
     </div>
   );

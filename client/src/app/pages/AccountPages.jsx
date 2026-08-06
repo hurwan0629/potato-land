@@ -266,6 +266,7 @@ export function AccountEditPage() {
   const [phoneCode, setPhoneCode] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
+  const [passwordVerificationError, setPasswordVerificationError] = useState("");
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [logoutAllOpen, setLogoutAllOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
@@ -317,17 +318,19 @@ export function AccountEditPage() {
 
   const verifyCurrentPassword = async () => {
     if (!currentPassword) {
-      notify("현재 비밀번호를 입력해주세요.", "error");
+      setPasswordVerificationError("현재 비밀번호를 입력해주세요.");
       return;
     }
 
+    setPasswordVerificationError("");
     setIsWorking(true);
     try {
       const result = await usersApi.verifyPassword(currentPassword);
       setEditToken(result.editToken);
+      setPasswordVerificationError("");
       notify("본인 확인이 완료되었습니다.", "success");
     } catch (error) {
-      notify(error.message, "error");
+      setPasswordVerificationError(error.message);
     } finally {
       setIsWorking(false);
     }
@@ -529,11 +532,12 @@ export function AccountEditPage() {
             <div><h2>비밀번호 확인</h2><p>회원정보 수정을 위해 현재 비밀번호를 입력해주세요.</p></div>
           </div>
           <label className="form-field account-verify-id"><span>아이디</span><input value={account.loginId ?? ""} disabled /></label>
-          <label className="form-field"><span>현재 비밀번호</span><input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></label>
+          <label className="form-field"><span>현재 비밀번호</span><input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => { setCurrentPassword(event.target.value); setPasswordVerificationError(""); }} /></label>
           <button type="submit" className="button button--secondary" disabled={isWorking || Boolean(editToken)}>
             <ShieldCheck size={18} />
             {editToken ? "확인 완료" : "로그인 하기"}
           </button>
+          {passwordVerificationError && <InlineAlert type="error">{passwordVerificationError}</InlineAlert>}
           {editToken && <InlineAlert type="success">10분 동안 개인정보 수정과 탈퇴가 가능합니다.</InlineAlert>}
         </form>
 

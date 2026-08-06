@@ -8,14 +8,18 @@ import {
 } from "../app/components/AppShell";
 import { AccountEditPage, MyPage } from "../app/pages/AccountPages";
 import AdminPage from "../app/pages/AdminPage";
-import { AuctionDetailPage, AuctionFormPage } from "../app/pages/AuctionPages";
+import { AuctionDetailPage } from "../app/pages/AuctionPages";
 import { LoginPage, SignupPage } from "../app/pages/AuthPages";
 import { AuctionListPage, SearchPage } from "../app/pages/CatalogPages";
 import ChatPage from "../app/pages/ChatPage";
 import { NotFoundPage, RouteErrorPage } from "../app/pages/ErrorPages";
+import {
+  AuctionFormPage,
+  UsedFormPage,
+} from "../app/pages/FinalListingFormPages";
 import HomePage from "../app/pages/HomePage";
 import PaymentPage from "../app/pages/PaymentPage";
-import { UsedDetailPage, UsedFormPage } from "../app/pages/UsedPages";
+import { UsedDetailPage } from "../app/pages/UsedPages";
 
 export const router = createBrowserRouter([
   {

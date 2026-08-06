@@ -25,6 +25,7 @@ import {
   InlineAlert,
   LoadingState,
   ListingTypeSelector,
+  Modal,
   PageHeader,
   Rating,
   StatusBadge,
@@ -44,6 +45,8 @@ export function UsedDetailPage() {
   const { notify } = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWorking, setIsWorking] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("판매자가 직접 삭제");
 
   const loadListing = useCallback(
     () => usedApi.get(listingIdx),
@@ -98,19 +101,16 @@ export function UsedDetailPage() {
   };
 
   const handleDelete = async () => {
-    const confirmed = globalThis.confirm("이 중고상품을 삭제할까요?");
-    if (!confirmed) {
-      return;
-    }
-
-    const reason = globalThis.prompt("삭제 사유를 입력해주세요.", "판매자가 직접 삭제") ?? "";
-    if (!reason.trim()) {
+    const reason = deleteReason.trim();
+    if (!reason) {
+      notify("삭제 사유를 입력해주세요.", "error");
       return;
     }
 
     setIsWorking(true);
     try {
-      await usedApi.remove(listingIdx, reason.trim());
+      await usedApi.remove(listingIdx, reason);
+      setDeleteModalOpen(false);
       notify("상품을 삭제했습니다.", "success");
       navigate("/search");
     } catch (deleteError) {
@@ -249,7 +249,7 @@ export function UsedDetailPage() {
                 type="button"
                 className="button button--danger"
                 disabled={isWorking || !listing.viewer.canDelete}
-                onClick={handleDelete}
+                onClick={() => setDeleteModalOpen(true)}
               >
                 <Trash2 size={18} />
                 삭제
@@ -266,6 +266,28 @@ export function UsedDetailPage() {
         />
         <p>{listing.description}</p>
       </section>
+
+      <Modal
+        open={deleteModalOpen}
+        title="중고상품 삭제"
+        description="삭제 후에는 복구할 수 없습니다. 삭제 사유를 입력해주세요."
+        onClose={() => {
+          if (!isWorking) setDeleteModalOpen(false);
+        }}
+        footer={(
+          <>
+            <button type="button" className="button button--secondary" disabled={isWorking} onClick={() => setDeleteModalOpen(false)}>취소</button>
+            <button type="button" className="button button--danger" disabled={isWorking || !deleteReason.trim()} onClick={handleDelete}>
+              {isWorking ? "삭제 중..." : "삭제"}
+            </button>
+          </>
+        )}
+      >
+        <label className="form-field">
+          <span>삭제 사유</span>
+          <textarea rows={4} maxLength={200} value={deleteReason} onChange={(event) => setDeleteReason(event.target.value)} />
+        </label>
+      </Modal>
     </div>
   );
 }
