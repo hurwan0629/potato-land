@@ -1,9 +1,12 @@
 import { AppError } from "../../common/errors/AppError.js";
+import { logger } from "../../common/logging/logger.js";
 import { emitNotificationAfterCommit } from "../notifications/notifications.service.js";
 import {
   findReceivedReviews,
   insertReview,
 } from "./reviews.repository.js";
+
+const log = logger.child("review-service");
 
 function positiveInt(value, field) {
   const result = Number(value);
@@ -117,6 +120,14 @@ export async function createReview(reviewerIdx, body = {}) {
   }
 
   await emitNotificationAfterCommit(revieweeIdx, result.notification);
+
+  log.info("거래 후기를 저장했습니다.", {
+    reviewIdx: Number(result.review.idx),
+    transactionIdx,
+    reviewerIdx: Number(reviewerIdx),
+    revieweeIdx,
+    rating,
+  });
 
   return {
     reviewIdx: Number(result.review.idx),

@@ -137,6 +137,14 @@ export async function createAuction(userIdx, body, files = []) {
     status: "ON_GOING",
   });
 
+  log.info("경매 등록을 완료했습니다.", {
+    listingIdx: Number(listingIdx),
+    sellerIdx: Number(userIdx),
+    imageCount: files.length,
+    startPrice: data.startPrice,
+    endsAt,
+  });
+
   return {
     listingIdx: Number(listingIdx),
     listingType: "AUCTION",
@@ -268,6 +276,12 @@ export async function updateAuction(
     imageUrls(files),
   );
 
+  log.info("경매 수정을 완료했습니다.", {
+    listingIdx,
+    sellerIdx: Number(userIdx),
+    replacedImageCount: files.length,
+  });
+
   return {
     listingIdx,
     updated: true,
@@ -330,6 +344,12 @@ export async function deleteAuction(user, listingIdxValue, body) {
       emitNotificationAfterCommit(notification.receiverIdx, notification),
     ),
   );
+
+  log.info("경매 삭제를 완료했습니다.", {
+    listingIdx,
+    deletedBy: Number(user.userIdx),
+    notifiedBidderCount: deleted.notifications.length,
+  });
 
   return {
     listingIdx,
@@ -427,6 +447,17 @@ export async function createAuctionBid(
       await emitNotificationAfterCommit(previousIdx, result.notification);
     }
   }
+
+  log.info("경매 입찰을 저장했습니다.", {
+    listingIdx,
+    bidderIdx: Number(userIdx),
+    bidAmount,
+    currentPrice: result.currentPrice,
+    previousHighestBidderIdx:
+      result.previous?.bidder_idx === undefined
+        ? null
+        : Number(result.previous.bidder_idx),
+  });
 
   return payload;
 }
@@ -604,6 +635,14 @@ export async function finalizeAuction(listingIdxValue) {
     ),
   );
 
+  log.info("경매 종료 처리를 완료했습니다.", {
+    listingIdx,
+    winnerIdx: payload.winnerIdx,
+    transactionIdx: payload.transactionIdx,
+    chatRoomIdx: result.chatRoom?.chatRoomIdx ?? null,
+    notificationCount: result.notifications.length,
+  });
+
   return {
     ...payload,
     chatRoomIdx: result.chatRoom?.chatRoomIdx ?? null,
@@ -627,6 +666,10 @@ export async function recoverAuctions() {
       scheduleAuctionEnd(listingIdx, endsAt, finalizeAuction);
     }
   }
+
+  log.info("진행 중 경매 복구를 완료했습니다.", {
+    recoveredCount: rows.length,
+  });
 
   return { recoveredCount: rows.length };
 }

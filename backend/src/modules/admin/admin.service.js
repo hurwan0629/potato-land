@@ -156,6 +156,11 @@ export async function updateUserMemo(userIdxValue, body = {}) {
     });
   }
 
+  log.info("관리자 회원 메모를 저장했습니다.", {
+    userIdx,
+    memoLength: memo.length,
+  });
+
   return {
     userIdx,
     adminMemo: row.admin_memo,
@@ -198,11 +203,21 @@ export async function listReviews(userIdxValue, query = {}) {
 }
 
 export async function deleteUsed(admin, listingIdx, body) {
-  return deleteUsedListing(admin, listingIdx, body);
+  const result = await deleteUsedListing(admin, listingIdx, body);
+  log.info("관리자가 중고상품을 삭제했습니다.", {
+    adminUserIdx: Number(admin.userIdx),
+    listingIdx: Number(listingIdx),
+  });
+  return result;
 }
 
 export async function deleteAuctionForAdmin(admin, listingIdx, body) {
-  return deleteAuction(admin, listingIdx, body);
+  const result = await deleteAuction(admin, listingIdx, body);
+  log.info("관리자가 경매를 삭제했습니다.", {
+    adminUserIdx: Number(admin.userIdx),
+    listingIdx: Number(listingIdx),
+  });
+  return result;
 }
 
 /**
@@ -276,6 +291,14 @@ export async function banUser(
       userIdx,
     });
   }
+
+  log.info("회원 영구정지 처리를 완료했습니다.", {
+    adminUserIdx: Number(adminUserIdx),
+    userIdx,
+    canceledTransactionCount: result.canceledTransactionCount,
+    deletedListingCount: result.deletedListingCount,
+    affectedAuctionCount: result.affectedAuctionIdxs.length,
+  });
 
   return {
     userIdx,

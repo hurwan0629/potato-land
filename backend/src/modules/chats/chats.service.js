@@ -1,4 +1,5 @@
 import { AppError } from "../../common/errors/AppError.js";
+import { logger } from "../../common/logging/logger.js";
 import {
   query,
   withTransaction,
@@ -8,6 +9,8 @@ import {
   createNotification,
   getUnreadNotificationCount,
 } from "../notifications/notifications.service.js";
+
+const log = logger.child("chat-service");
 
 function toId(value) {
   return Number(value);
@@ -412,6 +415,14 @@ export async function createChatRoom(listingIdx, buyerIdx) {
         })
       : null;
 
+    log.info("채팅방 준비를 완료했습니다.", {
+      chatRoomIdx: toId(chatRoom.chatRoomIdx),
+      listingIdx: toId(listing.listingIdx),
+      sellerIdx: toId(listing.sellerIdx),
+      buyerIdx: Number(buyerIdx),
+      created,
+    });
+
     return {
       chatRoomIdx: toId(chatRoom.chatRoomIdx),
       listingIdx: toId(listing.listingIdx),
@@ -607,6 +618,14 @@ export async function createTextMessage({ io, userIdx, payload }) {
       ? { ...storedNotification, targetPath: `/chat/${chatRoomIdx}` }
       : null;
 
+    log.info("채팅 텍스트 메시지를 저장했습니다.", {
+      chatRoomIdx,
+      messageIdx: message.messageIdx,
+      senderIdx: Number(userIdx),
+      receiverIdx,
+      notificationCreated: Boolean(notification),
+    });
+
     return {
       created: true,
       room,
@@ -698,6 +717,14 @@ export async function createImageMessages({
     const notification = storedNotification
       ? { ...storedNotification, targetPath: `/chat/${roomId}` }
       : null;
+
+    log.info("채팅 이미지 메시지를 저장했습니다.", {
+      chatRoomIdx: roomId,
+      senderIdx: Number(userIdx),
+      receiverIdx,
+      imageCount: messages.length,
+      notificationCreated: Boolean(notification),
+    });
 
     return {
       room,

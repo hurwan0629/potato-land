@@ -1,4 +1,5 @@
 import { AppError } from "../../common/errors/AppError.js";
+import { logger } from "../../common/logging/logger.js";
 import {
   query,
   withTransaction,
@@ -9,6 +10,8 @@ import {
   normalizeNotification,
   SUPPORTED_NOTIFICATION_TYPES,
 } from "./notifications.service.js";
+
+const log = logger.child("notifications-controller");
 
 function parsePositiveInteger(value, fieldName) {
   const parsed = Number(value);
@@ -197,6 +200,10 @@ export async function readNotification(req, res) {
   });
 
   void emitUnreadCountAfterCommit(req.user.userIdx);
+  log.info("알림을 읽음 처리했습니다.", {
+    userIdx: Number(req.user.userIdx),
+    notificationIdx,
+  });
   res.status(200).json({ success: true, data: result });
 }
 
@@ -222,6 +229,10 @@ export async function readAllNotifications(req, res) {
   });
 
   void emitUnreadCountAfterCommit(req.user.userIdx);
+  log.info("모든 알림을 읽음 처리했습니다.", {
+    userIdx: Number(req.user.userIdx),
+    readCount: result.readCount,
+  });
   res.status(200).json({ success: true, data: result });
 }
 
