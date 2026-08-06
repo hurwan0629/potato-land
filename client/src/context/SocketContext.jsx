@@ -1,97 +1,115 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { io } from "socket.io-client";
 
-import { authApi } from "../api/authApi";
+import { authApi } from "../api/appApi";
 import { useAuth } from "./AuthContext";
 
 const SocketContext = createContext(null);
 
 export function SocketProvider({ children }) {
   const { isLoggedIn } = useAuth();
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef(null);
-  const refreshTriedRef = useRef(false);
+  const refreshAttemptedRef = useRef(false);
+  const [connectedSocket, setConnectedSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
       socketRef.current?.disconnect();
       socketRef.current = null;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSocket(null);
-      setIsConnected(false);
       return undefined;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || undefined;
-    const nextSocket = io(socketUrl, {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || undefined, {
       withCredentials: true,
       autoConnect: false,
       reconnection: true,
+      reconnectionDelay: 800,
+      reconnectionDelayMax: 5000,
     });
-    socketRef.current = nextSocket;
-    setSocket(nextSocket);
+    socketRef.current = socket;
 
     const handleConnect = () => {
-      refreshTriedRef.current = false;
+      refreshAttemptedRef.current = false;
+      setConnectedSocket(socket);
       setIsConnected(true);
     };
-    const handleDisconnect = () => setIsConnected(false);
-    const handleConnectError = async () => {
-      if (!refreshTriedRef.current) {
-        refreshTriedRef.current = true;
-        try {
-          await authApi.refresh();
-          nextSocket.connect();
-          return;
-        } catch {
-          // 아래에서 로그인 상태를 정리한다.
-        }
-      }
-      // 실시간 서버 장애가 HTTP 로그인 세션을 종료시키면 안 된다.
-      // 재발급까지 실패하면 소켓만 중단하고 로그인 상태와 쿠키는 유지한다.
-      nextSocket.disconnect();
+
+    const handleDisconnect = () => {
+      setConnectedSocket((current) => (current === socket ? null : current));
       setIsConnected(false);
     };
 
-    nextSocket.on("connect", handleConnect);
-    nextSocket.on("disconnect", handleDisconnect);
-    nextSocket.on("connect_error", handleConnectError);
-    nextSocket.connect();
+    const handleConnectError = () => {
+      if (refreshAttemptedRef.current) {
+        return;
+      }
+
+      refreshAttemptedRef.current = true;
+      authApi.refresh()
+        .then(() => socket.connect())
+        .catch(() => socket.disconnect());
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("connect_error", handleConnectError);
+    socket.connect();
 
     return () => {
-      nextSocket.off("connect", handleConnect);
-      nextSocket.off("disconnect", handleDisconnect);
-      nextSocket.off("connect_error", handleConnectError);
-      nextSocket.disconnect();
-      if (socketRef.current === nextSocket) socketRef.current = null;
+      // disconnect 이벤트에서 화면에 노출한 Socket 상태까지 함께 정리한다.
+      socket.disconnect();
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("connect_error", handleConnectError);
+
+      if (socketRef.current === socket) {
+        socketRef.current = null;
+      }
     };
   }, [isLoggedIn]);
 
-  const emitWithAck = useCallback((event, payload, timeout = 10_000) => {
-    const currentSocket = socketRef.current;
-    if (!currentSocket?.connected) {
-      return Promise.reject(new Error("실시간 연결이 준비되지 않았습니다."));
+  const emitWithAck = useCallback((event, payload = {}, timeout = 10_000) => {
+    const socket = socketRef.current;
+    if (!socket?.connected) {
+      return Promise.reject(new Error("실시간 연결을 준비하는 중입니다."));
     }
+
     return new Promise((resolve, reject) => {
-      currentSocket.timeout(timeout).emit(event, payload, (timeoutError, response) => {
+      socket.timeout(timeout).emit(event, payload, (timeoutError, response) => {
         if (timeoutError) {
-          reject(new Error("서버 응답 시간이 초과되었습니다."));
+          reject(new Error("실시간 요청 응답 시간이 초과되었습니다."));
           return;
         }
+
         if (!response?.success) {
-          const error = new Error(response?.message ?? "요청을 처리하지 못했습니다.");
-          error.code = response?.code;
+          const error = new Error(response?.message ?? "실시간 요청을 처리하지 못했습니다.");
+          error.code = response?.code ?? "SOCKET_ERROR";
           reject(error);
           return;
         }
+
         resolve(response.data);
       });
     });
   }, []);
 
+  const value = useMemo(() => ({
+    socket: isLoggedIn && isConnected ? connectedSocket : null,
+    isConnected,
+    emitWithAck,
+  }), [connectedSocket, emitWithAck, isConnected, isLoggedIn]);
+
   return (
-    <SocketContext.Provider value={{ socket, isConnected, emitWithAck }}>
+    <SocketContext.Provider value={value}>
       {children}
     </SocketContext.Provider>
   );
@@ -100,6 +118,8 @@ export function SocketProvider({ children }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSocket() {
   const context = useContext(SocketContext);
-  if (!context) throw new Error("useSocket은 SocketProvider 내부에서 사용해야 합니다.");
+  if (!context) {
+    throw new Error("useSocket은 SocketProvider 내부에서 사용해야 합니다.");
+  }
   return context;
 }

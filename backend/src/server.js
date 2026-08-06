@@ -23,11 +23,11 @@ async function startServer() {
     // 개발 provider는 인증번호·본문을 로그에 남기지 않는다.
     if(["development", "test"].includes(env.nodeEnv)) {
       log.info("configureSmsProvider [console mode]")
-      configureSmsProvider(({ to, code }) => {
+      configureSmsProvider(({ to, text }) => {
         const maskedTo = typeof to === "string" && to.length >= 4
           ? `${"*".repeat(to.length - 4)}${to.slice(-4)}`
           : "[REDACTED]";
-        log.info("개발 SMS 발송 요청을 처리했습니다.", { to: maskedTo, code });
+        log.info("개발 SMS 발송 요청을 처리했습니다.", { to: maskedTo, text });
       });
     } else {
       log.info("configureSolApiSmsService [SolAPI mode]")
