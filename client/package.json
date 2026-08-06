@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:socket-scenario": "node ./integration/auctionDeletionSocketScenario.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.27.0",
