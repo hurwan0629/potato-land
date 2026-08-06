@@ -175,7 +175,6 @@ export function ProductCard({ item, compact = false }) {
     const timer = globalThis.setInterval(() => setNow(Date.now()), 1_000);
     return () => globalThis.clearInterval(timer);
   }, [isAuction, item?.endsAt]);
-  const [now, setNow] = useState(() => Date.now());
 
   // 목록 카드도 상세 화면처럼 남은 시간이 실제로 흐르도록 갱신한다.
   useEffect(() => {
