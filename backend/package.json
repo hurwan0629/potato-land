@@ -28,7 +28,10 @@
     "test": "cross-env NODE_ENV=test node --test",
     "db:migrate": "node ./database/migrate.js",
     "db:seed": "node ./database/seed.js",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:setup": "npm run db:migrate && npm run db:seed",
+    "test:fixtures": "cross-env NODE_ENV=test node ./test-support/loadScenarioFixtures.js",
+    "test:integration": "cross-env NODE_ENV=test node --test ./integration/*.integration.js",
+    "test:server": "cross-env NODE_ENV=test node ./src/server.js"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",

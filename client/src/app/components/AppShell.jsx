@@ -31,6 +31,17 @@ import { formatRelativeTime } from "../../utils/format";
 import { Avatar, LoadingState, Modal } from "./ui";
 
 function notificationPath(notification) {
+  if (notification?.notificationType === "LISTING_DELETED") {
+    return null;
+  }
+
+  if (
+    typeof notification?.targetPath === "string"
+    && notification.targetPath.startsWith("/")
+  ) {
+    return notification.targetPath;
+  }
+
   const referenceIdx = Number(notification?.referenceIdx);
   if (!Number.isSafeInteger(referenceIdx) || referenceIdx <= 0) {
     return null;
@@ -45,7 +56,11 @@ function notificationPath(notification) {
   if (referenceType === "TRANSACTION") {
     return `/payment/${referenceIdx}`;
   }
-  if (referenceType === "AUCTION" || notificationType.includes("AUCTION") || notificationType === "OUTBID") {
+  if (
+    referenceType === "AUCTION"
+    || notificationType.includes("AUCTION")
+    || notificationType === "OUTBID"
+  ) {
     return `/auction/${referenceIdx}`;
   }
   if (referenceType === "LISTING") {

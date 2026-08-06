@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgeCheck,
   FileText,
@@ -84,7 +84,7 @@ export function MyPage() {
       return mypageApi.history(parameters);
     }
     if (isOwner) {
-      return mypageApi.reviews({ ...parameters, type: "RECEIVED" });
+      return mypageApi.reviews({ ...parameters, direction: "RECEIVED", type: "ALL" });
     }
     return reviewsApi.received(requestedUserIdx, parameters);
   }, [activeTab, isOwner, page, requestedUserIdx]);
@@ -222,11 +222,6 @@ function ProfileTabContent({ type, items, isOwner }) {
             <Rating value={Number(review.rating ?? 0) / 2} compact />
           </div>
           <p>{review.content || "내용 없이 평점만 남긴 후기입니다."}</p>
-          {review.tags?.length > 0 && (
-            <div className="tag-list">
-              {review.tags.map((tag) => <span key={tag.tagIdx ?? tag.name}>{tag.name}</span>)}
-            </div>
-          )}
           {review.listingTitle && <small>거래 상품: {review.listingTitle}</small>}
         </article>
       ))}
@@ -239,6 +234,8 @@ export function AccountEditPage() {
   const { refreshUser, logout } = useAuth();
   const { notify } = useToast();
   const [profileImage, setProfileImage] = useState(null);
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState(null);
+  const profilePreviewUrlRef = useRef(null);
   const [publicForm, setPublicForm] = useState({ nickname: "", bio: "" });
   const [accountForm, setAccountForm] = useState({
     phone: "",
@@ -266,6 +263,25 @@ export function AccountEditPage() {
     return account;
   }, []);
   const accountRemote = useRemote(loadAccount);
+
+  useEffect(() => () => {
+    if (profilePreviewUrlRef.current) {
+      URL.revokeObjectURL(profilePreviewUrlRef.current);
+    }
+  }, []);
+
+  const handleProfileImageChange = (event) => {
+    const file = event.target.files?.[0] ?? null;
+
+    if (profilePreviewUrlRef.current) {
+      URL.revokeObjectURL(profilePreviewUrlRef.current);
+    }
+
+    const nextPreviewUrl = file ? URL.createObjectURL(file) : null;
+    profilePreviewUrlRef.current = nextPreviewUrl;
+    setProfileImage(file);
+    setProfilePreviewUrl(nextPreviewUrl);
+  };
 
   const loadSessions = useCallback(
     () => sessionsOpen ? authApi.sessions() : Promise.resolve({ items: [] }),
@@ -300,6 +316,7 @@ export function AccountEditPage() {
         image: profileImage,
       });
       await refreshUser();
+      setProfileImage(null);
       accountRemote.reload();
       notify("프로필을 저장했습니다.", "success");
     } catch (error) {
@@ -448,11 +465,22 @@ export function AccountEditPage() {
             <div><h2>공개 프로필</h2><p>다른 사용자에게 표시되는 정보입니다.</p></div>
           </div>
           <div className="profile-image-editor">
-            <Avatar user={account} size="large" />
+            <Avatar
+              user={{
+                ...account,
+                profileImageUrl: profilePreviewUrl ?? account.profileImageUrl,
+              }}
+              size="large"
+            />
             <label className="button button--secondary button--small">
               <Upload size={17} />
               이미지 선택
-              <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => setProfileImage(event.target.files?.[0] ?? null)} />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                onChange={handleProfileImageChange}
+              />
             </label>
           </div>
           <label className="form-field"><span>닉네임</span><input value={publicForm.nickname} onChange={(event) => setPublicForm((current) => ({ ...current, nickname: event.target.value }))} /></label>
