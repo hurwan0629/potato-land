@@ -3,6 +3,7 @@ import {
   query,
   withTransaction,
 } from "../../infrastructure/database/database.js";
+import { executeQuery } from "../../infrastructure/database/executor.js";
 import {
   createNotification,
   getUnreadNotificationCount,
@@ -87,7 +88,8 @@ export function parsePagination(
 
 /** 채팅방, 게시글, 참여자, 활성 거래 상태를 함께 조회한다. */
 export async function getChatRoom(chatRoomIdx, executor = query) {
-  const { rows } = await executor.query(
+  const { rows } = await executeQuery(
+    executor,
     `
       SELECT
         cr.idx AS "chatRoomIdx",
@@ -211,19 +213,6 @@ export function getChatWriteState(room) {
 
   if (
     room.listingType === "AUCTION"
-    && room.auctionStatus === "ON_GOING"
-    && room.auctionEndsAt
-    && new Date(room.auctionEndsAt).getTime() > Date.now()
-  ) {
-    return {
-      canSendMessage: true,
-      readOnlyReason: null,
-      message: null,
-    };
-  }
-
-  if (
-    room.listingType === "AUCTION"
     && room.auctionStatus === "FINISHED"
     && room.transactionStatus === "REQUESTED"
   ) {
@@ -242,7 +231,7 @@ export function getChatWriteState(room) {
         : "TRADE_CLOSED",
     message:
       room.listingType === "AUCTION"
-        ? "종료된 경매의 일반 채팅방입니다."
+        ? "낙찰 거래에 연결된 채팅방만 사용할 수 있습니다."
         : "거래가 종료된 채팅방입니다.",
   };
 }
@@ -268,7 +257,8 @@ export async function getChatUnreadCount(
   userIdx,
   chatRoomIdx,
 ) {
-  const { rows } = await executor.query(
+  const { rows } = await executeQuery(
+    executor,
     `
       SELECT COUNT(*)::integer AS "unreadCount"
       FROM notifications notification
@@ -292,7 +282,8 @@ export async function markChatNotificationsRead(
   userIdx,
   chatRoomIdx,
 ) {
-  await executor.query(
+  await executeQuery(
+    executor,
     `
       UPDATE notifications notification
       SET
@@ -376,17 +367,10 @@ export async function createChatRoom(listingIdx, buyerIdx) {
       );
     }
 
-    if (
-      listing.listingType === "AUCTION"
-      && (
-        listing.auctionStatus !== "ON_GOING"
-        || !listing.auctionEndsAt
-        || new Date(listing.auctionEndsAt).getTime() <= Date.now()
-      )
-    ) {
+    if (listing.listingType === "AUCTION") {
       throw conflict(
-        "AUCTION_CLOSED",
-        "종료된 경매는 채팅을 시작할 수 없습니다.",
+        "AUCTION_CHAT_UNAVAILABLE",
+        "경매 종료 후 판매자와 낙찰자의 채팅방이 자동으로 연결됩니다.",
       );
     }
 
@@ -606,7 +590,7 @@ export async function createTextMessage({ io, userIdx, payload }) {
     );
 
     const receiverIdx = getReceiverIdx(room, userIdx);
-    const notification = isRecipientViewingChat(
+    const storedNotification = isRecipientViewingChat(
       io,
       receiverIdx,
       chatRoomIdx,
@@ -619,6 +603,9 @@ export async function createTextMessage({ io, userIdx, payload }) {
           referenceIdx: message.messageIdx,
           content: "새 메시지가 도착했습니다.",
         });
+    const notification = storedNotification
+      ? { ...storedNotification, targetPath: `/chat/${chatRoomIdx}` }
+      : null;
 
     return {
       created: true,
@@ -695,7 +682,11 @@ export async function createImageMessages({
     );
 
     const receiverIdx = getReceiverIdx(room, userIdx);
-    const notification = isRecipientViewingChat(io, receiverIdx, roomId)
+    const storedNotification = isRecipientViewingChat(
+      io,
+      receiverIdx,
+      roomId,
+    )
       ? null
       : await createNotification(client, {
           receiverIdx,
@@ -704,6 +695,9 @@ export async function createImageMessages({
           referenceIdx: messages.at(-1).messageIdx,
           content: "새 이미지가 도착했습니다.",
         });
+    const notification = storedNotification
+      ? { ...storedNotification, targetPath: `/chat/${roomId}` }
+      : null;
 
     return {
       room,

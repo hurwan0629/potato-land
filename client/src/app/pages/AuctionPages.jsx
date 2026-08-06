@@ -192,7 +192,6 @@ export function AuctionDetailPage() {
         ...current,
         currentPrice: Number(result.currentPrice),
         minNextBid: Number(result.minNextBid),
-        bidCount: Number(current.bidCount ?? 0) + 1,
       }));
       setBidAmount("");
       reloadBids();

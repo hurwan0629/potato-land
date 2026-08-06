@@ -14,10 +14,8 @@ import {
   emitAuctionOutbid,
   emitAuctionWon,
 } from "../../sockets/emitters/auction.emitter.js";
-import {
-  emitNotificationNew,
-  emitNotificationUnreadCount,
-} from "../../sockets/emitters/notification.emitter.js";
+import { emitChatRoomNew } from "../../sockets/emitters/chat.emitter.js";
+import { emitNotificationAfterCommit } from "../notifications/notifications.service.js";
 import {
   addAuctionFavoriteRow,
   finalizeAuctionRecord,
@@ -217,7 +215,8 @@ export async function getAuction(listingIdxValue, viewerUserIdx = null) {
       canEdit: isOwner && ongoing,
       canDelete: isOwner,
       canBid: Boolean(viewerUserIdx) && !isOwner && ongoing,
-      canChat: Boolean(viewerUserIdx) && !isOwner,
+      // 경매 채팅은 종료 후 판매자와 낙찰자에게 자동으로 연결된다.
+      canChat: false,
       canFavorite: Boolean(viewerUserIdx) && !isOwner && ongoing,
     },
     createdAt: auction.created_at,
@@ -301,25 +300,43 @@ export async function deleteAuction(user, listingIdxValue, body) {
     });
   }
 
-  const deletedAt = await softDeleteAuction(
+  const deleted = await softDeleteAuction(
     listingIdx,
     user.userIdx,
     deleteReason,
   );
 
+  if (!deleted) {
+    throw new AppError({
+      status: 409,
+      code: "ALREADY_DELETED",
+      message: "이미 삭제된 경매입니다.",
+    });
+  }
+
   cancelAuctionEnd(listingIdx);
   await clearAuctionCache(listingIdx);
   emitSafely(
     "경매 삭제",
-    () => emitAuctionDeleted(listingIdx, { listingIdx, deletedAt }),
+    () => emitAuctionDeleted(listingIdx, {
+      listingIdx,
+      deletedAt: deleted.deletedAt,
+    }),
     { listingIdx },
+  );
+
+  await Promise.all(
+    deleted.notifications.map((notification) =>
+      emitNotificationAfterCommit(notification.receiverIdx, notification),
+    ),
   );
 
   return {
     listingIdx,
     deleted: true,
-    deletedAt,
+    deletedAt: deleted.deletedAt,
     deletedBy: Number(user.userIdx),
+    notifiedBidderCount: deleted.notifications.length,
   };
 }
 
@@ -407,10 +424,7 @@ export async function createAuctionBid(
     );
 
     if (result.notification) {
-      emitNotificationNew(previousIdx, result.notification);
-      emitNotificationUnreadCount(previousIdx, {
-        unreadCount: result.unreadCount,
-      });
+      await emitNotificationAfterCommit(previousIdx, result.notification);
     }
   }
 
@@ -501,6 +515,27 @@ export async function removeAuctionFavorite(userIdx, listingIdxValue) {
   };
 }
 
+function auctionChatRoomPayload(chatRoom, viewerRole) {
+  const viewerIsSeller = viewerRole === "SELLER";
+
+  return {
+    chatRoomIdx: chatRoom.chatRoomIdx,
+    listingIdx: chatRoom.listingIdx,
+    listingTitle: chatRoom.listingTitle,
+    listingThumbnailUrl: chatRoom.listingThumbnailUrl,
+    opponentIdx: viewerIsSeller ? chatRoom.buyerIdx : chatRoom.sellerIdx,
+    opponentNickname: viewerIsSeller
+      ? chatRoom.buyerNickname
+      : chatRoom.sellerNickname,
+    opponentProfileImageUrl: viewerIsSeller
+      ? chatRoom.buyerProfileImageUrl
+      : chatRoom.sellerProfileImageUrl,
+    lastMessage: null,
+    unreadCount: 0,
+    createdAt: chatRoom.createdAt,
+  };
+}
+
 /**
  * DB의 종료 상태·낙찰 거래·알림을 먼저 commit하고 Timer, Redis, Socket을 정리한다.
  */
@@ -552,11 +587,27 @@ export async function finalizeAuction(listingIdxValue) {
     );
   }
 
-  for (const notification of result.notifications) {
-    emitNotificationNew(notification.receiver_idx, notification);
+  if (result.chatRoom?.created) {
+    emitChatRoomNew(
+      result.chatRoom.sellerIdx,
+      auctionChatRoomPayload(result.chatRoom, "SELLER"),
+    );
+    emitChatRoomNew(
+      result.chatRoom.buyerIdx,
+      auctionChatRoomPayload(result.chatRoom, "BUYER"),
+    );
   }
 
-  return payload;
+  await Promise.all(
+    result.notifications.map((notification) =>
+      emitNotificationAfterCommit(notification.receiverIdx, notification),
+    ),
+  );
+
+  return {
+    ...payload,
+    chatRoomIdx: result.chatRoom?.chatRoomIdx ?? null,
+  };
 }
 
 /** 서버 시작과 cron 주기마다 진행 중 경매의 종료 Timer를 복구한다. */
