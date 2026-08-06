@@ -1,94 +1,201 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL ?? "/api").replace(/\/$/, "");
 
-/**
- * 공용 API 클라이언트
- * ------------------------------------------------------------------
- * 쿠키 기반 인증(HttpOnly) + JWT 전제:
- *  - access token: 수명 짧음, HttpOnly 쿠키에 담겨 매 요청마다 자동 전송
- *  - refresh token: 마찬가지로 HttpOnly 쿠키, /auth/refresh 요청에만 사용됨
- *
- * 그래서 이 클라이언트가 하는 일:
- *  1) credentials: "include" 고정 → 쿠키가 항상 실려가게
- *  2) 401 받으면 → /auth/refresh 한 번 시도해서 access token 재발급 →
- *     성공하면 원래 요청 자동 재시도, 실패하면 onUnauthorized 콜백 실행
- *     (AuthContext가 여기 등록해서 user 상태를 비로그인으로 초기화함)
- *
- * 백엔드 쪽 전제:
- *   Access-Control-Allow-Credentials: true
- *   Access-Control-Allow-Origin: <정확한 프론트 origin, * 불가>
- *   쿠키는 SameSite=None; Secure (배포) 또는 SameSite=Lax (로컬 http)
- */
-
-let onUnauthorized = null;
-export function setUnauthorizedHandler(fn) {
-  onUnauthorized = fn;
+export class ApiError extends Error {
+  constructor({ status = 0, code = "NETWORK_ERROR", message, details = null, cause }) {
+    super(message ?? "요청을 처리하지 못했습니다.", { cause });
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.details = details;
+  }
 }
 
-// refresh가 동시에 여러 번 불리는 것 방지 (여러 요청이 동시에 401 나는 경우 대비)
+let unauthorizedHandler = null;
 let refreshPromise = null;
+
+export function setUnauthorizedHandler(handler) {
+  unauthorizedHandler = typeof handler === "function" ? handler : null;
+}
+
+function isFormData(body) {
+  return typeof FormData !== "undefined" && body instanceof FormData;
+}
+
+async function parseResponse(response) {
+  if (response.status === 204) {
+    return null;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (cause) {
+    throw new ApiError({
+      status: response.status,
+      code: "INVALID_SERVER_RESPONSE",
+      message: "서버 응답을 읽지 못했습니다.",
+      cause,
+    });
+  }
+}
+
+async function rawRequest(path, options = {}) {
+  const {
+    method = "GET",
+    body,
+    headers,
+    signal,
+  } = options;
+
+  const hasBody = body !== undefined && body !== null;
+  const formDataBody = isFormData(body);
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      method,
+      credentials: "include",
+      signal,
+      headers: {
+        Accept: "application/json",
+        ...(hasBody && !formDataBody ? { "Content-Type": "application/json" } : {}),
+        ...headers,
+      },
+      body: hasBody ? (formDataBody ? body : JSON.stringify(body)) : undefined,
+    });
+  } catch (cause) {
+    if (cause?.name === "AbortError") {
+      throw cause;
+    }
+
+    throw new ApiError({
+      code: "NETWORK_ERROR",
+      message: "서버에 연결하지 못했습니다. 백엔드 실행 상태를 확인해주세요.",
+      cause,
+    });
+  }
+
+  const payload = await parseResponse(response);
+  if (!response.ok) {
+    throw new ApiError({
+      status: response.status,
+      code: payload?.code ?? `HTTP_${response.status}`,
+      message: payload?.message ?? `요청에 실패했습니다. (${response.status})`,
+      details: payload?.details ?? null,
+    });
+  }
+
+  return payload;
+}
+
 function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = rawRequest("/auth/refresh", { method: "POST" }).finally(() => {
       refreshPromise = null;
     });
   }
+
   return refreshPromise;
 }
 
-// 실제 fetch 호출 (재시도/리프레시 로직 없이 순수 요청만)
-async function rawRequest(path, { method = "GET", body, headers } = {}) {
-  // FormData는 브라우저가 multipart boundary를 자동으로 붙여야 하므로
-  // JSON 요청에만 Content-Type을 직접 지정한다.
-  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method,
-    credentials: "include",
-    headers: {
-      ...(body && !isFormData ? { "Content-Type": "application/json" } : {}),
-      ...headers,
-    },
-    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
-  });
-
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
-
-  if (!res.ok) {
-    const message = data?.message ?? `요청에 실패했습니다. (${res.status})`;
-    const error = new Error(message);
-    error.status = res.status;
-    error.data = data;
-    throw error;
-  }
-
-  return data;
+function isRefreshCandidate(path) {
+  return ![
+    "/auth/login",
+    "/auth/signup",
+    "/auth/refresh",
+    "/auth/refresh/logout",
+    "/auth/phone/send",
+    "/auth/phone/verify",
+    "/auth/find-id",
+    "/auth/password/reset",
+  ].some((authPath) => path.startsWith(authPath));
 }
 
-// 401 자동 리프레시-후-재시도가 적용된 요청. 실제로 호출되는 진입점.
-async function request(path, options = {}, { _retried = false } = {}) {
-  const isAuthEndpoint = path === "/auth/refresh" || path === "/auth/login";
-
+async function request(path, options = {}, retried = false) {
   try {
-    return await rawRequest(path, options); 
+    return await rawRequest(path, options);
   } catch (error) {
-    // access token 만료로 401이 난 경우만 리프레시 시도.
-    // 로그인/리프레시 요청 자체에서 난 401은 그대로 실패 처리 (무한루프 방지).
-    if (error.status === 401 && !isAuthEndpoint && !_retried) {
+    if (
+      error instanceof ApiError
+      && error.status === 401
+      && !retried
+      && isRefreshCandidate(path)
+    ) {
       try {
         await refreshAccessToken();
-        return await request(path, options, { _retried: true });
+        return await request(path, options, true);
       } catch (refreshError) {
-        onUnauthorized?.();
+        unauthorizedHandler?.();
         throw refreshError;
       }
     }
+
     throw error;
   }
 }
 
+export function unwrap(response) {
+  return response?.data ?? response;
+}
+
+export function toQueryString(parameters = {}) {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(parameters).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === "") {
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => searchParams.append(key, String(item)));
+      return;
+    }
+
+    searchParams.set(key, String(value));
+  });
+
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
+}
+
+export function createFormData(values, files = []) {
+  const formData = new FormData();
+
+  Object.entries(values).forEach(([key, value]) => {
+    if (value === undefined || value === null) {
+      return;
+    }
+
+    if (typeof value === "object" && !(value instanceof Blob)) {
+      formData.append(key, JSON.stringify(value));
+      return;
+    }
+
+    formData.append(key, String(value));
+  });
+
+  files.forEach((file) => formData.append("images", file));
+  return formData;
+}
+
 export const http = {
-  get: (path) => request(path),
-  post: (path, body) => request(path, { method: "POST", body }),
-  patch: (path, body) => request(path, { method: "PATCH", body }),
-  delete: (path, body) => request(path, { method: "DELETE", body }),
+  get(path, options = {}) {
+    return request(path, options);
+  },
+
+  post(path, body, options = {}) {
+    return request(path, { ...options, method: "POST", body });
+  },
+
+  patch(path, body, options = {}) {
+    return request(path, { ...options, method: "PATCH", body });
+  },
+
+  delete(path, body, options = {}) {
+    return request(path, { ...options, method: "DELETE", body });
+  },
 };

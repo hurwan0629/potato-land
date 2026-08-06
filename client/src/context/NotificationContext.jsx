@@ -1,6 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
-import { notificationsApi } from "../api/notificationsApi";
+import { notificationsApi } from "../api/appApi";
+import { SOCKET_EVENT } from "../constants/socketEvents";
 import { useAuth } from "./AuthContext";
 import { useSocket } from "./SocketContext";
 
@@ -11,71 +19,120 @@ export function NotificationProvider({ children }) {
   const { socket } = useSocket();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const loadNotifications = useCallback(async () => {
-    if (!isLoggedIn) return;
-    const data = await notificationsApi.list();
-    setNotifications(data.items ?? []);
-  }, [isLoggedIn]);
-
-  const refreshUnreadCount = useCallback(async () => {
-    if (!isLoggedIn) return;
-    const data = await notificationsApi.unreadCount();
-    setUnreadCount(data.unreadCount ?? 0);
-  }, [isLoggedIn]);
-
-  useEffect(() => {
+  const reload = useCallback(async () => {
     if (!isLoggedIn) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setNotifications([]);
-      setUnreadCount(0);
       return;
     }
-    void loadNotifications().catch(() => {});
-    void refreshUnreadCount().catch(() => {});
-  }, [isLoggedIn, loadNotifications, refreshUnreadCount]);
+
+    setIsLoading(true);
+    try {
+      const [notificationData, unreadData] = await Promise.all([
+        notificationsApi.list(),
+        notificationsApi.unreadCount(),
+      ]);
+      setNotifications(notificationData?.items ?? []);
+      setUnreadCount(Number(unreadData?.unreadCount ?? 0));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
-    if (!socket) return undefined;
-    const handleNew = (notification) => {
+    let active = true;
+
+    if (!isLoggedIn) {
+      Promise.resolve().then(() => {
+        if (active) {
+          setNotifications([]);
+          setUnreadCount(0);
+          setIsLoading(false);
+        }
+      });
+      return () => {
+        active = false;
+      };
+    }
+
+    notificationsApi.list()
+      .then((result) => {
+        if (active) {
+          setNotifications(result?.items ?? []);
+        }
+      })
+      .catch(() => {});
+
+    notificationsApi.unreadCount()
+      .then((result) => {
+        if (active) {
+          setUnreadCount(Number(result?.unreadCount ?? 0));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (!socket) {
+      return undefined;
+    }
+
+    const handleNewNotification = (notification) => {
       setNotifications((current) => {
-        if (current.some((item) => item.notificationIdx === notification.notificationIdx)) return current;
-        return [notification, ...current];
+        const exists = current.some(
+          (item) => Number(item.notificationIdx) === Number(notification.notificationIdx),
+        );
+        return exists ? current : [notification, ...current];
       });
     };
+
     const handleUnreadCount = ({ unreadCount: nextUnreadCount }) => {
-      setUnreadCount(nextUnreadCount ?? 0);
+      setUnreadCount(Number(nextUnreadCount ?? 0));
     };
-    socket.on("notification:new", handleNew);
-    socket.on("notification:unread-count", handleUnreadCount);
+
+    socket.on(SOCKET_EVENT.NOTIFICATION_NEW, handleNewNotification);
+    socket.on(SOCKET_EVENT.NOTIFICATION_UNREAD_COUNT, handleUnreadCount);
+
     return () => {
-      socket.off("notification:new", handleNew);
-      socket.off("notification:unread-count", handleUnreadCount);
+      socket.off(SOCKET_EVENT.NOTIFICATION_NEW, handleNewNotification);
+      socket.off(SOCKET_EVENT.NOTIFICATION_UNREAD_COUNT, handleUnreadCount);
     };
   }, [socket]);
 
-  const readNotification = useCallback(async (notificationIdx) => {
+  const read = useCallback(async (notificationIdx) => {
     await notificationsApi.read(notificationIdx);
-    setNotifications((current) => current.map((item) => (
-      item.notificationIdx === notificationIdx ? { ...item, isRead: true } : item
+    setNotifications((current) => current.map((notification) => (
+      Number(notification.notificationIdx) === Number(notificationIdx)
+        ? { ...notification, isRead: true }
+        : notification
     )));
-    await refreshUnreadCount();
-  }, [refreshUnreadCount]);
+    setUnreadCount((current) => Math.max(0, current - 1));
+  }, []);
 
-  const readAllNotifications = useCallback(async () => {
+  const readAll = useCallback(async () => {
     await notificationsApi.readAll();
-    setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+    setNotifications((current) => current.map((notification) => ({
+      ...notification,
+      isRead: true,
+    })));
     setUnreadCount(0);
   }, []);
 
+  const value = useMemo(() => ({
+    notifications,
+    unreadCount,
+    isLoading,
+    reload,
+    read,
+    readAll,
+  }), [isLoading, notifications, read, readAll, reload, unreadCount]);
+
   return (
-    <NotificationContext.Provider value={{
-      notifications,
-      unreadCount,
-      loadNotifications,
-      readNotification,
-      readAllNotifications,
-    }}>
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   );
@@ -84,6 +141,8 @@ export function NotificationProvider({ children }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useNotifications() {
   const context = useContext(NotificationContext);
-  if (!context) throw new Error("useNotifications는 NotificationProvider 내부에서 사용해야 합니다.");
+  if (!context) {
+    throw new Error("useNotifications는 NotificationProvider 내부에서 사용해야 합니다.");
+  }
   return context;
 }

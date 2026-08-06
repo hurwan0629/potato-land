@@ -66,10 +66,10 @@ export async function connectDatabase() {
 
   connected = true;
   log.info("PostgreSQL 연결을 확인했습니다.", {
-    databaseName: rows[0].database_name,
-    databaseUser: rows[0].database_user,
+    databaseName: rows[0].database_name ? "[FOUNDED AND REDACTED]" : "not found",
+    databaseUser: rows[0].database_user ? "[FOUNDED AND REDACTED]" : "not found",
     connectedAt: rows[0].connected_at,
-    usersTable: rows[0].users_table,
+    usersTable: rows[0].users_table ? "[FOUNDED AND REDACTED]" : "not found",
   });
 }
 

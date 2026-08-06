@@ -1,60 +1,66 @@
-import { createBrowserRouter } from "react-router";
-import MainLayout from "../components/layout/MainLayout";
-import constRole from "./role";
-import Auth from "./Auth";
+import { createBrowserRouter, Navigate } from "react-router";
 
-import Login from "../pages/Login";
-import Home from "../pages/Home";
-import Search from "../pages/Search";
-import Auction from "../pages/Auction";
-import AuctionDetail from "../pages/Auction/AuctionDetail";
-import AuctionForm from "../pages/Auction/AuctionForm";
-import ProductDetail from "../pages/ProductDetail";
-import ProductRegister from "../pages/ProductRegister";
-import Chat from "../pages/Chat";
-import Payment from "../pages/Payment";
-import MyPage from "../pages/MyPage";
-import EditProfilePage from "../pages/MyPage/EditProfilePage";
-import Admin from "../pages/Admin";
-import Signup from "../pages/Auth/Signup";
-import NotFoundPage from "../pages/error/NotFoundPage";
-import ErrorPage from "../pages/error/ErrorPage";
- 
+import {
+  MainLayout,
+  RequireAdmin,
+  RequireAuth,
+  RequireGuest,
+} from "../app/components/AppShell";
+import { AccountEditPage, MyPage } from "../app/pages/AccountPages";
+import AdminPage from "../app/pages/AdminPage";
+import { AuctionDetailPage, AuctionFormPage } from "../app/pages/AuctionPages";
+import { LoginPage, SignupPage } from "../app/pages/AuthPages";
+import { AuctionListPage, SearchPage } from "../app/pages/CatalogPages";
+import ChatPage from "../app/pages/ChatPage";
+import { NotFoundPage, RouteErrorPage } from "../app/pages/ErrorPages";
+import HomePage from "../app/pages/HomePage";
+import PaymentPage from "../app/pages/PaymentPage";
+import { UsedDetailPage, UsedFormPage } from "../app/pages/UsedPages";
+
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
-    errorElement: <ErrorPage />,
+    errorElement: <RouteErrorPage />,
     children: [
-      { index: true, element: <Auth role={constRole.PUBLIC}><Home /></Auth> },
-      { path: "login", element: <Auth role={constRole.GUEST}><Login /></Auth> },
-      { path: "signup", element: <Auth role={constRole.GUEST}><Signup /></Auth> },
-      { path: "search", element: <Auth role={constRole.PUBLIC}><Search /></Auth> },
-      { path: "auction", element: <Auth role={constRole.PUBLIC}><Auction /></Auth> },
-      { path: "auction/new", element: <Auth role={constRole.LOGIN}><AuctionForm /></Auth> },
-      { path: "auction/:listingIdx", element: <Auth role={constRole.PUBLIC}><AuctionDetail /></Auth> },
-      { path: "auction/:listingIdx/edit", element: <Auth role={constRole.LOGIN}><AuctionForm /></Auth> },
-      { path: "products/:id", element: <Auth role={constRole.PUBLIC}><ProductDetail /></Auth> },
-      { path: "products/register", element: <Auth role={constRole.LOGIN}><ProductRegister /></Auth> },
-      { path: "chat", element: <Auth role={constRole.LOGIN}><Chat /></Auth> },
-      { path: "chat/:chatRoomIdx", element: <Auth role={constRole.LOGIN}><Chat /></Auth> },
-      { path: "payment/:id", element: <Auth role={constRole.LOGIN}><Payment /></Auth> },
+      { index: true, element: <HomePage /> },
+      { path: "search", element: <SearchPage /> },
+      { path: "auction", element: <AuctionListPage /> },
+      { path: "auction/:listingIdx", element: <AuctionDetailPage /> },
+      { path: "products/:listingIdx", element: <UsedDetailPage /> },
+      { path: "mypage/:userIdx", element: <MyPage /> },
+
       {
-        path: "mypage/:id",
-        element: <Auth role={constRole.LOGIN} />,
+        element: <RequireGuest />,
         children: [
-          { index: true, element: <MyPage /> },
-          { path: "edit", element: <EditProfilePage /> },
+          { path: "login", element: <LoginPage /> },
+          { path: "signup", element: <SignupPage /> },
         ],
       },
+
       {
-        path: "admin",
-        element: <Auth role={constRole.ADMIN} />,
+        element: <RequireAuth />,
         children: [
-          { index: true, element: <Admin /> },
+          { path: "products/register", element: <UsedFormPage /> },
+          { path: "products/:listingIdx/edit", element: <UsedFormPage /> },
+          { path: "auction/new", element: <AuctionFormPage /> },
+          { path: "auction/:listingIdx/edit", element: <AuctionFormPage /> },
+          { path: "chat", element: <ChatPage /> },
+          { path: "chat/:chatRoomIdx", element: <ChatPage /> },
+          { path: "payment/:transactionIdx", element: <PaymentPage /> },
+          { path: "mypage/me/edit", element: <AccountEditPage /> },
+          { path: "mypage/:userIdx/edit", element: <Navigate to="/mypage/me/edit" replace /> },
         ],
       },
+
+      {
+        element: <RequireAdmin />,
+        children: [
+          { path: "admin", element: <AdminPage /> },
+        ],
+      },
+
       { path: "*", element: <NotFoundPage /> },
     ],
   },
-])
+]);
