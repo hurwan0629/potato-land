@@ -37,14 +37,17 @@ function refreshAccessToken() {
 
 // 실제 fetch 호출 (재시도/리프레시 로직 없이 순수 요청만)
 async function rawRequest(path, { method = "GET", body, headers } = {}) {
+  // FormData는 브라우저가 multipart boundary를 자동으로 붙여야 하므로
+  // JSON 요청에만 Content-Type을 직접 지정한다.
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     credentials: "include",
     headers: {
-      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(body && !isFormData ? { "Content-Type": "application/json" } : {}),
       ...headers,
     },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   });
 
   const text = await res.text();
@@ -87,5 +90,5 @@ export const http = {
   get: (path) => request(path),
   post: (path, body) => request(path, { method: "POST", body }),
   patch: (path, body) => request(path, { method: "PATCH", body }),
-  delete: (path) => request(path, { method: "DELETE" }),
+  delete: (path, body) => request(path, { method: "DELETE", body }),
 };

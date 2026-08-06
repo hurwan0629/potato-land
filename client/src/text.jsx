@@ -37,8 +37,8 @@ export default function ProductListPage() {
     <>
       <Input
         value={productName}
-       onChange={(e) => setProductName(e.target.value)}
-        placeholder="상품명을 입력해 주세요"/>
+        onChange={(e) => setProductName(e.target.value)}
+        placeholder="상품명을 입력해 주세요" />
       {/* // 검색 필터 (outline) */}
       <Dropdown variant="outline" options={categoryOptions} value={category} onChange={setCategory} />
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 
+import { requireAuth } from "../../common/auth/accessToken.js";
 import {
   listMyFavorites,
   listMyHistory,
@@ -10,8 +11,8 @@ import {
 
 export const mypageRouter = Router();
 
-mypageRouter.get("/me/listings", listMyListings);
-mypageRouter.get("/me/favorites", listMyFavorites);
-mypageRouter.get("/me/history", listMyHistory);
-mypageRouter.get("/me/reviews", listMyReviews);
+mypageRouter.get("/me/listings", requireAuth, listMyListings);
+mypageRouter.get("/me/favorites", requireAuth, listMyFavorites);
+mypageRouter.get("/me/history", requireAuth, listMyHistory);
+mypageRouter.get("/me/reviews", requireAuth, listMyReviews);
 mypageRouter.get("/:userIdx/listings", listUserListings);

@@ -1,5 +1,7 @@
 import { Router } from "express";
 
+import { optionalAuth, requireAuth } from "../../common/middlewares/auth.middleware.js";
+import { listingImageUpload } from "../../infrastructure/uploads/upload.js";
 import {
   addAuctionFavorite,
   createAuction,
@@ -14,12 +16,12 @@ import {
 
 export const auctionsRouter = Router();
 
-auctionsRouter.get("/", listAuctions);
-auctionsRouter.post("/", createAuction);
-auctionsRouter.get("/:listingIdx", getAuctionDetail);
-auctionsRouter.patch("/:listingIdx", updateAuction);
-auctionsRouter.delete("/:listingIdx", deleteAuction);
-auctionsRouter.post("/:listingIdx/bids", createAuctionBid);
-auctionsRouter.get("/:listingIdx/bids", listAuctionBids);
-auctionsRouter.post("/:listingIdx/favorite", addAuctionFavorite);
-auctionsRouter.delete("/:listingIdx/favorite", removeAuctionFavorite);
+auctionsRouter.get("/", optionalAuth, listAuctions);
+auctionsRouter.post("/", requireAuth, listingImageUpload, createAuction);
+auctionsRouter.get("/:listingIdx", optionalAuth, getAuctionDetail);
+auctionsRouter.patch("/:listingIdx", requireAuth, listingImageUpload, updateAuction);
+auctionsRouter.delete("/:listingIdx", requireAuth, deleteAuction);
+auctionsRouter.post("/:listingIdx/bids", requireAuth, createAuctionBid);
+auctionsRouter.get("/:listingIdx/bids", optionalAuth, listAuctionBids);
+auctionsRouter.post("/:listingIdx/favorite", requireAuth, addAuctionFavorite);
+auctionsRouter.delete("/:listingIdx/favorite", requireAuth, removeAuctionFavorite);

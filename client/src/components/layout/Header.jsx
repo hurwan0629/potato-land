@@ -22,6 +22,7 @@ const ADMIN_NAV_ITEMS = [
   { to: "/admin", label: "중고거래 관리" },
 ];
 
+/** 로그인·권한·현재 경로에 맞는 최신 공통 헤더를 표시한다. */
 export default function Header() {
   const { user, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function Header() {
 
   const navItems = isAdmin ? ADMIN_NAV_ITEMS : USER_NAV_ITEMS;
 
+  /** 서버 세션을 종료하고 메인 화면으로 이동한다. */
   const handleLogout = async () => {
     await logout();
     navigate("/");
@@ -89,7 +91,7 @@ export default function Header() {
               type="button"
               className="header-icon-btn"
               aria-label="마이페이지"
-              onClick={() => navigate(`/mypage/${user.id}`)}
+              onClick={() => navigate(`/mypage/${user.userIdx}`)}
             >
               <User size={20} />
             </button>
@@ -144,10 +146,19 @@ export default function Header() {
       </div>
 
       {isMenuOpen && (
-        <div style={{ position: "absolute", top: 88, left: 32, background: "#fff", border: "1px solid #f1e3cf", borderRadius: 8, padding: 12 }}>
-          카테고리 메뉴 준비중
-        </div>
+        <MegaMenu />
       )}
     </header>
   );
+}
+
+/** Figma 상단바 시안의 중고거래·등록·경매·채팅 메뉴를 펼쳐 보여준다. */
+function MegaMenu() {
+  const groups = [
+    { title: "중고거래", items: ["중고거래 둘러보기", "인기 상품", "카테고리 별 상품"] },
+    { title: "상품등록", items: ["상품 등록", "판매 관리"] },
+    { title: "경매", items: ["경매 둘러보기", "마감 임박", "낙찰 결과"] },
+    { title: "채팅", items: ["채팅 바로가기"] },
+  ];
+  return <div className="header-mega-menu">{groups.map((group) => <section key={group.title}><h3>{group.title}</h3>{group.items.map((item) => <p key={item}>• {item}</p>)}</section>)}<div className="header-menu-mascot" aria-hidden="true">🛒<span>🥔</span></div></div>;
 }

@@ -1,4 +1,6 @@
 .header {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -114,4 +116,36 @@
 
 .header-icon-btn:hover {
   background: #fbe8cf;
+}
+
+.header-mega-menu {
+  position: absolute;
+  top: 82px;
+  left: 0;
+  right: 0;
+  min-height: 230px;
+  padding: 34px 40px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) 1.35fr;
+  gap: 0;
+  border: 2px solid #f2ae25;
+  border-radius: 14px;
+  color: #5c3a21;
+  background: white;
+  box-shadow: 0 10px 24px rgba(92, 58, 33, .15);
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.header-mega-menu section { padding: 0 28px; border-right: 1px solid #eee7df; }
+.header-mega-menu section:first-child { padding-left: 0; }
+.header-mega-menu h3 { margin: 0 0 14px; font-size: 17px; }
+.header-mega-menu p { margin: 10px 0; font-size: 13px; }
+.header-menu-mascot { position: relative; display: grid; place-items: center; font-size: 80px; }
+.header-menu-mascot span { position: absolute; right: 4px; bottom: 0; font-size: 130px; }
+
+@media (max-width: 800px) {
+  .header-nav { display: none; }
+  .header-mega-menu { grid-template-columns: repeat(2, 1fr); }
+  .header-menu-mascot { display: none; }
 }

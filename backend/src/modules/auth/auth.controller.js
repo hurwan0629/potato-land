@@ -1,67 +1,99 @@
-import { notImplemented } from "../../common/utils/notImplemented.js";
+import { asyncHandler } from "../../common/utils/asyncHandler.js";
+import {
+  checkLoginIdAvailability,
+  findLoginIdByPhone,
+  getAuthenticatedUser,
+  getLoginSessions,
+  getPhoneVerificationStatus,
+  loginUser,
+  logoutAllSessions,
+  logoutCurrentSession,
+  logoutSession,
+  refreshLoginSession,
+  resetUserPassword,
+  sendPhoneVerification,
+  signupUser,
+  verifyPhoneVerification,
+} from "./auth.service.js";
+import { clearLoginCookies, setLoginCookies } from "./auth.token.js";
 
-export function signup(req, res) {
-  // TODO 처리 순서:
-  // 1. 비회원 요청인지 확인하고 회원가입 입력값을 검증한다.
-  // 2. phone:verified:{phone}:SIGNUP의 인증 ID가 요청값과 같은지 확인한다.
-  // 3. 아이디, 닉네임, 전화번호, 이메일 중복을 DB에서 다시 확인한다.
-  // 4. 비밀번호를 hash한 뒤 사용자를 저장하고 commit 후 인증 key를 삭제한다.
-  return notImplemented(res, "회원가입");
-}
+/** 회원가입 요청을 처리하고 생성된 사용자 정보를 응답한다. */
+export const signup = asyncHandler(async (req, res) => res.status(201).json({ success: true, data: await signupUser(req.body) }));
 
-export function checkLoginId(req, res) {
-  // TODO: loginId 형식을 검증하고 users.login_id 중복 여부를 반환한다.
-  return notImplemented(res, "아이디 중복 확인");
-}
+/** 요청한 로그인 아이디의 사용 가능 여부를 응답한다. */
+export const checkLoginId = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await checkLoginIdAvailability(req.query.loginId) }));
 
-export function sendPhoneCode(req, res) {
-  // TODO 처리 순서:
-  // 1. phone과 purpose를 검증하고 purpose에 맞는 접근 권한과 중복 정책을 적용한다.
-  // 2. cooldown key가 있으면 429를 반환한다.
-  // 3. SMS 발송 성공 후 code hash, 인증 ID, 만료 시각과 cooldown을 Redis에 저장한다.
-  return notImplemented(res, "전화번호 인증번호 발송");
-}
+/** 휴대전화 인증번호를 발송하고 인증 식별자와 유효 시간을 응답한다. */
+export const sendPhoneCode = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await sendPhoneVerification(req.body) }));
 
-export function verifyPhoneCode(req, res) {
-  // TODO: Redis의 code hash와 요청 code를 비교하고 성공하면 code key를 지운 뒤 verified key를 저장한다.
-  return notImplemented(res, "전화번호 인증번호 검증");
-}
+/** 사용자가 입력한 휴대전화 인증번호를 검증한다. */
+export const verifyPhoneCode = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await verifyPhoneVerification(req.body) }));
 
-export function getPhoneStatus(req, res) {
-  // TODO: phone, purpose, phoneVerificationId를 검증하고 verified key의 일치 여부와 남은 시간을 반환한다.
-  return notImplemented(res, "전화번호 인증 상태 조회");
-}
+/** 휴대전화 인증 완료 상태와 만료 시각을 조회한다. */
+export const getPhoneStatus = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await getPhoneVerificationStatus(req.query) }));
 
-export function login(req, res) {
-  // TODO 처리 순서:
-  // 1. 비회원 요청과 아이디/비밀번호 형식을 확인한다.
-  // 2. DB 사용자 상태와 비밀번호 hash를 검증한다.
-  // 3. 같은 sid를 공유하는 access/refresh token과 서로 다른 jti를 만든다.
-  // 4. refresh jti를 Redis session에 저장하고 두 HttpOnly cookie를 설정한다.
-  return notImplemented(res, "로그인");
-}
+/** 로그인 자격 증명을 확인하고 access/refresh HttpOnly 쿠키를 발급한다. */
+export const login = asyncHandler(async (req, res) => {
+  // Service에는 브라우저·IP 정보를 함께 전달해 기기별 세션 정보로 기록한다.
+  const result = await loginUser(req.body, { userAgent: req.get("user-agent") ?? "", ip: req.ip });
 
-export function logout(req, res) {
-  // TODO: refresh cookie에서 sub/sid를 확인해 현재 Redis session만 삭제하고 두 cookie를 만료시킨다.
-  return notImplemented(res, "로그아웃");
-}
+  // JWT 원문은 응답 body가 아닌 HttpOnly 쿠키로만 전달한다.
+  setLoginCookies(res, result.tokens);
+  return res.status(200).json({ success: true, data: result.user });
+});
 
-export function refresh(req, res) {
-  // TODO: refresh JWT와 Redis의 현재 jti를 비교하고 새 access/refresh jti로 원자 교체한 뒤 cookie를 재발급한다.
-  return notImplemented(res, "토큰 재발급");
-}
+/** Refresh Token이 가리키는 현재 기기 세션을 폐기하고 인증 쿠키를 만료시킨다. */
+export const logout = asyncHandler(async (req, res) => {
+  // 서버의 현재 Refresh 세션을 먼저 폐기한 뒤 브라우저 쿠키를 제거한다.
+  const result = await logoutCurrentSession(req.cookies.refresh_token);
+  clearLoginCookies(res);
+  return res.status(200).json({ success: true, data: result });
+});
 
-export function getMe(req, res) {
-  // TODO: access token과 DB 사용자 상태를 검증하고 헤더에서 사용할 최소 인증 사용자 DTO를 반환한다.
-  return notImplemented(res, "내 인증 정보 조회");
-}
+/** Refresh Token을 rotation하고 새 access/refresh 쿠키를 함께 발급한다. */
+export const refresh = asyncHandler(async (req, res) => {
+  try {
+    // Refresh 쿠키와 현재 요청 정보를 이용해 같은 기기의 토큰을 rotation한다.
+    const result = await refreshLoginSession(req.cookies.refresh_token, { userAgent: req.get("user-agent") ?? "", ip: req.ip });
 
-export function findLoginId(req, res) {
-  // TODO: 이름과 전화번호가 같은 사용자를 찾고 FIND_ID verified key가 일치하면 loginId만 반환한 뒤 key를 삭제한다.
-  return notImplemented(res, "아이디 찾기");
-}
+    // Rotation에 성공한 경우에만 두 쿠키를 새 토큰으로 덮어쓴다.
+    setLoginCookies(res, result.tokens);
+    return res.status(200).json({ success: true, data: { refreshed: result.refreshed } });
+  } catch (error) {
+    // 재발급 실패 후 잘못된 쿠키로 반복 요청하지 않도록 두 쿠키를 함께 만료시킨다.
+    clearLoginCookies(res);
+    throw error;
+  }
+});
 
-export function resetPassword(req, res) {
-  // TODO: 이름/아이디/전화번호와 RESET_PASSWORD verified key를 검증하고 새 비밀번호 hash를 저장한 뒤 key와 기존 session을 폐기한다.
-  return notImplemented(res, "비밀번호 재설정");
-}
+/** 로그인 사용자의 모든 기기 세션을 폐기하고 현재 브라우저 쿠키도 만료시킨다. */
+export const logoutAll = asyncHandler(async (req, res) => {
+  // Access Token의 사용자 식별자로 다른 기기를 포함한 모든 세션을 제거한다.
+  const result = await logoutAllSessions(req.auth.userIdx);
+  clearLoginCookies(res);
+  return res.status(200).json({ success: true, data: result });
+});
+
+/** 현재 사용자의 기기별 로그인 세션 목록을 조회한다. */
+export const getSessions = asyncHandler(async (req, res) => res.status(200).json({
+  success: true,
+  data: { sessions: await getLoginSessions(req.auth.userIdx, req.auth.sessionId) },
+}));
+
+/** 선택한 기기의 Refresh 세션을 폐기한다. */
+export const deleteSession = asyncHandler(async (req, res) => {
+  const result = await logoutSession(req.auth.userIdx, req.params.sessionId);
+
+  // 사용자가 현재 기기 세션을 선택했다면 Access 쿠키까지 제거해 즉시 로그아웃한다.
+  if (req.params.sessionId === req.auth.sessionId) clearLoginCookies(res);
+  return res.status(200).json({ success: true, data: result });
+});
+
+/** access token으로 식별한 현재 활성 사용자 정보를 응답한다. */
+export const getMe = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await getAuthenticatedUser(req.auth.userIdx) }));
+
+/** 본인인증을 완료한 사용자의 로그인 아이디를 조회한다. */
+export const findLoginId = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await findLoginIdByPhone(req.body) }));
+
+/** 본인인증을 완료한 사용자의 비밀번호를 새 값으로 변경한다. */
+export const resetPassword = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await resetUserPassword(req.body) }));

@@ -19,6 +19,18 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           secure: false,
         },
+        // 업로드 이미지도 API 서버에서 제공하므로 개발 서버가 같은 주소로 전달한다.
+        '/resources': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/socket.io': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+        },
       },
     },
   }

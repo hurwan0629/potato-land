@@ -1,21 +1,16 @@
-import { useParams } from "react-router";
-import SideMenu from "../../components/layout/sideMenu";
+import { useNavigate, useParams } from "react-router";
 
+import MemberEditModal from "../../component/modal/MemberEditModal";
+import { useAuth } from "../../context/AuthContext";
+
+/** 기존 마이페이지 정보 수정 경로에서 회원정보 수정 모달만 표시한다. */
 export default function EditProfilePage() {
+  const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
 
-  const menuItems = [
-    { to: `/mypage/${id}`, label: "내 정보" },
-    { to: `/mypage/${id}/edit`, label: "정보 수정" },
-  ];
+  /** 모달을 닫으면 기존 마이페이지 화면으로 돌아간다. */
+  function closeModal() { navigate(`/mypage/${id}`, { replace: true }); }
 
-  return (
-    <div style={{ display: "flex" }}>
-      <SideMenu items={menuItems} />
-      <div style={{ padding: 40, flex: 1 }}>
-        <h2>회원 정보 수정</h2>
-        <p>닉네임, 비밀번호, 연락처 등을 수정하는 폼이 들어갈 페이지입니다.</p>
-      </div>
-    </div>
-  );
+  return <MemberEditModal loginId={user?.loginId} returnPath={`/mypage/${id}`} onClose={closeModal} />;
 }

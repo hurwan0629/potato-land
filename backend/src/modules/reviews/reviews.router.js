@@ -1,11 +1,9 @@
 import { Router } from "express";
 
-import {
-  createReview,
-  listUserReviews,
-} from "./reviews.controller.js";
+import { requireAuth } from "../../common/auth/accessToken.js";
+import { createReview, listReviewTags } from "./reviews.controller.js";
 
 export const reviewsRouter = Router();
 
-reviewsRouter.post("/", createReview);
-reviewsRouter.get("/users/:userIdx", listUserReviews);
+reviewsRouter.get("/tags", listReviewTags);
+reviewsRouter.post("/", requireAuth, createReview);

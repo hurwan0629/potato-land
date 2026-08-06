@@ -1,20 +1,11 @@
 import { SOCKET_EVENT } from "../common/constants/socketEvent.js";
-import { notImplementedAck } from "../common/utils/notImplemented.js";
+import { SOCKET_ROOM } from "../common/constants/socketRoom.js";
+import { assertJoinableAuction } from "../modules/auctions/auctions.service.js";
 
-function ackNotImplemented(ack, featureName) {
-  if (typeof ack === "function") {
-    ack(notImplementedAck(featureName));
-  }
-}
+function acknowledge(ack,payload){if(typeof ack==="function")ack(payload);}
+function failure(error){return{success:false,code:error.code??"INTERNAL_SERVER_ERROR",message:error.message??"경매 Socket 요청에 실패했습니다."};}
 
-export function registerAuctionSocket(_io, socket) {
-  socket.on(SOCKET_EVENT.AUCTION_JOIN, (_payload, ack) => {
-    // TODO: 인증 사용자와 삭제되지 않은 경매를 확인하고 기존 활성 room을 나간 뒤 경매 room에 가입한다.
-    ackNotImplemented(ack, "경매방 입장");
-  });
-
-  socket.on(SOCKET_EVENT.AUCTION_LEAVE, (_payload, ack) => {
-    // TODO: 현재 활성 경매와 요청 ID가 같은지 확인하고 room을 나간 뒤 activeAuctionListingIdx를 비운다.
-    ackNotImplemented(ack, "경매방 퇴장");
-  });
+export function registerAuctionSocket(_io,socket){
+  socket.on(SOCKET_EVENT.AUCTION_JOIN,async(payload={},ack)=>{try{const auction=await assertJoinableAuction(payload.listingIdx);const previous=socket.data.activeAuctionListingIdx;if(previous&&Number(previous)!==auction.listingIdx)await socket.leave(SOCKET_ROOM.auction(previous));await socket.join(SOCKET_ROOM.auction(auction.listingIdx));socket.data.activeAuctionListingIdx=auction.listingIdx;acknowledge(ack,{success:true,data:auction});}catch(error){acknowledge(ack,failure(error));}});
+  socket.on(SOCKET_EVENT.AUCTION_LEAVE,async(payload={},ack)=>{try{const listingIdx=Number(payload.listingIdx??socket.data.activeAuctionListingIdx);if(Number.isSafeInteger(listingIdx)&&listingIdx>0)await socket.leave(SOCKET_ROOM.auction(listingIdx));if(Number(socket.data.activeAuctionListingIdx)===listingIdx)socket.data.activeAuctionListingIdx=null;acknowledge(ack,{success:true,data:{listingIdx}});}catch(error){acknowledge(ack,failure(error));}});
 }

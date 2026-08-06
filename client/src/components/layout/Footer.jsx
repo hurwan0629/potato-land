@@ -1,49 +1,16 @@
 import "./Footer.css";
 
+/** 최신 Figma 시안의 지원 정보·팀원·서비스 영역을 공통 Footer로 표시한다. */
 export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-top">
-        <div>
-          <div className="footer-brand">🥔 감자나라</div>
-          <p className="footer-desc">
-            믿을 수 있는 동네 중고거래와 실시간 경매를 한 곳에서,
-            감자나라와 함께하세요.
-          </p>
-        </div>
-
-        <div>
-          <div className="footer-col-title">Support</div>
-          <ul className="footer-col-list">
-            <li>공지사항</li>
-            <li>자주 묻는 질문</li>
-            <li>1:1 문의</li>
-          </ul>
-        </div>
-
-        <div>
-          <div className="footer-col-title">Company</div>
-          <ul className="footer-col-list">
-            <li>회사 소개</li>
-            <li>이용약관</li>
-            <li>개인정보 처리방침</li>
-          </ul>
-        </div>
-
-        <div>
-          <div className="footer-col-title">Follow us</div>
-          <ul className="footer-col-list">
-            <li>Instagram</li>
-            <li>Blog</li>
-            <li>Github</li>
-          </ul>
-        </div>
+        <strong className="footer-brand">감자나라</strong>
+        <section><h3>Support</h3><p>서울특별시 강남구 테헤란로 146 현익빌딩 3, 4층</p><p>tegongmang22 koreaedugroup.com</p><p>+82-02-538-0021</p></section>
+        <section><h3>Team</h3><p>Leader 박건희</p><p>Members</p><div className="footer-members"><span>심형준</span><span>윤재빈</span><span>양수연</span><span>최한빈</span><span>허 완</span></div></section>
+        <section className="footer-service"><h3>Service</h3><p>중고 거래</p><p>경매</p><p>마이페이지</p><div className="footer-mascots" aria-hidden="true">🔨🥔 🥔 🛒🥔</div></section>
       </div>
-
-      <div className="footer-bottom">
-        <span>© 2026 감자나라. All rights reserved.</span>
-        <span>고객센터 1234-5678 (평일 09:00 ~ 18:00)</span>
-      </div>
+      <div className="footer-bottom">ⓒ Copyright 류지보수. All right reserved</div>
     </footer>
   );
 }

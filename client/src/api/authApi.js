@@ -1,22 +1,33 @@
 import { http } from "./http";
 
-/**
- * 백엔드 스펙이 아직 확정 전이라 우선 아래 경로로 가정해서 구현했습니다.
- * 실제 API 경로가 다르면 이 파일만 고치면 됩니다 (다른 코드는 안 건드려도 됨).
- *
- *  POST /auth/login   { id, password } → { user: { id, nickname, role } }
- *                                        + access/refresh token을 HttpOnly 쿠키로 발급
- *  POST /auth/logout  (body 없음)       → 서버가 두 쿠키 모두 만료 처리
- *  GET  /auth/me      (쿠키만으로 인증) → { user } 또는 401
- *  POST /auth/refresh (refresh 쿠키만으로 인증)
- *                                      → access token 재발급(쿠키로), 필요시 { user }
- *
- * refresh는 http.js가 401 발생 시 내부적으로 자동 호출하므 로,
- * 화면 코드에서 authApi.refresh()를 직접 부를 일은 거의 없습니다.
- */
+/** 공통 API 성공 응답에서 실제 data 객체만 반환한다. */
+function unwrap(response) { return response.data; }
+
 export const authApi = {
-  login: ({ id, password }) => http.post("/auth/login", { id, password }),
-  logout: () => http.post("/auth/logout"),
-  me: () => http.get("/auth/me"),
-  refresh: () => http.post("/auth/refresh"),
+  /** 아이디와 비밀번호를 전달해 HttpOnly 인증 쿠키를 발급받는다. */
+  login: async ({ loginId, password, rememberLoginId }) => unwrap(await http.post("/auth/login", { loginId, password, rememberLoginId })),
+  /** 휴대전화로 회원가입 인증번호 발송을 요청한다. */
+  sendPhoneCode: async (phone, purpose = "SIGNUP", account = {}) => unwrap(await http.post("/auth/phone/send", { phone, purpose, ...account })),
+  /** 사용자가 입력한 인증번호가 서버의 발송 정보와 일치하는지 확인한다. */
+  verifyPhoneCode: async ({ phone, phoneVerificationId, code, purpose = "SIGNUP" }) => unwrap(await http.post("/auth/phone/verify", { phone, purpose, phoneVerificationId, code })),
+  /** 휴대전화 본인인증과 이름이 일치하는 계정의 아이디를 조회한다. */
+  findLoginId: async (payload) => unwrap(await http.post("/auth/find-id", payload)),
+  /** 휴대전화 본인인증이 완료된 계정의 비밀번호를 새 값으로 변경한다. */
+  resetPassword: async (payload) => unwrap(await http.post("/auth/password/reset", payload)),
+  /** 인증 완료 정보가 포함된 회원 정보를 전달해 신규 사용자를 생성한다. */
+  signup: async (payload) => unwrap(await http.post("/auth/signup", payload)),
+  /** 입력한 아이디가 회원가입에 사용 가능한지 확인한다. */
+  checkLoginId: async (loginId) => unwrap(await http.get(`/auth/check-id?loginId=${encodeURIComponent(loginId)}`)),
+  /** refresh 세션을 제거하고 인증 쿠키를 만료한다. */
+  logout: async () => unwrap(await http.post("/auth/refresh/logout")),
+  /** access cookie를 기준으로 현재 로그인 사용자를 조회한다. */
+  me: async () => unwrap(await http.get("/auth/me")),
+  /** refresh cookie 회전으로 access/refresh 쿠키를 재발급한다. */
+  refresh: async () => unwrap(await http.post("/auth/refresh")),
+  /** 현재 계정으로 로그인된 모든 기기의 Refresh 세션을 조회한다. */
+  getSessions: async () => unwrap(await http.get("/auth/sessions")),
+  /** 선택한 기기의 Refresh 세션 하나를 종료한다. */
+  deleteSession: async (sessionId) => unwrap(await http.delete(`/auth/sessions/${encodeURIComponent(sessionId)}`)),
+  /** 현재 계정의 모든 기기 세션을 종료한다. */
+  logoutAll: async () => unwrap(await http.post("/auth/logout-all")),
 };

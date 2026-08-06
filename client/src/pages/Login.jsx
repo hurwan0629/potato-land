@@ -1,62 +1,53 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate } from "react-router";
+
+import AccountRecoveryModal from "../features/Auth/AccountRecoveryModal";
 import { useAuth } from "../context/AuthContext";
-import Input from "../components/input/Input";
-import Button from "../components/button/Button";
 import "./Login.css";
 
+/** 로그인 폼과 계정 찾기 모달의 표시 상태를 관리한다. */
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [id, setId] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [form, setForm] = useState(() => ({ loginId: localStorage.getItem("rememberedLoginId") ?? "", password: "", rememberLoginId: Boolean(localStorage.getItem("rememberedLoginId")) }));
+  const [status, setStatus] = useState({ isSubmitting: false, message: "" });
+  const [recoveryType, setRecoveryType] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setIsSubmitting(true);
-    const result = await login({ id, password });
-    setIsSubmitting(false);
+  /** 로그인 입력값 또는 아이디 저장 체크 상태를 갱신한다. */
+  function updateField(event) {
+    const { name, value, type, checked } = event.target;
+    setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
+  }
 
-    if (!result.ok) {
-      setError(result.message);
-      return;
-    }
+  /** 인증 Context를 통해 로그인하고 아이디 저장 여부를 반영한다. */
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setStatus({ isSubmitting: true, message: "" });
+    const result = await login(form);
+    if (!result.ok) return setStatus({ isSubmitting: false, message: result.message });
+    if (form.rememberLoginId) localStorage.setItem("rememberedLoginId", form.loginId);
+    else localStorage.removeItem("rememberedLoginId");
     navigate("/");
-  };
+  }
 
   return (
-    <div className="login">
-      <h1 className="login-title">🥔 감자나라</h1>
-      <p>당신 곁의 감자를 찾아보세요!</p>
-
-      <form className="login-form" onSubmit={handleSubmit}>
-        <Input
-          value={id}
-          onChange={(e) => setId(e.target.value)}
-          placeholder="아이디"
-        />
-        <Input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="비밀번호"
-          type="password"
-        />
-        {error && <p className="login-error">{error}</p>}
-        <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
-          {isSubmitting ? "로그인 중..." : "로그인"}
-        </Button>
+    <section className="auth-login">
+      <div className="auth-login-mascot" aria-hidden="true">🥔<span>🌱</span></div>
+      <form className="auth-login-panel" onSubmit={handleSubmit}>
+        <h1>감자 나라</h1>
+        <p className="auth-login-copy">귀여운 감자와 함께하는 안전한 중고거래!</p>
+        <label className="auth-sr-only" htmlFor="loginId">아이디</label>
+        <input id="loginId" name="loginId" value={form.loginId} onChange={updateField} placeholder="아이디" autoComplete="username" />
+        <label className="auth-sr-only" htmlFor="password">비밀번호</label>
+        <input id="password" name="password" value={form.password} onChange={updateField} type="password" placeholder="비밀번호" autoComplete="current-password" />
+        <label className="auth-remember"><input name="rememberLoginId" checked={form.rememberLoginId} onChange={updateField} type="checkbox" /> 아이디 저장</label>
+        {status.message && <p className="auth-message error" role="alert">{status.message}</p>}
+        <button className="auth-primary" disabled={status.isSubmitting} type="submit">{status.isSubmitting ? "로그인 중..." : "로그인"}</button>
+        <div className="auth-divider"><span>또는</span></div>
+        <button className="auth-signup-button" type="button" onClick={() => navigate("/signup")}>회원가입</button>
+        <div className="auth-account-links"><button type="button" onClick={() => setRecoveryType("findId")}>아이디 찾기</button><i /><button type="button" onClick={() => setRecoveryType("resetPassword")}>비밀번호 찾기</button></div>
       </form>
-
-      <p className="login-signup-link">
-        아직 회원이 아니신가요? <Link to="/signup">회원가입</Link>
-      </p>
-
-      <p style={{ fontSize: 12, color: "#aaa" }}>
-        * 백엔드 API 연동 전이라 로그인 요청은 아직 실패합니다. (/api/auth/login 미구현)
-      </p>
-    </div>
+      {recoveryType && <AccountRecoveryModal key={recoveryType} type={recoveryType} onClose={() => setRecoveryType(null)} />}
+    </section>
   );
 }

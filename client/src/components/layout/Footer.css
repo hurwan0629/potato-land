@@ -1,57 +1,11 @@
-.footer {
-  background: #5c3a21;
-  color: #f1e3cf;
-  padding: 40px 32px 24px;
-  margin-top: auto;
-}
-
-.footer-top {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 48px;
-  max-width: 1126px;
-  margin: 0 auto;
-}
-
-.footer-brand {
-  font-size: 20px;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 8px;
-}
-
-.footer-desc {
-  font-size: 13px;
-  color: #d8c3a5;
-  line-height: 1.6;
-  max-width: 260px;
-}
-
-.footer-col-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 12px;
-}
-
-.footer-col-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 13px;
-  color: #d8c3a5;
-  line-height: 2;
-}
-
-.footer-bottom {
-  max-width: 1126px;
-  margin: 24px auto 0;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  font-size: 12px;
-  color: #b79c7a;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+.footer { margin-top: auto; color: white; background: #60391f; text-align: left; }
+.footer-top { min-height: 260px; padding: 35px 55px; display: grid; grid-template-columns: 1.1fr 1.6fr 1fr 1fr; gap: 52px; align-items: center; box-sizing: border-box; }
+.footer-brand { font-family: "Comic Sans MS", "Noto Sans KR", cursive; font-size: 38px; transform: rotate(3deg); }
+.footer h3 { margin: 0 0 20px; color: white; font-size: 16px; }
+.footer p { margin: 10px 0; color: #f2e7dd; font-size: 13px; }
+.footer-members { display: grid; grid-template-columns: repeat(2, max-content); gap: 14px 38px; color: #f2e7dd; font-size: 13px; }
+.footer-service { position: relative; align-self: stretch; padding-top: 35px; }
+.footer-mascots { position: absolute; right: 0; bottom: 0; font-size: 24px; white-space: nowrap; }
+.footer-bottom { padding: 13px; border-top: 1px solid #ffffff55; color: #bca99c; text-align: center; font-size: 13px; }
+@media (max-width: 800px) { .footer-top { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .footer-top { grid-template-columns: 1fr; gap: 20px; padding: 35px 25px; } .footer-service { padding-top: 0; } .footer-mascots { position: static; margin-top: 20px; } }

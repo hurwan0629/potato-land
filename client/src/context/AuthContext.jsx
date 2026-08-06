@@ -32,7 +32,7 @@ const DEV_MOCK_LOGIN =
   import.meta.env.DEV && import.meta.env.VITE_DEV_MOCK_LOGIN === "true";
 
 const DEV_MOCK_USER = {
-  id: import.meta.env.VITE_DEV_MOCK_USER_ID ?? "1",
+  userIdx: import.meta.env.VITE_DEV_MOCK_USER_ID ?? "1",
   nickname: import.meta.env.VITE_DEV_MOCK_NICKNAME ?? "테스트유저",
   role: import.meta.env.VITE_DEV_MOCK_ROLE ?? "USER",
 };
@@ -53,8 +53,8 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const data = await authApi.me()
-      setUser(data.user)
+      const user = await authApi.me()
+      setUser(user)
     } catch {
       // 401 등 - 세션 없음/만료. 에러로 취급하지 않고 비로그인 상태로 처리.
       setUser(null)
@@ -79,24 +79,26 @@ export function AuthProvider({ children }) {
     checkSession();
   }, [checkSession])
 
-  const login = useCallback(async ({ id, password }) => {
+  /** 로그인 API를 호출하고 성공한 사용자 정보를 Context에 저장한다. */
+  const login = useCallback(async ({ loginId, password, rememberLoginId }) => {
     if (DEV_MOCK_LOGIN) {
       setUser(DEV_MOCK_USER)
       return { ok: true }
     }
 
-    if (!id || !password) {
+    if (!loginId || !password) {
       return { ok: false, message: "아이디와 비밀번호를 입력해주세요." }
     }
     try {
-      const data = await authApi.login({ id, password })
-      setUser(data.user)
+      const user = await authApi.login({ loginId, password, rememberLoginId })
+      setUser(user)
       return { ok: true }
     } catch (error) {
       return { ok: false, message: error.message ?? "로그인에 실패했습니다." }
     }
   }, [])
 
+  /** refresh session을 종료하고 현재 사용자 상태를 비운다. */
   const logout = useCallback(async () => {
     if (DEV_MOCK_LOGIN) {
       // mock 모드에서는 서버에 요청 자체를 안 보냄
