@@ -318,8 +318,14 @@ async function getLockedTransaction(client, transactionIdx) {
 }
 
 export async function completeTransaction(req, res) {
+
+  // 거래 번호 양수인지 검수
   const transactionIdx = parsePositiveInteger(req.params.transactionIdx, "transactionIdx");
+
+  // 구매자가 송금을 선택했는지 확인
   if (req.body?.confirm !== true) throw validationError("confirm");
+
+  // 데이터베이스 변경
   const result = await withTransaction(async (client) => {
     const transaction = await getLockedTransaction(client, transactionIdx);
     if (Number(transaction.buyerIdx) !== Number(req.user.userIdx)) throw new AppError({ status: 403, code: "FORBIDDEN", message: "구매자만 송금을 완료할 수 있습니다." });
