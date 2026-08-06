@@ -13,6 +13,7 @@ import { Link } from "react-router";
 import { adminApi } from "../../api/appApi";
 import { useToast } from "../../context/ToastContext";
 import { useRemote } from "../../hooks/useRemote";
+import { TimeSeriesChart } from "../../lib/charts/TimeSeriesChart";
 import { formatCurrency, formatDate, listingPath } from "../../utils/format";
 import {
   Avatar,
@@ -67,12 +68,6 @@ function DashboardPanel() {
   const data = remote.data;
   const listingSeries = data.listingRegistrationCounts ?? [];
   const transactionSeries = data.completedTransactionCounts ?? [];
-  const maxCount = Math.max(
-    1,
-    ...listingSeries.map((item) => Number(item.count)),
-    ...transactionSeries.map((item) => Number(item.count)),
-  );
-
   return (
     <section className="admin-panel">
       <div className="stat-grid">
@@ -83,28 +78,20 @@ function DashboardPanel() {
       </div>
 
       <div className="admin-chart-grid">
-        <SeriesCard title="상품 등록 추이" items={listingSeries} maxCount={maxCount} />
-        <SeriesCard title="거래 완료 추이" items={transactionSeries} maxCount={maxCount} />
+        <TimeSeriesChart
+          title="상품 등록 추이"
+          description="선택 기간에 등록된 중고·경매 상품 수입니다."
+          items={listingSeries}
+          variant="line"
+        />
+        <TimeSeriesChart
+          title="거래 완료 추이"
+          description="선택 기간에 완료 처리된 거래 수입니다."
+          items={transactionSeries}
+          variant="bar"
+        />
       </div>
     </section>
-  );
-}
-
-function SeriesCard({ title, items, maxCount }) {
-  return (
-    <article className="content-card series-card">
-      <h2>{title}</h2>
-      {!items.length && <EmptyState title="집계 데이터가 없습니다." />}
-      <div className="series-bars">
-        {items.map((item) => (
-          <div key={item.period} className="series-bars__row">
-            <small>{formatDate(item.period)}</small>
-            <span><i style={{ width: `${(Number(item.count) / maxCount) * 100}%` }} /></span>
-            <strong>{item.count}</strong>
-          </div>
-        ))}
-      </div>
-    </article>
   );
 }
 
