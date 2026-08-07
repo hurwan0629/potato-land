@@ -1,0 +1,592 @@
+.moduleRoot { --final-ui-fixes-ready: 1; }
+
+/* 알림 숫자는 피그마 헤더의 작은 빨간 배지로 고정한다. */
+:global(.header-notification) {
+  position: relative;
+  overflow: visible;
+}
+
+:global(.header-notification > span) {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 2px solid #fffaf1;
+  border-radius: 999px;
+  padding: 0 4px;
+  color: #fff;
+  background: #e5484d;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* 피그마 게시글 등록 화면: 큰 틀은 유지하고 폼 카드 내부만 재배치한다. */
+:global(.listing-editor-page) {
+  width: min(1075px, calc(100% - 48px));
+  padding-top: 18px;
+}
+
+:global(.listing-editor-page > .page-header) {
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+:global(.listing-editor-page > .page-header h1) {
+  color: #60391f;
+  font-size: 36px;
+  letter-spacing: -.04em;
+}
+
+:global(.listing-editor) {
+  overflow: hidden;
+  border: 1px solid #d7c7b8;
+  border-radius: 11px;
+  padding: 28px 28px 24px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgb(75 43 24 / 18%);
+}
+
+:global(.listing-editor__title) {
+  margin: 0 0 20px;
+  color: #60391f;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+:global(.listing-editor__columns) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+:global(.listing-editor__column) {
+  display: grid;
+  align-content: start;
+  gap: 15px;
+  min-width: 0;
+}
+
+:global(.listing-editor__column--left) {
+  padding-right: 30px;
+  border-right: 1px solid #eadfd4;
+}
+
+:global(.listing-editor__column--right) {
+  padding-left: 30px;
+}
+
+:global(.listing-editor .field) {
+  gap: 6px;
+  color: #62432f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+:global(.listing-editor .field input),
+:global(.listing-editor .field select),
+:global(.listing-editor .field textarea) {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ddcdbd;
+  border-radius: 8px;
+  padding: 10px 13px;
+  color: #4b2b18;
+  background: #fff;
+  font: inherit;
+  font-weight: 500;
+  outline: none;
+}
+
+:global(.listing-editor .field input),
+:global(.listing-editor .field select) {
+  min-height: 44px;
+}
+
+:global(.listing-editor .field input:focus),
+:global(.listing-editor .field select:focus),
+:global(.listing-editor .field textarea:focus) {
+  border-color: #efb23d;
+  box-shadow: 0 0 0 3px rgb(239 178 61 / 14%);
+}
+
+:global(.listing-editor__description textarea) {
+  min-height: 315px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+:global(.listing-editor__price) {
+  position: relative;
+}
+
+:global(.listing-editor__price input) {
+  padding-right: 42px !important;
+}
+
+:global(.listing-editor__price > span) {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #927662;
+  font-size: 12px;
+}
+
+:global(.listing-editor__image-field) {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+:global(.listing-editor__label-row) {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #62432f;
+  font-size: 13px;
+}
+
+:global(.listing-editor__label-row small) {
+  color: #a48e7d;
+  font-size: 10px;
+}
+
+:global(.listing-image-grid) {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+:global(.listing-image-slot) {
+  position: relative;
+  aspect-ratio: .86;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e2d4c7;
+  border-radius: 8px;
+  padding: 0;
+  color: #e2a127;
+  background: #fff;
+  cursor: pointer;
+}
+
+:global(.listing-image-slot.is-empty) {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+}
+
+:global(.listing-image-slot.is-primary) {
+  border: 1px dashed #e9ac35;
+  background: #fff8e7;
+}
+
+:global(.listing-image-slot.is-primary span) {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+:global(.listing-image-slot.is-filled img),
+:global(.listing-image-slot.is-filled .listing-image-slot__image),
+:global(.listing-image-slot.is-filled .image-fallback) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+:global(.listing-image-slot__remove),
+:global(.listing-image-slot__existing) {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: rgb(76 43 24 / 82%);
+}
+
+:global(.listing-image-slot__remove) {
+  width: 25px;
+  height: 25px;
+}
+
+:global(.listing-image-slot__existing) {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+:global(.listing-image-slot.is-removable:hover::after) {
+  content: "삭제";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgb(75 43 24 / 42%);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+:global(.listing-image-slot.is-existing:hover::after) {
+  content: "이미지 교체";
+}
+
+:global(.listing-image-help) {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 7px 0 0;
+  color: #8e7664;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+:global(.listing-image-help--secondary) {
+  margin-top: 2px;
+  padding-left: 20px;
+  color: #c48716;
+}
+
+:global(.listing-editor__actions) {
+  display: flex;
+  justify-content: flex-end;
+  gap: 22px;
+  margin-top: 26px;
+  border-top: 1px solid #eadfd4;
+  padding-top: 20px;
+}
+
+:global(.listing-editor__actions .button) {
+  min-width: 235px;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+:global(.listing-editor__actions .button:not(.button--secondary)) {
+  color: #fff;
+  background: #efb43e;
+}
+
+/* 채팅 검색 아이콘을 입력창 내부 중앙에 맞춘다. */
+:global(.chat-search) {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+:global(.chat-search > svg) {
+  position: absolute;
+  z-index: 2;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #60391f;
+  pointer-events: none;
+}
+
+:global(.chat-search input) {
+  box-sizing: border-box;
+  padding-left: 47px !important;
+}
+
+/* 송금 요청 메시지를 일반 텍스트가 아닌 거래 카드로 표시한다. */
+:global(.chat-payment-message) {
+  width: min(430px, calc(100% - 40px));
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin: 16px auto;
+  border: 1px solid #e2caa9;
+  border-radius: 14px;
+  padding: 15px 17px;
+  color: #60391f;
+  background: #fff8e9;
+  box-shadow: 0 3px 9px rgb(75 43 24 / 12%);
+}
+
+:global(.chat-payment-message > svg) {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  padding: 9px;
+  color: #fff;
+  background: #efb43e;
+}
+
+:global(.chat-payment-message > div) {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+:global(.chat-payment-message strong) {
+  line-height: 1.45;
+}
+
+:global(.chat-payment-message button) {
+  min-height: 34px;
+  border: 1px solid #d8ad65;
+  border-radius: 8px;
+  padding: 0 13px;
+  color: #60391f;
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+:global(.chat-room-list__meta b) {
+  justify-self: end;
+  min-width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  padding: 0 4px;
+  color: #fff;
+  background: #e5484d;
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* 계정 수정 모달의 닫기 버튼과 오류 토스트가 항상 최상단에 보이게 한다. */
+:global(.account-edit-close) {
+  z-index: 125 !important;
+  left: auto !important;
+  right: max(22px, calc((100vw - 700px) / 2 + 18px)) !important;
+  top: 22px !important;
+  border-radius: 50% !important;
+  background: rgb(255 250 241 / 75%) !important;
+}
+
+:global(.account-edit-close:hover) {
+  background: #fff !important;
+}
+
+:global(.toast-stack) {
+  z-index: 180 !important;
+}
+
+@media (max-width: 800px) {
+  :global(.listing-editor__columns) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.listing-editor__column--left) {
+    border-right: 0;
+    border-bottom: 1px solid #eadfd4;
+    padding: 0 0 25px;
+  }
+
+  :global(.listing-editor__column--right) {
+    padding: 25px 0 0;
+  }
+
+  :global(.listing-editor__actions .button) {
+    min-width: 0;
+    flex: 1;
+  }
+}
+
+@media (max-width: 520px) {
+  :global(.listing-editor) {
+    padding: 22px 18px;
+  }
+
+  :global(.listing-image-grid) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  :global(.listing-editor__actions) {
+    gap: 10px;
+  }
+
+  :global(.chat-payment-message > div) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 비밀번호 확인 오류는 어두운 배경 뒤 토스트가 아니라 모달 내부에 표시한다. */
+:global(.account-edit-page.mode-account.is-unverified .settings-card:nth-child(2) > .inline-alert) {
+  grid-column: 1 / -1;
+  width: 100%;
+  box-sizing: border-box;
+  margin: -6px 0 0;
+}
+
+/* 채팅에서 송금 요청 금액을 입력하는 피그마 계열 모달. */
+:global(.payment-request-modal) {
+  width: min(480px, calc(100% - 32px));
+}
+
+:global(.payment-request-modal .input-suffix) {
+  position: relative;
+}
+
+:global(.payment-request-modal .input-suffix input) {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  border: 1px solid #dec5aa;
+  border-radius: 9px;
+  padding: 0 44px 0 14px;
+}
+
+:global(.payment-request-modal .input-suffix > span) {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #876a54;
+  font-weight: 800;
+}
+
+/* dashboard-chat-modal-hotfix-v1 */
+
+/* Keep the dependency-free SVG charts readable at desktop dashboard widths. */
+:global(.admin-chart-grid > article),
+:global(.time-series-card) {
+  min-height: 0 !important;
+}
+
+:global(.time-series-card) {
+  padding: 28px 30px !important;
+}
+
+:global(.time-series-card__header) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+:global(.time-series-card__header h2) {
+  margin: 0 0 8px;
+  color: #60391f;
+  font-size: 24px;
+}
+
+:global(.time-series-card__header p) {
+  margin: 0;
+  color: #765f4d;
+}
+
+:global(.time-series-card__header > strong) {
+  flex: 0 0 auto;
+  color: #60391f;
+  font-size: 18px;
+}
+
+:global(.time-series-chart) {
+  width: min(100%, 980px);
+  margin: 22px auto 0;
+}
+
+:global(.time-series-chart svg) {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+:global(.time-series-chart__grid) {
+  fill: none;
+  stroke: #eadaca;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+:global(.time-series-chart__axis) {
+  fill: #765f4d;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:global(.time-series-chart__line) {
+  fill: none;
+  stroke: #e8a82c;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+:global(.time-series-chart__point) {
+  fill: #fff;
+  stroke: #e8a82c;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+:global(.time-series-chart__bar) {
+  fill: #e8a82c;
+}
+
+/* Give conversations more room while keeping the Figma card and sidebar shape. */
+:global(.chat-page) {
+  width: min(1420px, calc(100% - 40px)) !important;
+  grid-template-columns: minmax(330px, 400px) minmax(0, 1fr) !important;
+}
+
+:global(.chat-sidebar),
+:global(.chat-panel) {
+  min-width: 0;
+}
+
+:global(.chat-bubble) {
+  max-width: min(76%, 680px) !important;
+}
+
+/* Align the close control with each fixed account-edit dialog instead of the viewport corner. */
+:global(.account-edit-close) {
+  right: max(22px, calc((100vw - 700px) / 2 + 18px)) !important;
+}
+
+:global(.account-edit-page.mode-profile .account-edit-close) {
+  top: max(30px, calc(50% - 375px + 18px)) !important;
+}
+
+:global(.account-edit-page.mode-account.is-unverified .account-edit-close) {
+  top: max(30px, calc(50% - 270px + 18px)) !important;
+}
+
+:global(.account-edit-page.mode-account.is-verified .account-edit-close) {
+  top: max(30px, calc(50% - 390px + 18px)) !important;
+}
+
+@media (max-width: 900px) {
+  :global(.chat-page) {
+    grid-template-columns: minmax(285px, 340px) minmax(0, 1fr) !important;
+  }
+
+  :global(.time-series-card) {
+    padding: 24px 20px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :global(.chat-page) {
+    width: min(100% - 28px, 680px) !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  :global(.account-edit-close) {
+    right: 28px !important;
+    top: 28px !important;
+  }
+}

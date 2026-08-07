@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
-import { Gavel, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Link, useSearchParams } from "react-router";
+import { Plus, Search, SlidersHorizontal } from "lucide-react";
 
 import { auctionsApi, mainApi, usedApi } from "../../api/appApi";
 import { SOCKET_EVENT } from "../../constants/socketEvents";
@@ -47,7 +47,6 @@ function getFilterState(searchParams, forcedType) {
 }
 
 function CatalogPage({ forcedType = null }) {
-  const navigate = useNavigate();
   const { socket, emitWithAck, isConnected } = useSocket();
   const [searchParams, setSearchParams] = useSearchParams();
   const filter = useMemo(
@@ -204,8 +203,8 @@ function CatalogPage({ forcedType = null }) {
         title={filter.type === "AUCTION" ? "경매" : "중고거래"}
         description={
           filter.type === "AUCTION"
-            ? "종료 시간과 현재가를 확인하고 원하는 상품에 입찰해보세요."
-            : "필요한 물건을 검색하고 판매자와 바로 대화를 시작해보세요."
+            ? "다양한 물건을 확인하고 입찰해보세요"
+            : "다양한 물건을 확인하고 구매해보세요"
         }
         actions={(
           <Link
@@ -213,7 +212,7 @@ function CatalogPage({ forcedType = null }) {
             className="button"
           >
             <Plus size={18} />
-            {filter.type === "AUCTION" ? "경매 등록" : "상품 등록"}
+            {filter.type === "AUCTION" ? "경매 글 작성하기" : "중고거래 글 작성하기"}
           </Link>
         )}
       />
@@ -327,10 +326,12 @@ function CatalogPage({ forcedType = null }) {
         <section className="catalog-results">
           <header className="catalog-results__header">
             <div>
-              <strong>{Number(data?.listings?.totalCount ?? 0).toLocaleString()}개</strong>
-              <span>의 상품을 찾았습니다.</span>
+              {filter.q ? (
+                <><strong>‘{filter.q}’에 대한 검색 결과 </strong><span>{Number(data?.listings?.totalCount ?? 0).toLocaleString()}개</span></>
+              ) : (
+                <><strong>{filter.type === "AUCTION" ? "경매장" : "중고거래"} 상품 </strong><span>{Number(data?.listings?.totalCount ?? 0).toLocaleString()}개</span></>
+              )}
             </div>
-            {filter.q && <p>“{filter.q}” 검색 결과</p>}
           </header>
 
           {isLoading && <LoadingState label="상품을 불러오는 중입니다." />}
@@ -348,16 +349,6 @@ function CatalogPage({ forcedType = null }) {
         </section>
       </div>
 
-      {filter.type === "AUCTION" && (
-        <button
-          type="button"
-          className="floating-action"
-          aria-label="경매 등록"
-          onClick={() => navigate("/auction/new")}
-        >
-          <Gavel size={20} />
-        </button>
-      )}
     </div>
   );
 }

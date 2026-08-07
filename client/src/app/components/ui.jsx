@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { Link } from "react-router";
+import listingTypeMenuImage from "../../assets/ui/listing-type-menu.png";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -32,6 +33,26 @@ export function PageHeader({ eyebrow, title, description, actions }) {
       </div>
       {actions && <div className="page-header__actions">{actions}</div>}
     </header>
+  );
+}
+
+export function ListingTypeSelector({ type }) {
+  const [open, setOpen] = useState(false);
+  const label = type === "AUCTION" ? "경매 물품 등록" : "중고 거래 등록";
+
+  return (
+    <div className="listing-type-selector">
+      <button type="button" className="button" aria-expanded={open} onClick={() => setOpen((current) => !current)}>
+        {label}<span className="listing-type-selector__chevron" aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="listing-type-selector__menu">
+          <img src={listingTypeMenuImage} alt="중고 거래 등록 또는 경매 물품 등록 선택" />
+          <Link to="/products/register" aria-label="중고 거래 등록" />
+          <Link to="/auction/new" aria-label="경매 물품 등록" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -143,6 +164,17 @@ export function StatusBadge({ status }) {
 export function ProductCard({ item, compact = false }) {
   const isAuction = String(item?.listingType).toUpperCase() === "AUCTION";
   const price = item?.displayPrice ?? item?.currentPrice ?? item?.price ?? 0;
+  const [now, setNow] = useState(() => Date.now());
+
+  // 목록 카드도 상세 화면처럼 남은 시간이 실제로 흐르도록 갱신한다.
+  useEffect(() => {
+    if (!isAuction || !item?.endsAt) {
+      return undefined;
+    }
+
+    const timer = globalThis.setInterval(() => setNow(Date.now()), 1_000);
+    return () => globalThis.clearInterval(timer);
+  }, [isAuction, item?.endsAt]);
 
   return (
     <Link
@@ -155,29 +187,25 @@ export function ProductCard({ item, compact = false }) {
           alt={item?.title ?? "상품 이미지"}
           className="product-card__image"
         />
-        <span className="product-card__type">
-          {isAuction ? "경매" : "중고"}
+        <span className="product-card__category">
+          {item?.category?.name ?? item?.categoryName ?? "카테고리"}
         </span>
         {item?.status && (
           <span className="product-card__status">
             <StatusBadge status={item.status} />
           </span>
         )}
+        {isAuction && item?.endsAt && (
+          <span className="product-card__timer">{formatRemainingTime(item.endsAt, now)}</span>
+        )}
       </div>
 
       <div className="product-card__body">
-        <p className="product-card__category">
-          {item?.category?.name ?? item?.categoryName ?? "기타"}
-        </p>
         <h3>{item?.title ?? "제목 없는 상품"}</h3>
         <strong className="product-card__price">{formatCurrency(price)}</strong>
 
         <div className="product-card__meta">
-          {isAuction && item?.endsAt ? (
-            <span>{formatRemainingTime(item.endsAt)}</span>
-          ) : (
-            <span>{formatDate(item?.createdAt)}</span>
-          )}
+          <span>{formatDate(item?.createdAt ?? item?.registeredAt ?? item?.created_at)}</span>
           <span>
             <Heart size={15} />
             {Number(item?.favoriteCount ?? 0)}
@@ -296,7 +324,7 @@ export function Tabs({ items, value, onChange, ariaLabel = "탭" }) {
   );
 }
 
-export function Modal({ open, title, description, children, onClose, footer }) {
+export function Modal({ open, title, description, children, onClose, footer, className = "" }) {
   const titleId = useId();
 
   useEffect(() => {
@@ -321,7 +349,7 @@ export function Modal({ open, title, description, children, onClose, footer }) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
-        className="modal"
+        className={cx("modal", className)}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

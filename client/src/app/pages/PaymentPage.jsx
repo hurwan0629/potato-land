@@ -33,6 +33,7 @@ export default function PaymentPage() {
   const { notify } = useToast();
   const [isWorking, setIsWorking] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const loadTransaction = useCallback(
     () => transactionsApi.get(transactionIdx),
@@ -46,13 +47,10 @@ export default function PaymentPage() {
   const counterpart = isBuyer ? transaction?.seller : transaction?.buyer;
 
   const handleComplete = async () => {
-    if (!globalThis.confirm("송금을 완료하고 거래를 확정할까요?")) {
-      return;
-    }
-
     setIsWorking(true);
     try {
       await transactionsApi.complete(transactionIdx);
+      setConfirmAction(null);
       transactionRemote.reload();
       notify("거래가 완료되었습니다.", "success");
     } catch (error) {
@@ -63,13 +61,10 @@ export default function PaymentPage() {
   };
 
   const handleCancel = async () => {
-    if (!globalThis.confirm("이 송금 요청을 취소할까요?")) {
-      return;
-    }
-
     setIsWorking(true);
     try {
       await transactionsApi.cancel(transactionIdx);
+      setConfirmAction(null);
       transactionRemote.reload();
       notify("송금 요청을 취소했습니다.", "success");
     } catch (error) {
@@ -92,9 +87,8 @@ export default function PaymentPage() {
   return (
     <div className="page-container payment-page">
       <PageHeader
-        eyebrow="안전 거래"
-        title="거래 확인"
-        description="거래 상대와 상품, 송금 요청 상태를 확인하세요."
+        title="송금"
+        description="거래 내용을 확인하고 상대방에게 안전하게 송금하세요"
         actions={<StatusBadge status={transaction.status} />}
       />
 
@@ -149,13 +143,13 @@ export default function PaymentPage() {
 
           <div className="payment-actions">
             {transaction.status === "REQUESTED" && isBuyer && (
-              <button type="button" className="button" disabled={isWorking} onClick={handleComplete}>
+              <button type="button" className="button" disabled={isWorking} onClick={() => setConfirmAction("COMPLETE")}>
                 <BadgeCheck size={18} />
                 송금 완료
               </button>
             )}
             {transaction.status === "REQUESTED" && isSeller && (
-              <button type="button" className="button button--danger" disabled={isWorking} onClick={handleCancel}>
+              <button type="button" className="button button--danger" disabled={isWorking} onClick={() => setConfirmAction("CANCEL")}>
                 <Ban size={18} />
                 요청 취소
               </button>
@@ -183,6 +177,32 @@ export default function PaymentPage() {
           setReviewOpen(false);
           notify("후기를 등록했습니다.", "success");
         }}
+      />
+
+      <Modal
+        open={Boolean(confirmAction)}
+        title={confirmAction === "COMPLETE" ? "거래 완료" : "송금 요청 취소"}
+        description={
+          confirmAction === "COMPLETE"
+            ? "송금을 완료하고 거래를 확정할까요?"
+            : "이 송금 요청을 취소할까요?"
+        }
+        onClose={() => {
+          if (!isWorking) setConfirmAction(null);
+        }}
+        footer={(
+          <>
+            <button type="button" className="button button--secondary" disabled={isWorking} onClick={() => setConfirmAction(null)}>돌아가기</button>
+            <button
+              type="button"
+              className={confirmAction === "COMPLETE" ? "button" : "button button--danger"}
+              disabled={isWorking}
+              onClick={confirmAction === "COMPLETE" ? handleComplete : handleCancel}
+            >
+              {isWorking ? "처리 중..." : confirmAction === "COMPLETE" ? "거래 완료" : "요청 취소"}
+            </button>
+          </>
+        )}
       />
     </div>
   );

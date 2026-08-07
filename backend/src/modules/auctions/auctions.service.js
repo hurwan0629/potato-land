@@ -75,6 +75,7 @@ function listItem(row) {
     status: row.status,
     bidCount: Number(row.bid_count),
     favoriteCount: Number(row.favorite_count),
+    createdAt: row.created_at,
     startedAt: row.started_at,
     endsAt: row.ends_at,
     hasMyBid: Boolean(row.has_my_bid),

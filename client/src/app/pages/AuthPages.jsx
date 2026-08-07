@@ -1,23 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import {
-  ArrowLeft,
-  Check,
-  Eye,
-  EyeOff,
-  KeyRound,
-  LogIn,
-  MessageSquareText,
-  Phone,
-  ShieldCheck,
-  UserRoundPlus,
-} from "lucide-react";
+import { ArrowLeft, Check, Eye, EyeOff, LogIn, Phone, UserRoundPlus } from "lucide-react";
 
 import { authApi } from "../../api/appApi";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { normalizePhone } from "../../utils/format";
-import { InlineAlert, Modal, Tabs } from "../components/ui";
+import loginPotato from "../../assets/potato/login-potato.png";
+import signupPotato from "../../assets/potato/signup-potato.png";
+import { InlineAlert, Modal } from "../components/ui";
 
 const INITIAL_SIGNUP_FORM = {
   name: "",
@@ -81,7 +72,7 @@ export function LoginPage() {
   const location = useLocation();
   const { login } = useAuth();
   const { notify } = useToast();
-  const [recoveryOpen, setRecoveryOpen] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     loginId: localStorage.getItem("rememberedLoginId") ?? "",
@@ -118,23 +109,15 @@ export function LoginPage() {
           홈으로 돌아가기
         </Link>
         <div className="auth-visual__content">
-          <span className="auth-potato" aria-hidden="true">🥔</span>
-          <p>다시 만나서 반가워요</p>
-          <h1>감자나라에서<br />좋은 거래를 시작해요.</h1>
-          <ul>
-            <li><ShieldCheck size={18} />안전하게 계정을 보호해요</li>
-            <li><MessageSquareText size={18} />거래 상대와 편하게 대화해요</li>
-            <li><KeyRound size={18} />로그인한 기기를 직접 관리해요</li>
-          </ul>
+          <span className="auth-potato" aria-hidden="true"><img src={loginPotato} alt="" /></span>
         </div>
       </section>
 
       <section className="auth-panel">
         <div className="auth-panel__inner">
           <div className="auth-panel__heading">
-            <p>Welcome back</p>
-            <h2>로그인</h2>
-            <span>아이디와 비밀번호를 입력해주세요.</span>
+            <h2>감자 나라</h2>
+            <span>귀여운 감자와 함께하는 안전한 중고거래!</span>
           </div>
 
           {location.state?.signupComplete && (
@@ -184,9 +167,6 @@ export function LoginPage() {
                 />
                 아이디 저장
               </label>
-              <button type="button" className="text-button" onClick={() => setRecoveryOpen(true)}>
-                아이디·비밀번호 찾기
-              </button>
             </div>
 
             <button type="submit" className="button button--large" disabled={isSubmitting}>
@@ -195,20 +175,22 @@ export function LoginPage() {
             </button>
           </form>
 
-          <p className="auth-switch">
-            아직 계정이 없나요?
-            <Link to="/signup">회원가입</Link>
-          </p>
+          <div className="auth-divider"><span>또는</span></div>
+          <Link className="auth-signup-link" to="/signup">회원가입</Link>
+          <div className="auth-recovery-links">
+            <button type="button" onClick={() => setRecoveryMode("FIND_ID")}>아이디 찾기</button>
+            <i />
+            <button type="button" onClick={() => setRecoveryMode("RESET_PASSWORD")}>비밀번호 찾기</button>
+          </div>
         </div>
       </section>
 
-      <RecoveryModal open={recoveryOpen} onClose={() => setRecoveryOpen(false)} />
+      <RecoveryModal mode={recoveryMode} open={Boolean(recoveryMode)} onClose={() => setRecoveryMode(null)} onSwitchMode={setRecoveryMode} />
     </div>
   );
 }
 
-function RecoveryModal({ open, onClose }) {
-  const [mode, setMode] = useState("FIND_ID");
+function RecoveryModal({ mode, open, onClose, onSwitchMode }) {
   const [form, setForm] = useState({
     name: "",
     loginId: "",
@@ -235,8 +217,7 @@ function RecoveryModal({ open, onClose }) {
     return () => globalThis.clearInterval(timer);
   }, [verification.resendSeconds]);
 
-  const reset = (nextMode = mode) => {
-    setMode(nextMode);
+  const reset = () => {
     setForm({
       name: "",
       loginId: "",
@@ -248,6 +229,11 @@ function RecoveryModal({ open, onClose }) {
     setVerification(INITIAL_PHONE_STATE);
     setResult(null);
   };
+
+  useEffect(() => {
+    if (open) reset();
+  // 모달 종류가 바뀌면 이전 인증값과 결과를 모두 초기화한다.
+  }, [mode, open]);
 
   const sendCode = async () => {
     setIsWorking(true);
@@ -330,28 +316,30 @@ function RecoveryModal({ open, onClose }) {
   return (
     <Modal
       open={open}
-      title="계정 찾기"
-      description="가입할 때 인증한 휴대전화로 본인확인을 진행합니다."
+      className={`account-recovery-modal ${mode === "FIND_ID" ? "recovery-find-id" : "recovery-reset-password"}`}
+      title={mode === "FIND_ID" ? "아이디 찾기" : verification.verified ? "비밀번호 재설정" : "비밀번호 찾기"}
       onClose={onClose}
     >
-      <Tabs
-        items={[
-          { value: "FIND_ID", label: "아이디 찾기" },
-          { value: "RESET_PASSWORD", label: "비밀번호 재설정" },
-        ]}
-        value={mode}
-        onChange={reset}
-      />
-
       {result ? (
         <div className={`recovery-result ${result.error ? "is-error" : ""}`}>
-          <span aria-hidden="true">{result.error ? "⚠️" : "🥔"}</span>
-          <strong>{result.title}</strong>
-          <p>{result.value}</p>
-          <button type="button" className="button" onClick={() => reset(mode)}>다시 진행</button>
+          {result.error ? (
+            <><strong>{result.title}</strong><p>{result.value}</p><button type="button" className="button" onClick={reset}>다시 진행</button></>
+          ) : mode === "FIND_ID" ? (
+            <>
+              <strong>회원님의 아이디는 ‘{result.value}’ 입니다</strong>
+              <div className="recovery-result__actions">
+                <button type="button" className="button button--secondary" onClick={onClose}>로그인 하기</button>
+                <button type="button" className="button" onClick={() => onSwitchMode("RESET_PASSWORD")}>비밀번호 찾기</button>
+              </div>
+            </>
+          ) : (
+            <><strong>비밀번호가 재설정되었습니다.</strong><p>새 비밀번호로 로그인해주세요.</p><button type="button" className="button" onClick={onClose}>로그인 하기</button></>
+          )}
         </div>
       ) : (
         <form className="auth-form recovery-form" onSubmit={finishRecovery}>
+          {!(mode === "RESET_PASSWORD" && verification.verified) && (
+          <>
           <label className="field">
             <span>이름</span>
             <input
@@ -426,6 +414,8 @@ function RecoveryModal({ open, onClose }) {
               {verification.message}
             </InlineAlert>
           )}
+          </>
+          )}
 
           {mode === "RESET_PASSWORD" && verification.verified && (
             <>
@@ -453,7 +443,7 @@ function RecoveryModal({ open, onClose }) {
             className="button button--large"
             disabled={isWorking || !verification.verified}
           >
-            {mode === "FIND_ID" ? "아이디 확인" : "비밀번호 변경"}
+            {mode === "FIND_ID" ? "다음" : verification.verified ? "로그인 하기" : "다음"}
           </button>
         </form>
       )}
@@ -597,8 +587,7 @@ export function SignupPage() {
   return (
     <div className="signup-page">
       <div className="signup-page__visual" aria-hidden="true">
-        <span>🥔</span>
-        <p>감자나라 주민이<br />되어보세요!</p>
+        <span><img src={signupPotato} alt="" /></span>
       </div>
 
       <section className="signup-panel">
@@ -607,9 +596,7 @@ export function SignupPage() {
           로그인으로 돌아가기
         </Link>
         <header>
-          <p>Join Potato Land</p>
           <h1>회원가입</h1>
-          <span>필수 정보와 휴대전화 인증을 완료해주세요.</span>
         </header>
 
         <form className="signup-form" onSubmit={handleSubmit}>
@@ -648,7 +635,7 @@ export function SignupPage() {
             <label className="field">
               <span>비밀번호</span>
               <PasswordInput name="password" value={form.password} onChange={updateField} />
-              <small className={form.password && !passwordValid ? "field-message--error" : undefined}>
+              <small className={form.password ? (passwordValid ? "field-message--success" : "field-message--error") : "field-message"}>
                 영문·숫자·특수문자 중 2가지 이상, 8~20자
               </small>
             </label>

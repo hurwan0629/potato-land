@@ -11,7 +11,6 @@ import {
   Bell,
   Gavel,
   Heart,
-  LogIn,
   LogOut,
   Menu,
   MessageCircle,
@@ -28,6 +27,9 @@ import { useNotifications } from "../../context/NotificationContext";
 import { useSocket } from "../../context/SocketContext";
 import { useToast } from "../../context/ToastContext";
 import { formatRelativeTime } from "../../utils/format";
+import headerPotato from "../../assets/potato/header-potato.png";
+import primaryPotato from "../../assets/potato/primary-potato.png";
+import headerMenuImage from "../../assets/ui/header-menu.png";
 import { Avatar, LoadingState, Modal } from "./ui";
 
 function notificationPath(notification) {
@@ -90,13 +92,9 @@ function Header() {
   // 배열 생성 비용이 작아 수동 memoization보다 단순한 계산이 더 안전하다.
   const navigation = [
     { to: "/search", label: "중고거래", icon: ShoppingBag },
+    { to: "/products/register", label: "상품 등록", icon: ShoppingBag },
     { to: "/auction", label: "경매", icon: Gavel },
-    ...(isLoggedIn
-      ? [
-          { to: "/chat", label: "채팅", icon: MessageCircle },
-          { to: `/mypage/${user.userIdx}`, label: "마이페이지", icon: UserRound },
-        ]
-      : []),
+    { to: "/chat", label: "채팅", icon: MessageCircle },
     ...(isAdmin ? [{ to: "/admin", label: "관리자", icon: ShieldCheck }] : []),
   ];
 
@@ -123,6 +121,7 @@ function Header() {
         await read(notification.notificationIdx);
       } catch (error) {
         notify(error.message, "error");
+        return;
       }
     }
 
@@ -138,23 +137,16 @@ function Header() {
       <header className="site-header">
         <div className="site-header__inner">
           <Link to="/" className="brand" aria-label="감자나라 홈">
-            <span className="brand__mark" aria-hidden="true">🥔</span>
+            <span className="brand__mark" aria-hidden="true"><img src={headerPotato} alt="" /></span>
             <span>
               <strong>감자나라</strong>
               <small>우리 동네 중고마켓</small>
             </span>
           </Link>
 
-          <form className="header-search" onSubmit={handleSearch}>
-            <Search size={19} />
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="어떤 감자를 찾고 있나요?"
-              aria-label="상품 검색어"
-            />
-            <button type="submit">검색</button>
-          </form>
+          <button type="button" className="header-menu-mark" aria-label="전체 메뉴" onClick={() => setMobileMenuOpen((current) => !current)}>
+            <Menu size={22} />
+          </button>
 
           <nav className="desktop-nav" aria-label="주요 메뉴">
             {navigation.map(({ to, label }) => (
@@ -191,13 +183,15 @@ function Header() {
                 <button type="button" className="icon-button" aria-label="로그아웃" onClick={handleLogout}>
                   <LogOut size={20} />
                 </button>
+                <Link to="/mypage/me?tab=favorites" className="icon-button" aria-label="관심 상품"><Heart size={21} /></Link>
               </>
             ) : (
-              <Link to="/login" className="button button--small">
-                <LogIn size={17} />
-                로그인
-              </Link>
+              <Link to="/login" className="header-login-button">로그인</Link>
             )}
+
+            <button type="button" className="icon-button header-search-trigger" aria-label="상품 검색" onClick={() => navigate("/search")}>
+              <Search size={23} />
+            </button>
 
             <button
               type="button"
@@ -212,37 +206,57 @@ function Header() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="mobile-menu">
-            <form className="header-search header-search--mobile" onSubmit={handleSearch}>
-              <Search size={19} />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="상품 검색"
+          <>
+            <button type="button" className="mobile-menu-backdrop" aria-label="전체 메뉴 닫기" onClick={() => setMobileMenuOpen(false)} />
+            <div className="mobile-menu" onClick={(event) => event.stopPropagation()}>
+              <img
+                className="mobile-menu__figma"
+                src={headerMenuImage}
+                alt="감자나라 전체 메뉴"
               />
-              <button type="submit">검색</button>
-            </form>
-            <nav aria-label="모바일 메뉴">
-              {navigation.map(({ to, label, icon: Icon }) => (
-                <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}>
-                  <Icon size={19} />
-                  {label}
-                </NavLink>
-              ))}
-              {!isLoggedIn && (
-                <NavLink to="/signup" onClick={() => setMobileMenuOpen(false)}>
-                  <UserRound size={19} />
-                  회원가입
-                </NavLink>
-              )}
-            </nav>
-          </div>
+              <div className="mobile-menu__links" aria-label="전체 메뉴 바로가기">
+                <Link to="/search" onClick={() => setMobileMenuOpen(false)}>중고거래 둘러보기</Link>
+                <Link to="/search?sort=POPULAR" onClick={() => setMobileMenuOpen(false)}>인기 상품</Link>
+                <Link to="/search" onClick={() => setMobileMenuOpen(false)}>카테고리별 상품</Link>
+                <Link to="/products/register" onClick={() => setMobileMenuOpen(false)}>상품 등록</Link>
+                <Link to="/mypage/me" onClick={() => setMobileMenuOpen(false)}>판매 관리</Link>
+                <Link to="/auction" onClick={() => setMobileMenuOpen(false)}>경매 둘러보기</Link>
+                <Link to="/auction?sort=ENDING_SOON" onClick={() => setMobileMenuOpen(false)}>마감 임박</Link>
+                <Link to="/auction?status=FINISHED" onClick={() => setMobileMenuOpen(false)}>낙찰 결과</Link>
+                <Link to="/chat" onClick={() => setMobileMenuOpen(false)}>채팅 바로가기</Link>
+              </div>
+              <form className="header-search header-search--mobile" onSubmit={handleSearch}>
+                <Search size={19} />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="상품 검색"
+                />
+                <button type="submit">검색</button>
+              </form>
+              <nav aria-label="모바일 메뉴">
+                {navigation.map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to} onClick={() => setMobileMenuOpen(false)}>
+                    <Icon size={19} />
+                    {label}
+                  </NavLink>
+                ))}
+                {!isLoggedIn && (
+                  <NavLink to="/signup" onClick={() => setMobileMenuOpen(false)}>
+                    <UserRound size={19} />
+                    회원가입
+                  </NavLink>
+                )}
+              </nav>
+            </div>
+          </>
         )}
       </header>
 
       <Modal
         open={notificationOpen}
-        title="알림"
+        className="notification-modal"
+        title={<span className="notification-modal__title">알림 <Bell size={19} /></span>}
         description={unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개가 있어요.` : "새로운 알림이 없어요."}
         onClose={() => setNotificationOpen(false)}
         footer={notifications.length > 0 && (
@@ -269,7 +283,7 @@ function Header() {
               <button
                 key={notification.notificationIdx}
                 type="button"
-                className={`notification-item ${notification.isRead ? "" : "is-unread"}`}
+                className="notification-item is-unread"
                 onClick={() => handleNotificationClick(notification)}
               >
                 <span className="notification-item__icon"><Bell size={18} /></span>
@@ -289,31 +303,47 @@ function Header() {
 function Footer() {
   return (
     <footer className="site-footer">
-      <div>
+      <div className="site-footer__brand">
         <Link to="/" className="brand brand--footer">
-          <span aria-hidden="true">🥔</span>
           <strong>감자나라</strong>
         </Link>
-        <p>안전하고 즐거운 중고거래와 실시간 경매를 한곳에서 만나보세요.</p>
       </div>
-      <div className="site-footer__links">
-        <Link to="/search">중고거래</Link>
+      <div className="site-footer__column">
+        <strong>Support</strong>
+        <p>서울특별시 강남구 테헤란로 146 현익빌딩 3, 4층</p>
+        <p>tegongmang22 koreaedugroup.com</p>
+        <p>+82-02-538-0021</p>
+      </div>
+      <div className="site-footer__column site-footer__team">
+        <strong>Team</strong>
+        <p><b>Leader</b><span>박건희</span></p>
+        <p><b>Members</b><span>심형준 · 윤재빈</span></p>
+        <p><b></b><span>양수연 · 최한빈</span></p>
+        <p><b></b><span>허 완</span></p>
+      </div>
+      <div className="site-footer__column site-footer__service">
+        <strong>Service</strong>
+        <Link to="/search">중고 거래</Link>
         <Link to="/auction">경매</Link>
-        <Link to="/signup">회원가입</Link>
+        <Link to="/mypage/me">마이페이지</Link>
+        <img src={primaryPotato} alt="감자나라 캐릭터" />
       </div>
-      <small>© 2026 Potato Land Team</small>
+      <small>ⓒ Copyright 류지보수. All right reserved</small>
     </footer>
   );
 }
 
 export function MainLayout() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
-    <div className="app-shell">
-      <Header />
+    <div className={`app-shell ${isAdminRoute ? "app-shell--admin" : ""}`}>
+      {!isAdminRoute && <Header />}
       <main className="app-main">
         <Outlet />
       </main>
-      <Footer />
+      {!isAdminRoute && <Footer />}
     </div>
   );
 }
@@ -355,7 +385,7 @@ export function AccountQuickLinks() {
   return (
     <div className="account-quick-links">
       <Link to="/chat"><MessageCircle size={18} />채팅</Link>
-      <Link to="/mypage/me"><Heart size={18} />관심상품</Link>
+      <Link to="/mypage/me?tab=favorites"><Heart size={18} />관심상품</Link>
       <Link to="/mypage/me/edit"><Settings size={18} />정보 수정</Link>
     </div>
   );

@@ -24,6 +24,8 @@ import {
   ImageWithFallback,
   InlineAlert,
   LoadingState,
+  ListingTypeSelector,
+  Modal,
   PageHeader,
   Rating,
   StatusBadge,
@@ -43,6 +45,8 @@ export function UsedDetailPage() {
   const { notify } = useToast();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isWorking, setIsWorking] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("판매자가 직접 삭제");
 
   const loadListing = useCallback(
     () => usedApi.get(listingIdx),
@@ -97,19 +101,16 @@ export function UsedDetailPage() {
   };
 
   const handleDelete = async () => {
-    const confirmed = globalThis.confirm("이 중고상품을 삭제할까요?");
-    if (!confirmed) {
-      return;
-    }
-
-    const reason = globalThis.prompt("삭제 사유를 입력해주세요.", "판매자가 직접 삭제") ?? "";
-    if (!reason.trim()) {
+    const reason = deleteReason.trim();
+    if (!reason) {
+      notify("삭제 사유를 입력해주세요.", "error");
       return;
     }
 
     setIsWorking(true);
     try {
-      await usedApi.remove(listingIdx, reason.trim());
+      await usedApi.remove(listingIdx, reason);
+      setDeleteModalOpen(false);
       notify("상품을 삭제했습니다.", "success");
       navigate("/search");
     } catch (deleteError) {
@@ -248,7 +249,7 @@ export function UsedDetailPage() {
                 type="button"
                 className="button button--danger"
                 disabled={isWorking || !listing.viewer.canDelete}
-                onClick={handleDelete}
+                onClick={() => setDeleteModalOpen(true)}
               >
                 <Trash2 size={18} />
                 삭제
@@ -265,6 +266,28 @@ export function UsedDetailPage() {
         />
         <p>{listing.description}</p>
       </section>
+
+      <Modal
+        open={deleteModalOpen}
+        title="중고상품 삭제"
+        description="삭제 후에는 복구할 수 없습니다. 삭제 사유를 입력해주세요."
+        onClose={() => {
+          if (!isWorking) setDeleteModalOpen(false);
+        }}
+        footer={(
+          <>
+            <button type="button" className="button button--secondary" disabled={isWorking} onClick={() => setDeleteModalOpen(false)}>취소</button>
+            <button type="button" className="button button--danger" disabled={isWorking || !deleteReason.trim()} onClick={handleDelete}>
+              {isWorking ? "삭제 중..." : "삭제"}
+            </button>
+          </>
+        )}
+      >
+        <label className="form-field">
+          <span>삭제 사유</span>
+          <textarea rows={4} maxLength={200} value={deleteReason} onChange={(event) => setDeleteReason(event.target.value)} />
+        </label>
+      </Modal>
     </div>
   );
 }
@@ -299,8 +322,23 @@ function UsedFormBody({ categories, listing }) {
   };
 
   const handleFiles = (event) => {
-    const selected = [...(event.target.files ?? [])].slice(0, 4);
-    setFiles(selected);
+    const selectedFiles = Array.from(event.target.files ?? []);
+
+    setFiles((currentFiles) => {
+      const mergedFiles = [...currentFiles, ...selectedFiles];
+      const uniqueFiles = mergedFiles.filter(
+        (file, index, allFiles) => index === allFiles.findIndex(
+          (candidate) => candidate.name === file.name
+            && candidate.size === file.size
+            && candidate.lastModified === file.lastModified,
+        ),
+      );
+
+      return uniqueFiles.slice(0, 4);
+    });
+
+    // Reset the input so selecting the same file again still emits change.
+    event.target.value = "";
   };
 
   const handleSubmit = async (event) => {
@@ -487,8 +525,9 @@ export function UsedFormPage() {
     <div className="page-container form-page">
       <PageHeader
         eyebrow="중고거래"
-        title={isEdit ? "상품 정보 수정" : "중고상품 등록"}
-        description="사진과 상품 정보를 입력하면 바로 판매를 시작할 수 있습니다."
+        title={isEdit ? "중고 거래 수정" : "중고 거래 등록"}
+        description="판매할 상품 정보를 입력해 주세요."
+        actions={!isEdit ? <ListingTypeSelector type="USED" /> : undefined}
       />
 
       {isLoading && <LoadingState label="등록 화면을 준비하는 중입니다." />}

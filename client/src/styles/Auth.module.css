@@ -1,0 +1,191 @@
+.page { min-height: 760px; display: grid; grid-template-columns: 48% 52%; background: #fff; }
+.moduleRoot { --auth-module-ready: 1; }
+.visual { display: grid; place-items: center; overflow: hidden; background: #fff8ed; }
+.loginMascot { width: min(390px, 76%); object-fit: contain; }
+.signupMascot { width: min(330px, 72%); object-fit: contain; }
+.panel { display: flex; flex-direction: column; justify-content: center; padding: 70px 80px; }
+.title { margin: 0 0 36px; color: #4b2b18; font-size: 48px; font-weight: 900; text-align: center; }
+.form { display: grid; gap: 18px; }
+.field { display: grid; grid-template-columns: 135px 1fr; align-items: center; gap: 18px; }
+.fieldLabel { color: #4b2b18; font-weight: 800; }
+.input { width: 100%; min-height: 56px; box-sizing: border-box; border: 1px solid #e4cdb8; border-radius: 10px; padding: 0 18px; color: #4b2b18; background: #fff; font: inherit; }
+.input:focus { border-color: #ffb632; outline: 3px solid rgb(255 182 50 / 18%); }
+.actionRow { display: grid; grid-template-columns: 1fr 126px; gap: 14px; }
+.primaryButton { min-height: 56px; border: 0; border-radius: 10px; color: #fff; background: #ffb632; font-size: 18px; font-weight: 900; cursor: pointer; }
+.secondaryButton { min-height: 56px; border: 1px solid #d8b995; border-radius: 10px; color: #61391f; background: #fff; font-weight: 800; cursor: pointer; }
+.links { display: flex; justify-content: center; gap: 26px; margin-top: 22px; color: #806654; font-size: 14px; }
+.validationError { margin: -8px 0 0 153px; color: #e34343; font-size: 13px; }
+.validationSuccess { margin: -8px 0 0 153px; color: #25834a; font-size: 13px; }
+.backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgb(0 0 0 / 58%); }
+.modal { width: min(700px, 100%); border-radius: 30px; padding: 48px 64px; background: #fff; box-shadow: 0 24px 80px rgb(0 0 0 / 28%); }
+.modalTitle { margin: 0 0 34px; font-size: 40px; font-weight: 900; text-align: center; }
+
+@media (max-width: 760px) {
+  .page { grid-template-columns: 1fr; }
+  .visual { display: none; }
+  .panel { padding: 45px 24px; }
+  .field { grid-template-columns: 1fr; gap: 8px; }
+  .validationError, .validationSuccess { margin-left: 0; }
+}
+
+:global(.auth-login), :global(.auth-signup) { min-height: calc(100vh - 84px); display: grid; grid-template-columns: minmax(360px, 46%) minmax(460px, 54%); background: #fff; }
+:global(.auth-login-mascot), :global(.auth-signup-mascot) { display: grid; place-items: center; overflow: hidden; background: #fff8ed; }
+:global(.auth-login-mascot img) { width: min(560px, 88%); max-height: 720px; object-fit: contain; }
+:global(.auth-signup-mascot img) { width: min(510px, 84%); max-height: 760px; object-fit: contain; }
+:global(.auth-login-panel), :global(.auth-signup-panel) { width: min(620px, calc(100% - 48px)); align-self: center; justify-self: center; display: grid; gap: 15px; padding: 55px 0; }
+:global(.auth-login-panel h1), :global(.auth-signup-panel h1) { margin-bottom: 10px; color: #4b2b18; font-size: 46px; text-align: center; }
+:global(.auth-login-copy) { margin-bottom: 20px; color: #806654; text-align: center; }
+:global(.auth-login-panel > input), :global(.auth-signup-field input), :global(.recovery-field input) { width: 100%; min-height: 56px; border: 1px solid #e1c7ac; border-radius: 10px; padding: 0 18px; outline: 0; background: #fff; }
+:global(.auth-login-panel > input:focus), :global(.auth-signup-field input:focus), :global(.recovery-field input:focus) { border-color: #ffb632; box-shadow: 0 0 0 3px rgb(255 182 50 / 15%); }
+:global(.auth-remember), :global(.auth-terms) { display: flex; align-items: center; gap: 9px; color: #806654; }
+:global(.auth-primary), :global(.auth-signup-submit), :global(.auth-check-button), :global(.recovery-submit), :global(.recovery-action-row button), :global(.recovery-result button) { min-height: 56px; border: 0; border-radius: 10px; padding: 0 22px; color: #fff; background: #ffb632; font-size: 16px; font-weight: 900; cursor: pointer; }
+:global(.auth-divider) { display: flex; align-items: center; gap: 14px; color: #aa998c; }
+:global(.auth-divider::before), :global(.auth-divider::after) { content: ""; flex: 1; height: 1px; background: #eadaca; }
+:global(.auth-signup-button) { min-height: 54px; border: 1px solid #ddb786; border-radius: 10px; color: #61391f; background: #fff; font-weight: 800; }
+:global(.auth-account-links) { display: flex; justify-content: center; align-items: center; gap: 22px; }
+:global(.auth-account-links button) { border: 0; color: #806654; background: transparent; cursor: pointer; }
+:global(.auth-account-links i) { width: 1px; height: 14px; background: #d4c2b3; }
+:global(.auth-signup) { grid-template-columns: minmax(570px, 58%) minmax(340px, 42%); }
+:global(.auth-signup-field) { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 18px; }
+:global(.auth-signup-row) { display: grid; grid-template-columns: 1fr 126px; align-items: start; gap: 14px; }
+:global(.auth-signup-row .auth-signup-field) { min-width: 0; }
+:global(.auth-field-message), :global(.auth-password-guide) { margin: -7px 0 2px 168px; font-size: 13px; }
+:global(.recovery-backdrop) { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgb(0 0 0 / 58%); }
+:global(.recovery-modal) { position: relative; width: min(740px, 100%); border-radius: 30px; padding: 52px 64px; background: #fff; box-shadow: 0 24px 80px rgb(0 0 0 / 28%); }
+:global(.recovery-modal h2) { margin-bottom: 34px; font-size: 40px; text-align: center; }
+:global(.recovery-close) { position: absolute; top: 24px; right: 30px; border: 0; color: #60391f; background: transparent; font-size: 34px; cursor: pointer; }
+:global(.recovery-field) { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 18px; margin-bottom: 18px; }
+:global(.recovery-action-row) { display: grid; grid-template-columns: 1fr 126px; gap: 14px; }
+:global(.recovery-message), :global(.recovery-guide) { text-align: center; }
+:global(.recovery-result) { text-align: center; }
+
+@media (max-width: 780px) {
+  :global(.auth-login), :global(.auth-signup) { grid-template-columns: 1fr; }
+  :global(.auth-login-mascot), :global(.auth-signup-mascot) { display: none; }
+  :global(.auth-signup-field), :global(.recovery-field) { grid-template-columns: 1fr; gap: 7px; }
+  :global(.auth-field-message), :global(.auth-password-guide) { margin-left: 0; }
+  :global(.recovery-modal) { padding: 48px 24px 30px; }
+}
+
+/* 회원가입 피그마: 제목 간격과 입력별 실시간 안내 위치 */
+:global(.signup-panel > header) { margin: 8px 0 24px; }
+:global(.signup-panel > header h1) { margin: 0; }
+:global(.signup-form) { gap: 18px; }
+:global(.signup-form .form-grid) { gap: 16px; }
+:global(.signup-form .field) { align-items: start; row-gap: 5px; }
+:global(.signup-form .field > span) { padding-top: 14px; }
+:global(.signup-form .field > small),
+:global(.signup-form .field > .field-message),
+:global(.signup-form .field > .field-message--success),
+:global(.signup-form .field > .field-message--error) { grid-column: 2; margin: 0; font-size: 12px; line-height: 1.35; }
+:global(.field-message) { color: #9d8878; }
+:global(.field-message--success), :global(.field-success) { color: #21834c; }
+:global(.field-message--error) { color: #e7462d; }
+:global(.signup-form .field-message--success::before) { content: "✓ "; }
+:global(.signup-form .field-message--error::before) { content: "X "; }
+:global(.signup-form .inline-alert) { grid-column: 2; padding: 7px 10px; font-size: 12px; }
+@media (max-width: 780px) {
+  :global(.signup-form .field > small), :global(.signup-form .inline-alert) { grid-column: 1; }
+}
+
+:global(.auth-page), :global(.signup-page) { min-height: calc(100vh - 84px); display: grid; grid-template-columns: 46% 54%; background: #fff; }
+:global(.auth-visual), :global(.signup-page__visual) { position: relative; display: grid; place-items: center; overflow: hidden; padding: 48px; background: #fff8ed; }
+:global(.auth-visual__content) { width: min(460px, 100%); }
+:global(.auth-potato) { display: block; width: min(390px, 84%); margin: 0 auto 22px; }
+:global(.auth-potato img), :global(.signup-page__visual img) { width: 100%; max-height: 480px; object-fit: contain; }
+:global(.auth-visual__content h1) { font-size: 40px; line-height: 1.3; }
+:global(.auth-visual__content ul) { display: grid; gap: 11px; padding: 0; list-style: none; }
+:global(.auth-visual__content li) { display: flex; align-items: center; gap: 9px; }
+:global(.auth-panel), :global(.signup-panel) { display: grid; align-items: center; padding: 48px 8%; }
+:global(.auth-panel__inner) { width: min(520px, 100%); margin: auto; }
+:global(.auth-panel__heading) { margin-bottom: 30px; text-align: center; }
+:global(.auth-panel__heading h2), :global(.signup-panel header h1) { margin: 6px 0 10px; font-size: 42px; }
+:global(.auth-form), :global(.signup-form) { display: grid; gap: 17px; }
+:global(.auth-form__options) { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+:global(.checkbox-field) { display: flex; align-items: center; gap: 8px; }
+:global(.text-button) { border: 0; color: #806654; background: transparent; cursor: pointer; }
+:global(.password-input), :global(.field-inline), :global(.field-row) { display: flex; align-items: center; gap: 10px; }
+:global(.password-input input), :global(.field-inline input), :global(.field-row .field) { flex: 1; min-width: 0; }
+:global(.auth-switch) { margin-top: 22px; text-align: center; }
+:global(.signup-page) { grid-template-columns: 38% 62%; }
+:global(.signup-page__visual) { align-content: center; color: #60391f; font-size: 30px; font-weight: 900; text-align: center; }
+:global(.signup-page__visual > span) { width: min(380px, 90%); }
+:global(.signup-panel) { align-items: start; }
+:global(.signup-panel > header) { margin: 28px 0; }
+:global(.field--wide) { grid-column: 1 / -1; }
+:global(.button--large) { min-height: 54px; font-size: 16px; }
+
+@media (max-width: 780px) { :global(.auth-page), :global(.signup-page) { grid-template-columns: 1fr; } :global(.auth-visual), :global(.signup-page__visual) { display: none; } :global(.auth-panel), :global(.signup-panel) { padding: 42px 24px; } }
+
+/* Figma 로그인·회원가입 최종 규격 */
+:global(.auth-page) { width: min(1200px, 100%); min-height: 1040px; margin: 0 auto; grid-template-columns: 48% 52%; background: #fffaf1; }
+:global(.auth-visual) { padding: 30px 20px; background: transparent; }
+:global(.auth-back-link) { position: absolute; left: 28px; top: 24px; color: #7e6452; font-size: 13px; }
+:global(.auth-visual__content) { width: 100%; }
+:global(.auth-potato) { width: 500px; max-width: 100%; margin: 160px auto 0; }
+:global(.auth-potato img) { max-height: 620px; }
+:global(.auth-panel) { padding: 80px 70px; }
+:global(.auth-panel__inner) { width: min(560px, 100%); border-radius: 52px; padding: 58px 38px 42px; background: #fff; box-shadow: 3px 6px 8px rgb(74 55 42 / 25%); }
+:global(.auth-panel__heading h2) { font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 62px; color: #60391f; }
+:global(.auth-panel__heading span) { display: block; margin-top: 28px; color: #60391f; font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 21px; }
+:global(.auth-form) { gap: 20px; }
+:global(.auth-form .field > span) { display: none; }
+:global(.auth-form .field input) { min-height: 68px; font-size: 18px; }
+:global(.auth-form .button--large) { min-height: 68px; font-size: 19px; }
+:global(.auth-panel__inner > .auth-divider) { margin: 24px 0; }
+:global(.auth-signup-link) { min-height: 66px; display: grid; place-items: center; border: 2px solid #ffb632; border-radius: 10px; color: #60391f; font-size: 18px; font-weight: 900; }
+:global(.auth-recovery-links) { display: flex; justify-content: center; align-items: center; gap: 34px; margin-top: 24px; }
+:global(.auth-recovery-links button) { border: 0; color: #8b7768; background: transparent; cursor: pointer; }
+:global(.auth-recovery-links i) { width: 1px; height: 20px; background: #b7a89d; }
+:global(.signup-page) { width: min(1200px, 100%); min-height: 1400px; margin: 0 auto; grid-template-columns: 62% 38%; background: #fffaf1; }
+:global(.signup-panel) { order: 1; align-content: start; margin: 30px 0 60px 62px; border-radius: 52px; padding: 64px 28px 30px; background: #fff; box-shadow: 3px 6px 8px rgb(74 55 42 / 25%); }
+:global(.signup-page__visual) { order: 2; padding: 0; background: transparent; }
+:global(.signup-page__visual > span) { width: 520px; max-width: 115%; transform: translateX(-25px); }
+:global(.signup-panel > header) { margin: 30px 0 50px; text-align: center; }
+:global(.signup-panel > header h1) { font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 58px; color: #60391f; }
+:global(.signup-form) { gap: 26px; }
+:global(.signup-form .form-grid) { grid-template-columns: 1fr; gap: 22px; }
+:global(.signup-form .field) { grid-template-columns: 125px 1fr; align-items: center; }
+:global(.signup-form .field--wide) { grid-column: auto; }
+:global(.signup-form .field input) { min-height: 49px; }
+:global(.signup-form .field-inline) { width: 100%; }
+
+@media (max-width: 780px) {
+  :global(.auth-page), :global(.signup-page) { min-height: auto; grid-template-columns: 1fr; }
+  :global(.auth-panel__inner), :global(.signup-panel) { margin: 20px auto; border-radius: 28px; padding: 38px 22px; }
+  :global(.signup-form .field) { grid-template-columns: 1fr; }
+}
+
+/* 아이디 찾기·비밀번호 찾기 개별 피그마 모달 */
+:global(.account-recovery-modal) { width: min(700px, calc(100% - 36px)); border-radius: 28px; padding: 38px 50px 36px; }
+:global(.account-recovery-modal .modal__header h2) { margin: 0; color: #60391f; font-size: 36px; }
+:global(.account-recovery-modal .modal__body) { margin-top: 38px; }
+:global(.account-recovery-modal .recovery-form) { display: grid; gap: 20px; }
+:global(.account-recovery-modal .field) { display: grid; grid-template-columns: 130px minmax(0, 1fr); align-items: center; gap: 15px; }
+:global(.account-recovery-modal .field > span) { display: block; color: #60391f; font-size: 16px; font-weight: 800; }
+:global(.account-recovery-modal .field input) { min-height: 48px; border: 1px solid #e2cbb4; border-radius: 7px; padding: 0 16px; font-size: 14px; }
+:global(.account-recovery-modal .field-row) { display: grid; grid-template-columns: minmax(0, 1fr) 116px; align-items: center; gap: 14px; }
+:global(.account-recovery-modal .field-row .field) { width: 100%; }
+:global(.account-recovery-modal .field-row__button) { min-height: 48px; padding: 0 10px; color: #fff; background: #ffbf45; }
+:global(.account-recovery-modal .inline-alert) { margin-left: 145px; padding: 8px 12px; font-size: 12px; }
+:global(.account-recovery-modal .recovery-form > .button--large) { width: 240px; min-height: 44px; justify-self: center; margin-top: 20px; border-radius: 10px; font-size: 17px; }
+:global(.account-recovery-modal .recovery-form::after) { content: ""; grid-row: 99; height: 1px; margin-top: 0; background: #eadaca; }
+:global(.account-recovery-modal .password-input) { min-width: 0; }
+:global(.account-recovery-modal .password-input input) { flex: 1; min-width: 0; }
+
+:global(.recovery-find-id .recovery-result),
+:global(.recovery-reset-password .recovery-result) { min-height: 285px; display: grid; align-content: center; justify-items: center; gap: 28px; text-align: center; }
+:global(.account-recovery-modal .recovery-result > strong) { color: #60391f; font-size: 21px; }
+:global(.account-recovery-modal .recovery-result > p) { margin: 0; color: #db3c35; }
+:global(.account-recovery-modal .recovery-result__actions) { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 46px; border-top: 1px solid #eadaca; padding-top: 38px; }
+:global(.account-recovery-modal .recovery-result__actions .button) { min-height: 42px; justify-content: center; }
+
+/* 비밀번호 인증 성공 뒤에는 재설정 입력 두 개만 표시한다. */
+:global(.recovery-reset-password .recovery-form > .field) { grid-template-columns: 130px minmax(0, 1fr); }
+:global(.recovery-reset-password .recovery-form > .button--large) { margin-top: 30px; }
+@media (max-width: 650px) {
+  :global(.account-recovery-modal) { padding: 34px 22px 28px; }
+  :global(.account-recovery-modal .field), :global(.recovery-reset-password .recovery-form > .field) { grid-template-columns: 1fr; gap: 7px; }
+  :global(.account-recovery-modal .field-row) { grid-template-columns: 1fr; }
+  :global(.account-recovery-modal .inline-alert) { margin-left: 0; }
+}

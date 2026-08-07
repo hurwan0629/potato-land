@@ -110,17 +110,18 @@ export function formatRelativeTime(value, now) {
   return "";
 }
 
+function padTime(value) {
+  return String(value).padStart(2, "0");
+}
+
 export function formatRemainingTime(endsAt, now) {
   const endTime = new Date(endsAt).getTime();
   if (Number.isNaN(endTime)) {
     return "종료 시간 미정";
   }
 
-  if (!Number.isFinite(now)) {
-    return `${formatDate(endsAt, { withTime: true })} 마감`;
-  }
-
-  const remaining = Math.max(0, endTime - now);
+  const currentTime = Number.isFinite(now) ? now : Date.now();
+  const remaining = Math.max(0, endTime - currentTime);
   if (remaining === 0) {
     return "종료됨";
   }
@@ -130,14 +131,9 @@ export function formatRemainingTime(endsAt, now) {
   const hours = Math.floor((totalSeconds % 86400) / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
+  const clock = `${padTime(hours)}:${padTime(minutes)}:${padTime(seconds)}`;
 
-  if (days > 0) {
-    return `${days}일 ${hours}시간 남음`;
-  }
-  if (hours > 0) {
-    return `${hours}시간 ${minutes}분 남음`;
-  }
-  return `${minutes}분 ${seconds}초 남음`;
+  return days > 0 ? `${days}일 ${clock}` : clock;
 }
 
 export function normalizePhone(value) {

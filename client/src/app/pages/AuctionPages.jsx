@@ -35,6 +35,7 @@ import {
   ImageWithFallback,
   InlineAlert,
   LoadingState,
+  ListingTypeSelector,
   Modal,
   PageHeader,
   Pagination,
@@ -306,6 +307,14 @@ export function AuctionDetailPage() {
               ))}
             </div>
           )}
+          <div className="seller-card">
+            <Avatar user={auction.seller} />
+            <div>
+              <p>판매자</p>
+              <Link to={`/mypage/${auction.seller.userIdx}`}>{auction.seller.nickname}</Link>
+              <Rating value={auction.seller.averageRating} reviewCount={auction.seller.reviewCount} compact />
+            </div>
+          </div>
         </div>
 
         <div className="listing-summary">
@@ -349,19 +358,6 @@ export function AuctionDetailPage() {
             </DetailRow>
             <DetailRow label="종료 시간">{formatDate(auction.endsAt, { withTime: true })}</DetailRow>
           </dl>
-
-          <div className="seller-card">
-            <Avatar user={auction.seller} />
-            <div>
-              <p>판매자</p>
-              <Link to={`/mypage/${auction.seller.userIdx}`}>{auction.seller.nickname}</Link>
-              <Rating
-                value={auction.seller.averageRating}
-                reviewCount={auction.seller.reviewCount}
-                compact
-              />
-            </div>
-          </div>
 
           {!auction.viewer.isOwner && (
             <>
@@ -436,6 +432,30 @@ export function AuctionDetailPage() {
               </button>
             </div>
           )}
+
+          <section className="bid-history">
+            <header className="section-heading section-heading--compact">
+              <div><p className="section-heading__eyebrow">입찰 내역</p><h2>현재 순위</h2></div>
+              <History size={22} />
+            </header>
+            {bidRemote.isLoading && <LoadingState label="입찰 내역을 불러오는 중입니다." />}
+            {bidRemote.error && <ErrorState error={bidRemote.error} onRetry={bidRemote.reload} />}
+            {!bidRemote.isLoading && !bidRemote.error && (
+              <>
+                <div className="bid-list">
+                  {(bidRemote.data?.items ?? []).map((bid, index) => (
+                    <article key={bid.bidIdx} className={index === 0 ? "is-leading" : undefined}>
+                      <span className="bid-list__rank">{index === 0 ? <Trophy size={18} /> : index + 1}</span>
+                      <div><strong>{bid.bidderNickname}</strong><small>{formatTime(bid.createdAt)}</small></div>
+                      <b>{formatCurrency(bid.bidAmount)}</b>
+                    </article>
+                  ))}
+                  {(bidRemote.data?.items ?? []).length === 0 && <p>아직 입찰이 없습니다.</p>}
+                </div>
+                <Pagination page={bidRemote.data?.page} totalPages={bidRemote.data?.totalPages} onChange={setBidPage} />
+              </>
+            )}
+          </section>
         </div>
       </section>
 
@@ -445,42 +465,6 @@ export function AuctionDetailPage() {
           <p>{auction.description}</p>
         </section>
 
-        <section className="bid-history">
-          <header className="section-heading section-heading--compact">
-            <div>
-              <p className="section-heading__eyebrow">입찰 내역</p>
-              <h2>현재 순위</h2>
-            </div>
-            <History size={22} />
-          </header>
-
-          {bidRemote.isLoading && <LoadingState label="입찰 내역을 불러오는 중입니다." />}
-          {bidRemote.error && <ErrorState error={bidRemote.error} onRetry={bidRemote.reload} />}
-          {!bidRemote.isLoading && !bidRemote.error && (
-            <>
-              <div className="bid-list">
-                {(bidRemote.data?.items ?? []).map((bid, index) => (
-                  <article key={bid.bidIdx} className={index === 0 ? "is-leading" : undefined}>
-                    <span className="bid-list__rank">
-                      {index === 0 ? <Trophy size={18} /> : index + 1}
-                    </span>
-                    <div>
-                      <strong>{bid.bidderNickname}</strong>
-                      <small>{formatTime(bid.createdAt)}</small>
-                    </div>
-                    <b>{formatCurrency(bid.bidAmount)}</b>
-                  </article>
-                ))}
-                {(bidRemote.data?.items ?? []).length === 0 && <p>아직 입찰이 없습니다.</p>}
-              </div>
-              <Pagination
-                page={bidRemote.data?.page}
-                totalPages={bidRemote.data?.totalPages}
-                onChange={setBidPage}
-              />
-            </>
-          )}
-        </section>
       </div>
 
       {Number(auction.highestBidder?.userIdx) === Number(user?.userIdx) && !isFinished && (
@@ -607,7 +591,25 @@ function AuctionFormBody({ categories, auction }) {
             type="file"
             accept="image/jpeg,image/png,image/gif,image/webp"
             multiple
-            onChange={(event) => setFiles([...(event.target.files ?? [])].slice(0, 4))}
+            onChange={(event) => {
+              const selectedFiles = Array.from(event.target.files ?? []);
+
+              setFiles((currentFiles) => {
+                const mergedFiles = [...currentFiles, ...selectedFiles];
+                const uniqueFiles = mergedFiles.filter(
+                            (file, index, allFiles) => index === allFiles.findIndex(
+                              (candidate) => candidate.name === file.name
+                                          && candidate.size === file.size
+                                          && candidate.lastModified === file.lastModified,
+                            ),
+                );
+
+                return uniqueFiles.slice(0, 4);
+              });
+
+              // Reset the input so selecting the same file again still emits change.
+              event.target.value = "";
+            }}
           />
         </label>
         <div className="upload-preview-list">
@@ -749,8 +751,9 @@ export function AuctionFormPage() {
     <div className="page-container form-page">
       <PageHeader
         eyebrow="실시간 경매"
-        title={isEdit ? "경매 정보 수정" : "경매 상품 등록"}
-        description="상품 정보를 입력하면 서버가 종료 시각과 실시간 입찰 상태를 관리합니다."
+        title={isEdit ? "경매 수정" : "경매 등록"}
+        description="경매에 등록할 상품 정보를 입력해 주세요."
+        actions={!isEdit ? <ListingTypeSelector type="AUCTION" /> : undefined}
       />
 
       {isLoading && <LoadingState label="경매 등록 화면을 준비하는 중입니다." />}

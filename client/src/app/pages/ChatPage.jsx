@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
-import { ImagePlus, MessageCircle, Search, Send, WalletCards } from "lucide-react";
+import { ImagePlus, Search, Send, WalletCards } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 
 import { chatApi, transactionsApi } from "../../api/appApi";
+import primaryPotato from "../../assets/potato/primary-potato.png";
 import { SOCKET_EVENT } from "../../constants/socketEvents";
 import { useAuth } from "../../context/AuthContext";
 import { useSocket } from "../../context/SocketContext";
@@ -15,6 +16,7 @@ import {
   ErrorState,
   ImageWithFallback,
   LoadingState,
+  Modal,
   Pagination,
   StatusBadge,
 } from "../components/ui";
@@ -57,6 +59,9 @@ export default function ChatPage() {
   const [messageInput, setMessageInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [paymentRequestOpen, setPaymentRequestOpen] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [isCreatingPaymentRequest, setIsCreatingPaymentRequest] = useState(false);
 
   const selectedRoomIdx = Number(chatRoomIdx) || null;
   const currentUserIdx = Number(user?.userIdx);
@@ -312,29 +317,35 @@ export default function ChatPage() {
     }
   };
 
-  const handlePaymentRequest = async () => {
+  const openPaymentRequest = () => {
     if (!room?.listing || !opponent) {
       return;
     }
 
-    const amount = Number(globalThis.prompt(
-      "송금 요청 금액을 입력해주세요.",
-      room.listing.displayPrice ?? "",
-    ));
-    if (!Number.isSafeInteger(amount) || amount < 0) {
-      notify("올바른 금액을 입력해주세요.", "error");
+    setPaymentAmount(String(room.listing.displayPrice ?? ""));
+    setPaymentRequestOpen(true);
+  };
+
+  const handlePaymentRequest = async () => {
+    const amount = Number(paymentAmount);
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+      notify("올바른 송금 요청 금액을 입력해주세요.", "error");
       return;
     }
 
+    setIsCreatingPaymentRequest(true);
     try {
       const transaction = await transactionsApi.createPaymentRequest({
         listingIdx: room.listing.listingIdx,
         buyerIdx: opponent.userIdx,
         amount,
       });
+      setPaymentRequestOpen(false);
       navigate(`/payment/${transaction.transactionIdx}`);
     } catch (error) {
       notify(error.message, "error");
+    } finally {
+      setIsCreatingPaymentRequest(false);
     }
   };
 
@@ -408,8 +419,8 @@ export default function ChatPage() {
         {!selectedRoomIdx && (
           <EmptyState
             title="대화를 선택해주세요."
-            description="왼쪽 채팅 목록에서 대화를 선택하면 메시지가 표시됩니다."
-            action={<MessageCircle size={42} />}
+            description="판매자와 상품에 대해 편하게 이야기해 보세요!"
+            action={<img className="chat-empty-potato" src={primaryPotato} alt="" />}
           />
         )}
 
@@ -433,7 +444,7 @@ export default function ChatPage() {
               <div className="chat-panel__header-actions">
                 <StatusBadge status={room.listing?.status} />
                 {room.canCreatePaymentRequest && (
-                  <button type="button" className="button button--small" onClick={handlePaymentRequest}>
+                  <button type="button" className="button button--small" onClick={openPaymentRequest}>
                     <WalletCards size={17} />
                     송금 요청
                   </button>
@@ -450,7 +461,7 @@ export default function ChatPage() {
             <div className="chat-messages" aria-live="polite">
               {messages.length === 0 && (
                 <div className="chat-first-message">
-                  <span aria-hidden="true">🥔</span>
+                  <img src={primaryPotato} alt="" />
                   <strong>첫 메시지를 보내보세요.</strong>
                 </div>
               )}
@@ -565,6 +576,51 @@ export default function ChatPage() {
           </>
         )}
       </section>
+
+      <Modal
+        open={paymentRequestOpen}
+        className="payment-request-modal"
+        title="송금 요청"
+        description={`${opponent?.nickname ?? "구매자"}님에게 요청할 금액을 입력해주세요.`}
+        onClose={() => {
+          if (!isCreatingPaymentRequest) setPaymentRequestOpen(false);
+        }}
+        footer={(
+          <>
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={isCreatingPaymentRequest}
+              onClick={() => setPaymentRequestOpen(false)}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              className="button"
+              disabled={isCreatingPaymentRequest || !paymentAmount}
+              onClick={handlePaymentRequest}
+            >
+              {isCreatingPaymentRequest ? "요청 중..." : "송금 요청 보내기"}
+            </button>
+          </>
+        )}
+      >
+        <label className="form-field">
+          <span>요청 금액</span>
+          <div className="input-suffix">
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={paymentAmount}
+              autoFocus
+              onChange={(event) => setPaymentAmount(event.target.value)}
+            />
+            <span>원</span>
+          </div>
+        </label>
+      </Modal>
     </div>
   );
 }
