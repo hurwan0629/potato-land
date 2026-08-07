@@ -454,3 +454,139 @@
   color: #876a54;
   font-weight: 800;
 }
+
+/* dashboard-chat-modal-hotfix-v1 */
+
+/* Keep the dependency-free SVG charts readable at desktop dashboard widths. */
+:global(.admin-chart-grid > article),
+:global(.time-series-card) {
+  min-height: 0 !important;
+}
+
+:global(.time-series-card) {
+  padding: 28px 30px !important;
+}
+
+:global(.time-series-card__header) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+:global(.time-series-card__header h2) {
+  margin: 0 0 8px;
+  color: #60391f;
+  font-size: 24px;
+}
+
+:global(.time-series-card__header p) {
+  margin: 0;
+  color: #765f4d;
+}
+
+:global(.time-series-card__header > strong) {
+  flex: 0 0 auto;
+  color: #60391f;
+  font-size: 18px;
+}
+
+:global(.time-series-chart) {
+  width: min(100%, 980px);
+  margin: 22px auto 0;
+}
+
+:global(.time-series-chart svg) {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+:global(.time-series-chart__grid) {
+  fill: none;
+  stroke: #eadaca;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+:global(.time-series-chart__axis) {
+  fill: #765f4d;
+  font-family: "Noto Sans KR", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+:global(.time-series-chart__line) {
+  fill: none;
+  stroke: #e8a82c;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+:global(.time-series-chart__point) {
+  fill: #fff;
+  stroke: #e8a82c;
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+:global(.time-series-chart__bar) {
+  fill: #e8a82c;
+}
+
+/* Give conversations more room while keeping the Figma card and sidebar shape. */
+:global(.chat-page) {
+  width: min(1420px, calc(100% - 40px)) !important;
+  grid-template-columns: minmax(330px, 400px) minmax(0, 1fr) !important;
+}
+
+:global(.chat-sidebar),
+:global(.chat-panel) {
+  min-width: 0;
+}
+
+:global(.chat-bubble) {
+  max-width: min(76%, 680px) !important;
+}
+
+/* Align the close control with each fixed account-edit dialog instead of the viewport corner. */
+:global(.account-edit-close) {
+  right: max(22px, calc((100vw - 700px) / 2 + 18px)) !important;
+}
+
+:global(.account-edit-page.mode-profile .account-edit-close) {
+  top: max(30px, calc(50% - 375px + 18px)) !important;
+}
+
+:global(.account-edit-page.mode-account.is-unverified .account-edit-close) {
+  top: max(30px, calc(50% - 270px + 18px)) !important;
+}
+
+:global(.account-edit-page.mode-account.is-verified .account-edit-close) {
+  top: max(30px, calc(50% - 390px + 18px)) !important;
+}
+
+@media (max-width: 900px) {
+  :global(.chat-page) {
+    grid-template-columns: minmax(285px, 340px) minmax(0, 1fr) !important;
+  }
+
+  :global(.time-series-card) {
+    padding: 24px 20px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :global(.chat-page) {
+    width: min(100% - 28px, 680px) !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  :global(.account-edit-close) {
+    right: 28px !important;
+    top: 28px !important;
+  }
+}
