@@ -35,11 +35,11 @@ jobs:
       # DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
 
       REDIS_URL: redis://127.0.0.1:6379
-      REDIS_PASSWORD: ${{ vars.REDIS_PASSWORD }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
       # REDIS_HOST: ${{ vars.REDIS_HOST }}
       # REDIS_PORT: ${{ vars.REDIS_PORT }}
 
-      BCRYPT_SALT_ROUNDS: ${{ secrets.BCRYPT_SALT_ROUNDS }}
+      BCRYPT_SALT_ROUNDS: ${{ vars.BCRYPT_SALT_ROUNDS }}
 
       COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
       COOKIE_HTTP_ONLY: ${{ vars.COOKIE_HTTP_ONLY }}
