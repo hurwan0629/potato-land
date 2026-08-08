@@ -590,3 +590,207 @@
     top: 28px !important;
   }
 }
+
+/* Modal/chat final layout authority. */
+:global(.chat-message) {
+  gap: 10px;
+  min-width: 0;
+}
+
+:global(.chat-message > div) {
+  width: max-content;
+  max-width: min(82%, 760px);
+  min-width: 0;
+  display: grid;
+  justify-items: start;
+}
+
+:global(.chat-message.is-mine > div) {
+  justify-items: end;
+}
+
+:global(.chat-bubble) {
+  width: fit-content;
+  max-width: 100% !important;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+:global(.chat-bubble p) {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+:global(.account-edit-page) {
+  --account-dialog-top-offset: 18px;
+  --account-dialog-right-offset: 18px;
+  --account-dialog-half-height: 390px;
+}
+
+:global(.account-edit-page.mode-profile) {
+  --account-dialog-half-height: 375px;
+}
+
+:global(.account-edit-page.mode-account.is-unverified) {
+  --account-dialog-half-height: 270px;
+}
+
+:global(.account-edit-page.mode-account.is-verified) {
+  --account-dialog-half-height: min(390px, calc(50vh - 20px));
+}
+
+:global(.account-edit-close) {
+  left: auto !important;
+  right: max(18px, calc(50vw - 350px + var(--account-dialog-right-offset))) !important;
+  top: max(18px, calc(50vh - var(--account-dialog-half-height) + var(--account-dialog-top-offset))) !important;
+}
+
+@media (max-width: 760px) {
+  :global(.chat-message > div) {
+    max-width: min(88%, 100%);
+  }
+
+  :global(.account-edit-close) {
+    right: 24px !important;
+    top: 24px !important;
+  }
+}
+
+/* Admin/payment/auth final fixes. */
+:global(.admin-table) {
+  table-layout: fixed;
+}
+
+:global(.admin-table th:nth-child(1)),
+:global(.admin-table td:nth-child(1)) {
+  width: 18%;
+}
+
+:global(.admin-table th:nth-child(3)),
+:global(.admin-table td:nth-child(3)) {
+  width: 24%;
+}
+
+:global(.admin-table td:nth-child(3) > span),
+:global(.admin-table td:nth-child(3) > small) {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+:global(.admin-table td:nth-child(3) > small) {
+  margin-top: 3px;
+  color: #8d7867;
+}
+
+:global(.status-badge--banned) {
+  color: #fff !important;
+  background: #d95055 !important;
+}
+
+:global(.pagination) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+:global(.pagination .icon-button),
+:global(.pagination__number) {
+  flex: 0 0 auto;
+}
+
+:global(.payment-participants) {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 14px;
+}
+
+:global(.payment-participants > h2),
+:global(.payment-participants > .payment-actions) {
+  grid-column: 1 / -1;
+}
+
+:global(.payment-participants .participant-card) {
+  width: 100%;
+  min-width: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+
+:global(.participant-card > div) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+:global(.participant-card strong),
+:global(.participant-card small),
+:global(.participant-card span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.toast-stack) {
+  position: fixed !important;
+  z-index: 180 !important;
+  right: 24px;
+  bottom: 24px;
+  width: min(380px, calc(100vw - 32px));
+  display: grid;
+  gap: 10px;
+  pointer-events: none;
+}
+
+:global(.toast) {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #eadaca;
+  border-radius: 12px;
+  padding: 12px 12px;
+  color: #60391f;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 18%);
+  pointer-events: auto;
+}
+
+:global(.toast p) {
+  margin: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+:global(.toast--error) {
+  border-color: #efb8bb;
+  color: #a83238;
+  background: #fff1f2;
+}
+
+:global(.toast--success) {
+  border-color: #b9dfc6;
+  color: #287b46;
+  background: #f0fbf3;
+}
+
+:global(.account-edit-page) {
+  --account-dialog-top-offset: 22px;
+  --account-dialog-right-offset: 22px;
+}
+
+@media (max-width: 760px) {
+  :global(.payment-participants) {
+    grid-template-columns: 1fr;
+  }
+
+  :global(.toast-stack) {
+    right: 16px;
+    bottom: 16px;
+  }
+}

@@ -82,10 +82,10 @@ export const env = {
   },
 
   redis: {
-    url: required("REDIS_URL"),
-    // host: required("REDIS_HOST", "127.0.0.1"),
-    // port: requiredInt("REDIS_PORT", 6379),
-    // password: required("REDIS_PASSWORD"), 
+    // url: required("REDIS_URL"),
+    host: required("REDIS_HOST", "127.0.0.1"),
+    port: requiredInt("REDIS_PORT", 6379),
+    password: required("REDIS_PASSWORD"), 
   },
 
   jwt: {

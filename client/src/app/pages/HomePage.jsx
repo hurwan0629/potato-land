@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { Link, useNavigate } from "react-router";
-import { Gavel, Search, ShoppingBag } from "lucide-react";
+import { Link } from "react-router";
+import { Gavel, ShoppingBag } from "lucide-react";
 
 import { mainApi } from "../../api/appApi";
 import primaryPotato from "../../assets/potato/primary-potato.png";
@@ -21,7 +21,6 @@ function HomeSection({ title, items }) {
 }
 
 export default function HomePage() {
-  const navigate = useNavigate();
   const loadHome = useCallback(async () => {
     const [home, categories] = await Promise.all([
       mainApi.get(4),
@@ -35,12 +34,6 @@ export default function HomePage() {
 
   const { data, error, isLoading, reload } = useRemote(loadHome);
 
-  const handleHeroSearch = (event) => {
-    event.preventDefault();
-    const query = new FormData(event.currentTarget).get("q")?.toString().trim();
-    navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/search");
-  };
-
   return (
     <div className="home-page">
       <section className="hero-section">
@@ -50,12 +43,6 @@ export default function HomePage() {
             필요한 물건은 합리적으로,<br />
             특별한 물건은 경매로 만나보세요!
           </p>
-
-          <form className="hero-search" onSubmit={handleHeroSearch}>
-            <Search size={21} />
-            <input name="q" placeholder="찾고 싶은 물건을 검색해보세요" />
-            <button type="submit">검색</button>
-          </form>
 
           <div className="hero-actions">
             <Link to="/search" className="button">

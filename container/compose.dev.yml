@@ -1,27 +1,27 @@
 # 개발용 컨테이너 및 컴포스 파일
 # docker compose --env-file ./backend/.env.development -f ./container/compose.dev.yml up -d
 services:
-  postgres:
-    image: postgres:17
-    container_name: potato-land-db
-    ports:
-      - "127.0.0.1:${DATABASE_PORT}:5432"
-    environment:
-      POSTGRES_DB: ${DATABASE_NAME}
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+  # postgres:
+  #   image: postgres:17
+  #   container_name: potato-land-db
+  #   ports:
+  #     - "127.0.0.1:${DATABASE_PORT}:5432"
+  #   environment:
+  #     POSTGRES_DB: ${DATABASE_NAME}
+  #     POSTGRES_USER: ${DATABASE_USER}
+  #     POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
 
-    healthcheck:
-      test: [
-        "CMD-SHELL",
-        "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"
-      ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  #   healthcheck:
+  #     test: [
+  #       "CMD-SHELL",
+  #       "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"
+  #     ]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
     
-    volumes:
-      - potato_land_postgres_data:/var/lib/postgresql/data
+  #   volumes:
+  #     - potato_land_postgres_data:/var/lib/postgresql/data
     
   redis:
     image: redis:7
