@@ -369,8 +369,11 @@ export async function createAuctionBid(
   listingIdxValue,
   body = {},
 ) {
+  // 유효성 검사
   const listingIdx = validateListingIdx(listingIdxValue);
   const bidAmount = validateBidAmount(body.bidAmount);
+
+  // 
   const result = await insertBid({
     listingIdx,
     bidderIdx: userIdx,
