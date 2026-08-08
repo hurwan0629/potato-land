@@ -702,7 +702,7 @@ export async function finalizeAuctionRecord(listingIdx) {
           LIMIT 1
         ) thumbnail ON TRUE
         WHERE auction.listing_idx = $1
-        FOR UPDATE
+        FOR UPDATE OF auction
       `,
       [listingIdx],
     );
