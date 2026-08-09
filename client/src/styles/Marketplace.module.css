@@ -1,0 +1,319 @@
+.page { width: min(1126px, calc(100% - 48px)); margin: 0 auto; padding: 30px 0 10px; }
+.moduleRoot { --marketplace-module-ready: 1; }
+.heading { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 30px; }
+.title { margin: 0 0 8px; font-size: 38px; font-weight: 900; }
+.subtitle { color: #765f4d; }
+.hero { position: relative; min-height: 430px; overflow: hidden; border-radius: 44px; padding: 65px 78px; background: #ffd36d url("../assets/potato/home-hero-potato.png") center/cover no-repeat; }
+.heroCopy { position: relative; z-index: 1; width: 58%; }
+.heroTitle { margin: 0 0 26px; font-size: 48px; line-height: 1.25; font-weight: 900; }
+.heroSearch { display: flex; max-width: 570px; margin-top: 30px; padding: 4px; border: 2px solid #684027; border-radius: 12px; background: #fff; }
+.searchInput { flex: 1; min-width: 0; border: 0; padding: 12px 16px; font: inherit; outline: none; }
+.toolbar { padding: 28px 32px; border: 1px solid #eadaca; border-radius: 14px; background: #fff; box-shadow: 0 5px 14px rgb(75 43 24 / 14%); }
+.categoryRow { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.category { border: 1px solid #eadaca; border-radius: 999px; padding: 9px 18px; color: #765039; background: #fff; }
+.categoryActive { border-color: #ffb632; color: #fff; background: #ffb632; }
+.resultHeader { display: flex; align-items: center; justify-content: space-between; margin: 34px 0 22px; }
+.grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px 30px; }
+.card { overflow: hidden; border-radius: 13px; color: #4b2b18; background: #fff; box-shadow: 0 4px 12px rgb(75 43 24 / 12%); text-decoration: none; }
+.cardImage { position: relative; aspect-ratio: 1.2; overflow: hidden; margin: 10px; border-radius: 10px; background: #f1cf8e; }
+.auctionImage { background: #cfcaef; }
+.cardImage img { width: 100%; height: 100%; object-fit: cover; }
+.cardBody { padding: 4px 12px 13px; }
+.cardTitle { margin: 5px 0 8px; font-size: 16px; }
+.cardPrice { font-size: 21px; font-weight: 900; }
+.cardMeta { display: flex; justify-content: space-between; margin-top: 12px; color: #aa998c; font-size: 12px; }
+.empty { min-height: 520px; display: grid; place-items: center; font-size: 28px; font-weight: 800; }
+.pagination { display: flex; justify-content: center; gap: 12px; margin: 54px 0; }
+.pageButton { width: 34px; height: 34px; border: 1px solid #eadaca; border-radius: 7px; background: #fff; }
+.pageButtonActive { border-color: #ffb632; color: #fff; background: #ffb632; }
+
+@media (max-width: 850px) { .grid { grid-template-columns: repeat(2, 1fr); } .heroCopy { width: 100%; } }
+@media (max-width: 520px) { .page { width: calc(100% - 28px); } .grid { grid-template-columns: 1fr; } }
+
+:global(.guest-home) { background: #fffaf1; }
+:global(.guest-hero) { width: min(1180px, calc(100% - 40px)); min-height: 460px; margin: 28px auto 55px; display: grid; grid-template-columns: 54% 46%; overflow: hidden; border-radius: 42px; background: linear-gradient(135deg, #ffd974, #ffc14c); box-shadow: 0 12px 32px rgb(112 67 28 / 15%); }
+:global(.guest-hero-copy) { position: relative; z-index: 2; align-self: center; padding: 58px 0 58px 70px; }
+:global(.guest-hero-copy h1) { margin-bottom: 18px; color: #4b2b18; font-size: clamp(36px, 4vw, 56px); line-height: 1.2; }
+:global(.guest-hero-copy p) { color: #68462e; font-size: 20px; line-height: 1.7; }
+:global(.guest-search) { display: flex; max-width: 600px; align-items: center; gap: 10px; margin-top: 28px; border: 2px solid #684027; border-radius: 13px; padding: 5px 5px 5px 16px; background: #fff; }
+:global(.guest-search input) { flex: 1; min-width: 0; border: 0; outline: 0; }
+:global(.guest-search button) { min-height: 43px; border: 0; border-radius: 9px; padding: 0 22px; color: #fff; background: #664027; font-weight: 800; }
+:global(.guest-hero-buttons) { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+:global(.guest-hero-buttons button) { min-height: 47px; display: flex; align-items: center; gap: 8px; border: 1px solid rgb(92 54 29 / 22%); border-radius: 11px; padding: 0 18px; color: #56321d; background: rgb(255 255 255 / 78%); font-weight: 800; }
+:global(.guest-hero-mascot) { display: grid; place-items: end center; overflow: hidden; }
+:global(.guest-potato) { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+:global(.guest-catalog) { width: min(1126px, calc(100% - 48px)); margin: 0 auto; }
+:global(.guest-section) { margin: 0 0 54px; }
+:global(.guest-section h2) { margin-bottom: 22px; font-size: 27px; }
+:global(.guest-grid), :global(.product-grid), :global(.catalog-grid), :global(.auction-grid) { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 24px; }
+:global(.guest-card), :global(.product-card), :global(.auction-card) { overflow: hidden; border: 1px solid #eadaca; border-radius: 14px; color: #4b2b18; background: #fff; box-shadow: 0 5px 13px rgb(75 43 24 / 11%); cursor: pointer; }
+:global(.guest-card-image), :global(.product-card__media), :global(.auction-card-image) { position: relative; aspect-ratio: 1.25; overflow: hidden; margin: 9px; border-radius: 10px; background: #f2d391; }
+:global(.guest-card-image.auction), :global(.auction-card-image) { background: #d5cef2; }
+:global(.guest-card-image img), :global(.product-card__image), :global(.auction-card-image img) { width: 100%; height: 100%; object-fit: cover; }
+:global(.guest-card > p), :global(.guest-card > strong) { display: block; margin: 9px 13px; }
+:global(.guest-card > strong), :global(.product-card__price) { font-size: 20px; }
+:global(.guest-card-meta), :global(.product-card__meta) { display: flex; justify-content: space-between; gap: 10px; padding: 4px 13px 15px; color: #a18d7d; font-size: 12px; }
+:global(.catalog-page), :global(.auction-page), :global(.listing-detail), :global(.form-page) { width: min(1126px, calc(100% - 48px)); margin: 0 auto; padding: 38px 0; }
+:global(.catalog-toolbar), :global(.auction-toolbar), :global(.listing-form) { display: grid; gap: 18px; }
+:global(.form-grid) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+:global(.field), :global(.form-field) { display: grid; gap: 8px; font-weight: 700; }
+:global(.field input), :global(.field select), :global(.field textarea), :global(.form-field input), :global(.form-field textarea) { width: 100%; border: 1px solid #dec5aa; border-radius: 10px; padding: 14px 16px; outline: 0; background: #fff; }
+
+@media (max-width: 850px) {
+  :global(.guest-hero) { grid-template-columns: 1fr; }
+  :global(.guest-hero-copy) { padding: 46px 30px 10px; }
+  :global(.guest-hero-mascot) { height: 280px; }
+  :global(.guest-grid), :global(.product-grid), :global(.catalog-grid), :global(.auction-grid) { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 최종 우선순위 보정 */
+:global(.home-page .hero-section) { grid-template-columns: 58% 42%; background: #ffd069; }
+:global(.home-page .hero-section__visual) { overflow: hidden; }
+:global(.home-page .potato-mascot) { position: static; inset: auto; width: 100%; height: 100%; display: grid; place-items: end center; }
+:global(.home-page .potato-mascot img) { width: 94%; height: 94%; object-fit: contain; object-position: center bottom; border-radius: 0; }
+:global(.home-page .hero-actions .button) { display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+:global(.product-card__body h3), :global(.product-card__price) { margin-left: 8px; }
+:global(.catalog-page .page-header__actions .button) { display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+:global(.form-page .listing-form) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1px solid #80634d; border-radius: 12px; padding: 30px; background: #fff; }
+:global(.form-page .listing-form .form-card) { border: 0; border-radius: 0; padding: 0 30px; box-shadow: none; }
+:global(.form-page .listing-form .form-card:first-child) { border-right: 1px solid #eadaca; }
+:global(.form-page .listing-form .form-card > header) { display: none; }
+:global(.form-page .listing-form .form-grid) { grid-template-columns: 1fr; padding-top: 0; }
+:global(.form-page .listing-form .field--wide) { grid-column: auto; }
+:global(.form-page .listing-form > .inline-alert) { grid-column: 1; margin: 14px 30px 0; }
+:global(.form-page .listing-form > .form-actions) { grid-column: 1 / -1; margin-top: 30px; }
+@media (max-width: 800px) {
+  :global(.form-page .listing-form) { grid-template-columns: 1fr; padding: 20px; }
+  :global(.form-page .listing-form .form-card:first-child) { border-right: 0; border-bottom: 1px solid #eadaca; }
+}
+
+/* 경매 게시글 원본: 좌측 이미지·판매자, 우측 요약·입찰 현황, 하단 설명 */
+:global(.auction-detail-page .listing-detail) { grid-template-columns: 56% 44%; align-items: start; }
+:global(.auction-detail-page .image-gallery > .seller-card) { min-height: 92px; margin-top: 18px; padding: 18px 24px; }
+:global(.auction-detail-page .listing-summary) { padding: 25px 28px; }
+:global(.auction-detail-page .listing-summary .bid-history) { margin-top: 18px; padding: 14px; box-shadow: none; }
+:global(.auction-detail-page .bid-form) { display: grid; grid-template-columns: minmax(0, 1fr) 96px 110px; align-items: end; gap: 10px; }
+:global(.auction-detail-page .bid-form > label) { min-width: 0; display: grid; gap: 6px; }
+:global(.auction-detail-page .bid-form .input-suffix) { min-width: 0; display: flex; align-items: center; gap: 6px; }
+:global(.auction-detail-page .bid-form .input-suffix input) { width: 100%; min-width: 0; height: 44px; border: 1px solid #dec5aa; border-radius: 8px; padding: 0 12px; }
+:global(.auction-detail-page .bid-form > .text-button) { min-height: 44px; display: flex; align-items: center; justify-content: center; padding: 0 5px; color: #765f4d; font-size: 12px; line-height: 1.35; text-align: center; }
+:global(.auction-detail-page .bid-form > .button) { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; white-space: nowrap; }
+:global(.listing-actions .button), :global(.listing-actions > a), :global(.listing-actions > button) { display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-align: center; }
+:global(.auction-detail-page .listing-summary .bid-history .section-heading) { margin-bottom: 10px; }
+:global(.auction-detail-page .listing-summary .bid-history h2) { font-size: 17px; }
+:global(.auction-detail-page .bid-list) { max-height: 245px; overflow-y: auto; }
+:global(.auction-detail-page .bid-list article) { min-height: 37px; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px; border-bottom: 1px solid #eadaca; padding: 5px 8px; }
+:global(.auction-detail-page .bid-list article > div) { display: flex; justify-content: space-between; gap: 10px; }
+:global(.auction-detail-page .bid-history .pagination) { margin: 10px 0 0; }
+:global(.auction-detail-page .detail-columns) { display: block; }
+:global(.auction-detail-page .listing-description) { width: 100%; min-height: 760px; margin-top: 34px; }
+@media (max-width: 800px) {
+  :global(.auction-detail-page .listing-detail) { grid-template-columns: 1fr; }
+  :global(.auction-detail-page .bid-form) { grid-template-columns: 1fr; }
+}
+
+/* 2026-08 피그마 보정: 메인 히어로·카드·등록 화면 */
+:global(.listing-type-selector) { position: relative; min-width: 265px; }
+:global(.listing-type-selector > .button) { width: 100%; min-height: 50px; justify-content: space-between; color: #fff; background: #ffb632; }
+:global(.listing-type-selector__chevron) { width: 10px; height: 10px; flex: 0 0 auto; margin: -5px 3px 0 14px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .18s ease; }
+:global(.listing-type-selector > .button[aria-expanded="true"] .listing-type-selector__chevron) { margin-top: 5px; transform: rotate(225deg); }
+:global(.listing-type-selector__menu) { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; width: 141px; height: 72px; }
+:global(.listing-type-selector__menu img) { position: absolute; inset: 0; width: 100%; height: 100%; }
+:global(.listing-type-selector__menu a) { position: absolute; z-index: 1; left: 0; width: 100%; height: 50%; }
+:global(.listing-type-selector__menu a:first-of-type) { top: 0; }
+:global(.listing-type-selector__menu a:last-of-type) { bottom: 0; }
+:global(.hero-section) {
+  grid-template-columns: 58% 42%;
+  background: #ffd069;
+}
+:global(.hero-section__visual) { overflow: hidden; }
+:global(.potato-mascot) { position: static; width: 100%; height: 100%; display: grid; place-items: end center; }
+:global(.potato-mascot img) { width: 94%; height: 94%; object-fit: contain; object-position: center bottom; border-radius: 0; }
+:global(.hero-actions .button),
+:global(.catalog-page .page-header__actions .button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+:global(.product-card__body h3),
+:global(.product-card__price) { margin-left: 8px; }
+:global(.product-card__meta) { padding-left: 8px; }
+
+/* 피그마의 한 장짜리 상품 정보 카드 형태로 기존 두 섹션을 묶어 보이게 한다. */
+:global(.form-page > .page-header) { display: flex; align-items: end; justify-content: space-between; }
+:global(.listing-form) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #80634d;
+  border-radius: 12px;
+  padding: 30px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgb(75 43 24 / 18%);
+}
+:global(.listing-form .form-card) { border: 0; border-radius: 0; padding: 0 30px; box-shadow: none; }
+:global(.listing-form .form-card:first-child) { border-right: 1px solid #eadaca; }
+:global(.listing-form .form-card > header) { display: none; }
+:global(.listing-form .form-card:nth-child(2)::before) { content: "상품 설명"; display: block; margin-bottom: 12px; font-weight: 800; }
+:global(.listing-form .form-grid) { grid-template-columns: 1fr; padding: 0; }
+:global(.listing-form .field--wide) { grid-column: auto; }
+:global(.listing-form .upload-box) { min-height: 132px; margin-top: 0; }
+:global(.listing-form > .inline-alert) { grid-column: 1; margin: 14px 30px 0; }
+:global(.listing-form > .form-actions) { grid-column: 1 / -1; margin-top: 30px; }
+
+@media (max-width: 800px) {
+  :global(.listing-form) { grid-template-columns: 1fr; padding: 20px; }
+  :global(.listing-form .form-card) { padding: 20px 0; }
+  :global(.listing-form .form-card:first-child) { border-right: 0; border-bottom: 1px solid #eadaca; }
+}
+
+/* 피그마 상품 목록·검색·카드 규격 */
+:global(.catalog-page) { width: min(1075px, calc(100% - 48px)); padding-top: 20px; }
+:global(.catalog-page .page-header) { display: flex; align-items: end; justify-content: space-between; margin-bottom: 28px; }
+:global(.catalog-page .page-header__eyebrow) { display: none; }
+:global(.catalog-page .page-header h1) { margin-bottom: 10px; font-size: 36px; }
+:global(.catalog-page .page-header__description) { color: #71513c; font-size: 17px; }
+:global(.catalog-page .page-header__actions .button) { min-width: 195px; color: #fff; background: #60391f; }
+:global(.catalog-page > .tabs) { display: none; }
+:global(.catalog-toolbar) { display: grid; grid-template-columns: 1fr 170px; gap: 14px; border: 0; border-radius: 11px 11px 0 0; padding: 25px 30px 8px; background: #fff; box-shadow: 0 4px 9px rgb(75 43 24 / 20%); }
+:global(.catalog-search) { display: flex; align-items: center; gap: 12px; border: 1px solid #e2ceba; border-radius: 10px; padding-left: 13px; }
+:global(.catalog-search input) { flex: 1; min-width: 0; border: 0; outline: 0; }
+:global(.catalog-search button) { align-self: stretch; width: 165px; border: 0; border-radius: 8px; color: #fff; background: #60391f; font-size: 17px; font-weight: 900; }
+:global(.catalog-toolbar > select) { min-height: 44px; border: 1px solid #ffb632; border-radius: 9px; padding: 0 14px; color: #60391f; background: #fff; }
+:global(.catalog-filter-toggle) { display: none; }
+:global(.catalog-layout) { display: grid; }
+:global(.catalog-filter) { order: -1; border-radius: 0 0 11px 11px; padding: 10px 30px 24px; background: #fff; box-shadow: 0 4px 9px rgb(75 43 24 / 20%); }
+:global(.catalog-filter__group) { display: flex; align-items: center; flex-wrap: wrap; gap: 11px; }
+:global(.catalog-filter__group > strong) { display: none; }
+:global(.catalog-filter__group button) { min-height: 34px; border: 1px solid #e7d7c6; border-radius: 999px; padding: 0 17px; color: #816957; background: #fff; }
+:global(.catalog-filter__group button.is-active) { border-color: #ffb632; color: #fff; background: #ffb632; }
+:global(.catalog-filter__group + .catalog-filter__group) { display: none; }
+:global(.catalog-results__header) { min-height: 95px; display: flex; align-items: end; justify-content: space-between; padding: 28px 0 18px; }
+:global(.catalog-results__header strong), :global(.catalog-results__header span), :global(.catalog-results__header p) { color: #60391f; font-size: 24px; font-weight: 900; }
+:global(.catalog-results .product-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 42px; }
+:global(.product-card__media) { margin: 9px; }
+:global(.product-card__category) { position: absolute; z-index: 2; left: 10px; top: 10px; border-radius: 7px; padding: 4px 16px; color: #60391f; background: #ffb632; font-size: 11px; }
+:global(.product-card__status) { position: absolute; z-index: 2; right: 9px; top: 9px; }
+:global(.product-card__timer) { position: absolute; right: 8px; bottom: 8px; border-radius: 4px; padding: 3px 7px; color: #fff; background: rgb(239 91 96 / 85%); font-size: 10px; font-weight: 900; }
+:global(.product-card__body h3) { margin: 4px 0 9px; font-size: 15px; font-weight: 500; }
+:global(.product-card__price) { font-size: 21px; }
+:global(.pagination) { margin: 44px 0 30px; }
+:global(.pagination button) { width: 32px; height: 32px; border: 1px solid #e5d7ca; border-radius: 6px; background: #fff; }
+:global(.pagination__number.is-active) { border-color: #ffb632; color: #fff; background: #ffb632; }
+
+@media (max-width: 850px) { :global(.catalog-results .product-grid) { grid-template-columns: repeat(2, 1fr); gap: 18px; } :global(.catalog-toolbar) { grid-template-columns: 1fr; } }
+
+/* 피그마 중고·경매 상세 및 등록 폼 */
+:global(.detail-page) { width: min(1075px, calc(100% - 48px)); padding-top: 18px; }
+:global(.detail-breadcrumb) { display: flex; gap: 10px; margin-bottom: 14px; color: #715946; font-size: 13px; }
+:global(.listing-detail) { display: grid; grid-template-columns: 56% 44%; gap: 28px; }
+:global(.image-gallery__main), :global(.listing-summary), :global(.seller-card), :global(.listing-description), :global(.bid-history) { border: 1px solid #decdbd; border-radius: 12px; background: #fff; box-shadow: 0 3px 8px rgb(75 43 24 / 16%); }
+:global(.image-gallery__main) { height: 430px; overflow: hidden; padding: 14px; }
+:global(.image-gallery__main-image) { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; background: #f3d18e; }
+:global(.image-gallery__thumbs) { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 14px; padding: 0 65px; }
+:global(.image-gallery__thumbs button) { aspect-ratio: 1.2; overflow: hidden; border: 2px solid transparent; border-radius: 9px; padding: 0; background: #f3d18e; }
+:global(.image-gallery__thumbs button.is-active) { border-color: #ffb632; }
+:global(.image-gallery__thumbnail) { width: 100%; height: 100%; object-fit: cover; }
+:global(.listing-summary) { padding: 28px; }
+:global(.listing-summary__top) { display: flex; justify-content: space-between; align-items: center; }
+:global(.listing-summary__top > span:first-child) { border-radius: 8px; padding: 5px 12px; color: #9d6a00; background: #fff0c8; font-size: 12px; }
+:global(.listing-summary h1) { margin: 12px 0; font-size: 30px; }
+:global(.listing-summary__price), :global(.auction-price-panel strong) { color: #ff9f13; font-size: 29px; }
+:global(.listing-summary__metrics) { display: flex; flex-wrap: wrap; gap: 14px; border-bottom: 1px solid #eadaca; padding: 13px 0; color: #917d6d; font-size: 12px; }
+:global(.detail-list) { display: grid; gap: 8px; }
+:global(.detail-row) { display: grid; grid-template-columns: 100px 1fr; gap: 10px; padding: 7px 0; }
+:global(.seller-card) { display: flex; align-items: center; gap: 12px; margin: 15px 0; padding: 14px; box-shadow: none; }
+:global(.listing-actions), :global(.bid-form) { display: flex; gap: 12px; margin-top: 12px; }
+:global(.listing-actions > *), :global(.bid-form > *) { flex: 1; }
+:global(.auction-price-panel) { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+:global(.auction-price-panel > div) { display: grid; gap: 5px; }
+:global(.auction-price-panel strong) { font-size: 18px; }
+:global(.auction-timer) { position: absolute; right: 20px; bottom: 18px; border-radius: 9px; padding: 10px 15px; color: #fff; background: #60391f; }
+:global(.image-gallery__main--auction) { position: relative; }
+:global(.detail-columns) { display: grid; grid-template-columns: 1fr; gap: 24px; }
+:global(.listing-description) { min-height: 750px; margin-top: 30px; padding: 35px; }
+:global(.bid-history) { padding: 25px; }
+:global(.form-page) { width: min(1075px, calc(100% - 48px)); }
+:global(.form-page .page-header h1) { font-size: 38px; }
+:global(.listing-form) { margin-top: 30px; }
+:global(.listing-form .form-card) { padding: 32px; }
+:global(.listing-form .form-card > h2) { font-size: 28px; }
+:global(.listing-form .form-grid) { grid-template-columns: 1fr 1fr; padding-top: 15px; }
+:global(.listing-form .field--wide) { grid-column: 1 / -1; }
+:global(.upload-box) { min-height: 130px; display: grid; place-items: center; border: 2px dashed #ffb632; border-radius: 10px; color: #df8c00; background: #fffaf1; }
+:global(.form-actions) { display: flex; justify-content: flex-end; gap: 30px; border-top: 1px solid #eadaca; padding-top: 24px; }
+:global(.form-actions .button) { min-width: 265px; }
+
+@media (max-width: 800px) { :global(.listing-detail), :global(.listing-form .form-grid) { grid-template-columns: 1fr; } :global(.field--wide) { grid-column: auto; } }
+@media (max-width: 520px) { :global(.guest-grid), :global(.product-grid), :global(.catalog-grid), :global(.auction-grid), :global(.form-grid) { grid-template-columns: 1fr; } }
+
+:global(.hero-section) { width: min(1180px, calc(100% - 40px)); min-height: 460px; margin: 28px auto 52px; display: grid; grid-template-columns: 55% 45%; overflow: hidden; border-radius: 42px; background: linear-gradient(135deg, #ffd974, #ffc14c); box-shadow: 0 12px 32px rgb(112 67 28 / 15%); }
+:global(.hero-section__copy) { align-self: center; padding: 58px 0 58px 70px; }
+:global(.hero-section__copy h1) { margin: 8px 0 18px; font-size: clamp(38px, 4vw, 56px); }
+:global(.hero-kicker) { color: #9b6500; font-weight: 900; letter-spacing: .08em; }
+:global(.hero-description) { color: #68462e; font-size: 19px; line-height: 1.7; }
+:global(.hero-actions) { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+:global(.hero-section__visual) { position: relative; display: grid; place-items: end center; overflow: hidden; }
+:global(.potato-mascot) { width: 100%; height: 100%; }
+:global(.potato-mascot img) { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
+:global(.hero-float-card) { position: absolute; display: flex; align-items: center; gap: 7px; border-radius: 12px; padding: 11px 14px; background: rgb(255 255 255 / 88%); box-shadow: 0 8px 20px rgb(75 43 24 / 15%); font-weight: 800; }
+:global(.hero-float-card--chat) { top: 72px; left: 20px; }
+:global(.hero-float-card--safe) { right: 28px; bottom: 72px; }
+:global(.category-strip) { width: min(1126px, calc(100% - 48px)); margin: 0 auto 45px; display: flex; align-items: center; gap: 20px; border: 1px solid #eadaca; border-radius: 14px; padding: 18px 24px; background: #fff; }
+:global(.category-strip > span) { flex: 0 0 auto; font-weight: 900; }
+:global(.category-strip > div) { display: flex; flex-wrap: wrap; gap: 9px; }
+:global(.category-strip button) { border: 1px solid #eadaca; border-radius: 999px; padding: 8px 14px; color: #765039; background: #fffaf1; }
+:global(.home-section) { width: min(1126px, calc(100% - 48px)); margin: 0 auto 56px; }
+:global(.section-heading) { display: flex; align-items: end; justify-content: space-between; gap: 25px; margin-bottom: 22px; }
+:global(.section-heading__eyebrow) { margin-bottom: 6px; color: #d88a00; font-weight: 900; }
+:global(.section-heading h2) { margin-bottom: 6px; font-size: 28px; }
+:global(.text-link) { display: inline-flex; align-items: center; gap: 6px; color: #8a664d; font-weight: 800; }
+
+@media (max-width: 850px) { :global(.hero-section) { grid-template-columns: 1fr; } :global(.hero-section__copy) { padding: 45px 30px 10px; } :global(.hero-section__visual) { height: 290px; } }
+
+/* Figma 메인 페이지 최종 규격 */
+:global(.home-page) { padding-top: 0; background: #fffaf1; }
+:global(.hero-section) { position: relative; width: min(1098px, calc(100% - 80px)); min-height: 480px; margin: 0 auto 84px; grid-template-columns: 62% 38%; border-radius: 45px; background: linear-gradient(100deg, rgb(255 247 215 / 90%), rgb(255 190 69 / 90%)); box-shadow: none; }
+:global(.hero-section__copy) { z-index: 2; padding: 72px 0 58px 94px; }
+:global(.hero-section__copy h1) { margin: 0 0 27px; font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 47px; letter-spacing: -.04em; }
+:global(.hero-description) { font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 20px; line-height: 1.65; }
+:global(.hero-search) { max-width: 600px; margin-top: 34px; border-color: #60391f; border-radius: 10px; }
+:global(.hero-search button) { background: #60391f; }
+:global(.hero-actions .button) { min-height: 58px; padding: 0 28px; border: 0; color: #fff; background: #60391f; font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 19px; }
+:global(.hero-section__visual) { overflow: visible; }
+:global(.potato-mascot) { position: absolute; inset: 0 -50px 0 -170px; }
+:global(.potato-mascot img) { object-fit: cover; object-position: 58% center; border-radius: 0 45px 45px 0; }
+:global(.home-section) { margin-bottom: 26px; }
+:global(.section-heading) { margin-bottom: 16px; }
+:global(.section-heading h2) { font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 27px; letter-spacing: -.03em; }
+:global(.home-section .product-grid) { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 42px; }
+:global(.product-card) { border: 0; border-radius: 10px; box-shadow: 0 3px 10px rgb(78 49 29 / 14%); }
+:global(.product-card__media) { aspect-ratio: 1.28; }
+
+@media (max-width: 850px) {
+  :global(.hero-section) { width: calc(100% - 28px); grid-template-columns: 1fr; }
+  :global(.hero-section__copy) { padding: 45px 28px; }
+  :global(.hero-section__visual) { display: none; }
+  :global(.home-section .product-grid) { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+}
+
+/* 요청 이미지 기준 최종 우선순위 */
+:global(.home-page .hero-section) { grid-template-columns: 58% 42%; background: #ffd069; }
+:global(.home-page .hero-section__visual) { overflow: hidden; }
+:global(.home-page .potato-mascot) { position: static; inset: auto; width: 100%; height: 100%; display: grid; place-items: end center; }
+:global(.home-page .potato-mascot img) { width: 94%; height: 94%; object-fit: contain; object-position: center bottom; border-radius: 0; }
+:global(.home-page .hero-actions .button), :global(.catalog-page .page-header__actions .button) { display: inline-flex; align-items: center; justify-content: center; text-align: center; }
+:global(.product-card__body h3), :global(.product-card__price) { margin-left: 8px; }
+:global(.form-page .listing-form) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; border: 1px solid #80634d; border-radius: 12px; padding: 30px; background: #fff; }
+:global(.form-page .listing-form .form-card) { border: 0; border-radius: 0; padding: 0 30px; box-shadow: none; }
+:global(.form-page .listing-form .form-card:first-child) { border-right: 1px solid #eadaca; }
+:global(.form-page .listing-form .form-card > header) { display: none; }
+:global(.form-page .listing-form .form-grid) { grid-template-columns: 1fr; padding-top: 0; }
+:global(.form-page .listing-form .field--wide) { grid-column: auto; }
+:global(.form-page .listing-form > .inline-alert) { grid-column: 1; margin: 14px 30px 0; }
+:global(.form-page .listing-form > .form-actions) { grid-column: 1 / -1; margin-top: 30px; }
+@media (max-width: 800px) {
+  :global(.form-page .listing-form) { grid-template-columns: 1fr; padding: 20px; }
+  :global(.form-page .listing-form .form-card:first-child) { border-right: 0; border-bottom: 1px solid #eadaca; }
+}

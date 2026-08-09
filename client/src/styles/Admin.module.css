@@ -1,0 +1,69 @@
+.layout { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; color: #4b2b18; background: #fffaf1; }
+.moduleRoot { --admin-module-ready: 1; }
+.sidebar { position: sticky; top: 0; height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; padding: 28px 22px; border-right: 1px solid #e1d1c1; background: #fff; box-shadow: 3px 0 12px rgb(75 43 24 / 8%); }
+.logo { display: flex; gap: 10px; align-items: center; margin-bottom: 38px; font-size: 24px; font-weight: 900; }
+.logoImage { width: 48px; height: 58px; object-fit: contain; }
+.nav { display: grid; gap: 13px; }
+.navItem { display: flex; align-items: center; gap: 13px; border: 1px solid #e1d1c1; border-radius: 6px; padding: 12px 16px; color: #61391f; text-decoration: none; }
+.navItemActive { color: #fff; background: #60391f; }
+.sidebarFooter { display: grid; gap: 12px; margin-top: auto; }
+.content { min-width: 0; padding: 34px 42px; }
+.title { margin: 0 0 24px; font-size: 38px; }
+.statGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.statCard { display: flex; align-items: center; gap: 18px; min-height: 120px; border: 1px solid #e1d1c1; border-radius: 14px; padding: 18px 24px; background: #fff; box-shadow: 0 4px 10px rgb(75 43 24 / 12%); }
+.statValue { font-size: 25px; font-weight: 900; }
+.chartCard, .tableCard { margin-top: 30px; border: 1px solid #e1d1c1; border-radius: 16px; padding: 30px; background: #fff; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { border-bottom: 1px solid #eee2d7; padding: 14px 12px; text-align: left; }
+.filters { display: flex; gap: 12px; margin-bottom: 24px; }
+
+@media (max-width: 900px) { .layout { grid-template-columns: 82px 1fr; } .statGrid { grid-template-columns: repeat(2, 1fr); } }
+
+:global(.admin-page) { color: #4b2b18; }
+:global(.admin-secure-badge) { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 8px 13px; color: #fff; background: #60391f; font-size: 13px; font-weight: 800; }
+:global(.admin-panel) { margin-top: 24px; }
+:global(.admin-chart-grid), :global(.mini-stat-grid) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
+:global(.admin-toolbar) { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+:global(.admin-search) { display: flex; align-items: center; gap: 9px; }
+:global(.admin-search input), :global(.admin-search select) { min-height: 42px; border: 1px solid #dec5aa; border-radius: 9px; padding: 0 13px; background: #fff; }
+:global(.admin-table-wrap) { overflow-x: auto; }
+:global(.admin-table) { width: 100%; border-collapse: collapse; }
+:global(.admin-table th), :global(.admin-table td) { border-bottom: 1px solid #eee2d7; padding: 14px 12px; text-align: left; }
+:global(.admin-table th) { color: #765f4d; background: #fff8ed; }
+:global(.table-user), :global(.admin-user-detail__profile) { display: flex; align-items: center; gap: 11px; }
+:global(.admin-user-detail) { display: grid; gap: 18px; margin-top: 22px; border-radius: 14px; padding: 22px; background: #fff8ed; }
+:global(.mini-stat-grid > span) { border-radius: 10px; padding: 14px; text-align: center; background: #fff; }
+:global(.admin-listing-list), :global(.winner-list) { display: grid; gap: 12px; }
+:global(.admin-listing-list > article), :global(.winner-list > article) { display: grid; grid-template-columns: 120px 1fr auto; gap: 18px; align-items: center; border-bottom: 1px solid #eee2d7; padding: 14px 0; }
+:global(.admin-listing-list__image) { width: 120px; height: 88px; border-radius: 9px; object-fit: cover; }
+:global(.winner-list__icon) { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 50%; color: #a56b00; background: #ffe7a6; }
+
+@media (max-width: 760px) { :global(.admin-chart-grid), :global(.mini-stat-grid) { grid-template-columns: 1fr; } :global(.admin-toolbar) { align-items: stretch; flex-direction: column; } }
+
+/* 피그마 관리자 페이지 최종 규격 */
+:global(.admin-page) { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; padding: 16px; gap: 30px; background: #fffaf1; }
+:global(.admin-sidebar) { position: sticky; top: 16px; height: calc(100vh - 32px); display: flex; flex-direction: column; border: 1px solid #d9cbbb; border-radius: 14px; background: #fff; box-shadow: 3px 4px 8px rgb(75 43 24 / 22%); }
+:global(.admin-brand) { min-height: 135px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #e5d8cc; padding: 22px; }
+:global(.admin-brand img) { width: 55px; height: 70px; object-fit: contain; }
+:global(.admin-brand strong), :global(.admin-brand span) { display: block; color: #60391f; }
+:global(.admin-brand strong) { font-family: "Jua", "Noto Sans KR", sans-serif; font-size: 26px; }
+:global(.admin-brand span) { margin-top: 5px; font-weight: 900; }
+:global(.admin-sidebar .tabs) { display: grid; gap: 12px; padding: 32px 22px; }
+:global(.admin-sidebar .tabs__button) { min-height: 42px; border: 1px solid #dfd2c5; border-radius: 5px; color: #60391f; background: #fff; text-align: left; }
+:global(.admin-sidebar .tabs__button.is-active) { color: #fff; background: #60391f; }
+:global(.admin-sidebar__footer) { margin-top: auto; padding: 22px; }
+:global(.admin-sidebar__footer a) { display: block; border: 1px solid #dfd2c5; border-radius: 5px; padding: 11px 15px; }
+:global(.admin-content) { min-width: 0; }
+:global(.admin-content > .page-header) { min-height: 75px; display: flex; align-items: center; justify-content: space-between; }
+:global(.admin-content > .page-header h1) { font-size: 38px; }
+:global(.admin-panel) { border: 1px solid #d9cbbb; border-radius: 14px; padding: 30px; background: #fff; box-shadow: 3px 4px 8px rgb(75 43 24 / 20%); }
+:global(.admin-panel > .stat-grid) { grid-template-columns: repeat(4, 1fr); }
+:global(.admin-panel .stat-card) { min-height: 130px; border-radius: 14px; }
+:global(.admin-panel .stat-card:nth-child(1)) { background: #fff5dc; }
+:global(.admin-panel .stat-card:nth-child(2)) { background: #edf7f1; }
+:global(.admin-panel .stat-card:nth-child(3)) { background: #f1effc; }
+:global(.admin-panel .stat-card:nth-child(4)) { background: #fdebed; }
+:global(.admin-chart-grid) { grid-template-columns: 1fr; }
+:global(.admin-chart-grid > article) { min-height: 560px; }
+
+@media (max-width: 900px) { :global(.admin-page) { grid-template-columns: 82px 1fr; } :global(.admin-brand div), :global(.admin-sidebar .tabs__button) { font-size: 0; } }

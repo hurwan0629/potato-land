@@ -126,7 +126,7 @@ Worker는 stream을 읽어 DB 저장과 재시도를 담당한다.
 ## 13. 관련 API
 
 - `GET /api/auctions`
-- `POST /api/auction`
+- `POST /api/auctions`
 - `GET /api/auctions/:listingIdx`
 - `PATCH /api/auctions/:listingIdx`
 - `DELETE /api/auctions/:listingIdx`

@@ -1,0 +1,6 @@
+import { useEffect,useState } from "react";
+import { adminApi } from "../../api/adminApi";
+import SideMenu from "../../components/layout/sideMenu";
+
+const menus=["dashboard","users","used","auctions"];
+export default function Admin(){const[view,setView]=useState("dashboard");const[data,setData]=useState(null);const[error,setError]=useState("");useEffect(()=>{const request=view==="dashboard"?adminApi.dashboard({interval:"DAY"}):adminApi[view]({page:1});request.then((r)=>setData(r.data)).catch((e)=>setError(e.message));},[view]);const menuItems=[{to:"/admin",label:"대시보드"}];return <div style={{display:"flex"}}><SideMenu items={menuItems}/><div style={{padding:40,flex:1}}><h2>관리자</h2><nav>{menus.map((name)=><button key={name} onClick={()=>setView(name)}>{name}</button>)}</nav>{error&&<p role="alert">{error}</p>}{view==="dashboard"&&data&&<dl><dt>활성 회원</dt><dd>{data.activeUserCount}</dd><dt>상품</dt><dd>{data.totalListingCount}</dd><dt>완료 거래</dt><dd>{data.completedTransactionCount}</dd><dt>완료 금액</dt><dd>{Number(data.totalCompletedAmount).toLocaleString()}원</dd></dl>}{view!=="dashboard"&&<ul>{data?.items?.map((item)=><li key={item.userIdx??item.listingIdx}>{item.nickname??item.title} · {item.status??item.tradeStatus??item.auctionStatus}</li>)}</ul>}</div></div>;}

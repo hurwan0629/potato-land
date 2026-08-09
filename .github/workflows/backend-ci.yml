@@ -1,0 +1,103 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+jobs:
+  test:
+    environment: test
+    env:
+      NODE_ENV: test
+
+      HOST: ${{ vars.HOST }}
+      PORT: ${{ vars.PORT }}
+      CLIENT_ORIGIN: ${{ vars.CLIENT_ORIGIN }}
+
+      DATABASE_URL: postgresql://${{ vars.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@127.0.0.1:5432/${{ vars.DATABASE_NAME }}
+      # DATABASE_HOST: ${{ vars.DATABASE_HOST }}
+      # DATABASE_PORT: ${{ vars.DATABASE_PORT }}
+      # DATABASE_NAME: ${{ vars.DATABASE_NAME }}
+      # DATABASE_USER: ${{ vars.DATABASE_USER }}
+      # DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+
+      REDIS_URL: redis://127.0.0.1:6379
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      # REDIS_HOST: ${{ vars.REDIS_HOST }}
+      # REDIS_PORT: ${{ vars.REDIS_PORT }}
+
+      BCRYPT_SALT_ROUNDS: ${{ vars.BCRYPT_SALT_ROUNDS }}
+
+      COOKIE_SECURE: ${{ vars.COOKIE_SECURE }}
+      COOKIE_HTTP_ONLY: ${{ vars.COOKIE_HTTP_ONLY }}
+      COOKIE_SAME_SITE: ${{ vars.COOKIE_SAME_SITE }}
+      
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      ACCESS_TOKEN_COOKIE_PATH: ${{ vars.ACCESS_TOKEN_COOKIE_PATH }}
+      ACCESS_TOKEN_EXPIRES_IN_SEC: ${{ vars.ACCESS_TOKEN_EXPIRES_IN_SEC }}
+
+      REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+      REFRESH_TOKEN_COOKIE_PATH: ${{ vars.REFRESH_TOKEN_COOKIE_PATH }}
+      REFRESH_TOKEN_EXPIRES_IN_SEC: ${{ vars.REFRESH_TOKEN_EXPIRES_IN_SEC }}
+
+      AUCTION_RECOVERY_CRON: ${{ vars.AUCTION_RECOVERY_CRON }}
+
+      UPLOAD_BASE_DIR: ${{ vars.UPLOAD_BASE_DIR }}
+      UPLOAD_LISTING_IMG_DIR: ${{ vars.UPLOAD_LISTING_IMG_DIR }}
+      UPLOAD_PROFILE_IMG_DIR: ${{ vars.UPLOAD_PROFILE_IMG_DIR }}
+      UPLOAD_MAX_SIZE_BYTES: ${{ vars.UPLOAD_MAX_SIZE_BYTES }}
+    
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ${{ vars.DATABASE_NAME }}
+          POSTGRES_USER: ${{ vars.DATABASE_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+
+        ports: 
+          - 6379:6379
+
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm test
+
