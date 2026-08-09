@@ -4,12 +4,14 @@ import { getSocketServer } from "../socket.context.js";
 
 // 경매 입찰자 갱신
 export function emitAuctionBidUpdated(listingIdx, payload) {
-  getSocketServer().to(SOCKET_ROOM.auction(listingIdx)).emit(SOCKET_EVENT.AUCTION_BID_UPDATED, payload);
+  getSocketServer().to(SOCKET_ROOM.auction(listingIdx))
+        .emit(SOCKET_EVENT.AUCTION_BID_UPDATED, payload);
 }
 
 // 경매 최고 입찰자 갱신
 export function emitAuctionLeaderChanged(listingIdx, payload) {
-  getSocketServer().to(SOCKET_ROOM.auction(listingIdx)).emit(SOCKET_EVENT.AUCTION_LEADER_CHANGED, payload);
+  getSocketServer().to(SOCKET_ROOM.auction(listingIdx))
+      .emit(SOCKET_EVENT.AUCTION_LEADER_CHANGED, payload);
 }
 
 // 경매 종료 (어떤 방식이든)

@@ -12,6 +12,7 @@ import { transactionsRouter } from "../modules/transactions/transactions.router.
 import { usedRouter } from "../modules/used/used.router.js";
 import { usersRouter } from "../modules/users/users.router.js";
 
+/** 도메인별 라우터를 /api 하위 경로로 묶는 최상위 라우터다. */
 export const indexRouter = Router();
 
 // canonical 업무 API는 68개다. 호환 alias와 session 관리 보조 URL, /health는 개수에서 제외한다.

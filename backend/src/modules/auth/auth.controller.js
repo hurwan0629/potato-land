@@ -18,19 +18,34 @@ import {
 import { clearLoginCookies, setLoginCookies } from "./auth.token.js";
 
 /** 회원가입 요청을 처리하고 생성된 사용자 정보를 응답한다. */
-export const signup = asyncHandler(async (req, res) => res.status(201).json({ success: true, data: await signupUser(req.body) }));
+export const signup = asyncHandler(async (req, res) => {
+  const data = await signupUser(req.body);
+  return res.status(201).json({ success: true, data });
+});
 
 /** 요청한 로그인 아이디의 사용 가능 여부를 응답한다. */
-export const checkLoginId = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await checkLoginIdAvailability(req.query.loginId) }));
+export const checkLoginId = asyncHandler(async (req, res) => {
+  const data = await checkLoginIdAvailability(req.query.loginId);
+  return res.status(200).json({ success: true, data });
+});
 
 /** 휴대전화 인증번호를 발송하고 인증 식별자와 유효 시간을 응답한다. */
-export const sendPhoneCode = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await sendPhoneVerification(req.body) }));
+export const sendPhoneCode = asyncHandler(async (req, res) => {
+  const data = await sendPhoneVerification(req.body);
+  return res.status(200).json({ success: true, data });
+});
 
 /** 사용자가 입력한 휴대전화 인증번호를 검증한다. */
-export const verifyPhoneCode = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await verifyPhoneVerification(req.body) }));
+export const verifyPhoneCode = asyncHandler(async (req, res) => {
+  const data = await verifyPhoneVerification(req.body);
+  return res.status(200).json({ success: true, data });
+});
 
 /** 휴대전화 인증 완료 상태와 만료 시각을 조회한다. */
-export const getPhoneStatus = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await getPhoneVerificationStatus(req.query) }));
+export const getPhoneStatus = asyncHandler(async (req, res) => {
+  const data = await getPhoneVerificationStatus(req.query);
+  return res.status(200).json({ success: true, data });
+});
 
 /** 로그인 자격 증명을 확인하고 access/refresh HttpOnly 쿠키를 발급한다. */
 export const login = asyncHandler(async (req, res) => {
@@ -75,10 +90,13 @@ export const logoutAll = asyncHandler(async (req, res) => {
 });
 
 /** 현재 사용자의 기기별 로그인 세션 목록을 조회한다. */
-export const getSessions = asyncHandler(async (req, res) => res.status(200).json({
-  success: true,
-  data: { sessions: await getLoginSessions(req.auth.userIdx, req.auth.sessionId) },
-}));
+export const getSessions = asyncHandler(async (req, res) => {
+  const sessions = await getLoginSessions(req.auth.userIdx, req.auth.sessionId);
+  return res.status(200).json({
+    success: true,
+    data: { sessions },
+  });
+});
 
 /** 선택한 기기의 Refresh 세션을 폐기한다. */
 export const deleteSession = asyncHandler(async (req, res) => {
@@ -90,10 +108,19 @@ export const deleteSession = asyncHandler(async (req, res) => {
 });
 
 /** access token으로 식별한 현재 활성 사용자 정보를 응답한다. */
-export const getMe = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await getAuthenticatedUser(req.auth.userIdx) }));
+export const getMe = asyncHandler(async (req, res) => {
+  const data = await getAuthenticatedUser(req.auth.userIdx);
+  return res.status(200).json({ success: true, data });
+});
 
 /** 본인인증을 완료한 사용자의 로그인 아이디를 조회한다. */
-export const findLoginId = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await findLoginIdByPhone(req.body) }));
+export const findLoginId = asyncHandler(async (req, res) => {
+  const data = await findLoginIdByPhone(req.body);
+  return res.status(200).json({ success: true, data });
+});
 
 /** 본인인증을 완료한 사용자의 비밀번호를 새 값으로 변경한다. */
-export const resetPassword = asyncHandler(async (req, res) => res.status(200).json({ success: true, data: await resetUserPassword(req.body) }));
+export const resetPassword = asyncHandler(async (req, res) => {
+  const data = await resetUserPassword(req.body);
+  return res.status(200).json({ success: true, data });
+});

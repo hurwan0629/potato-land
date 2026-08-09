@@ -18,10 +18,12 @@ import {
   validateUsedUpdate,
 } from "./used.validator.js";
 
+/** 업로드 middleware가 붙인 공개 이미지 URL만 추출한다. */
 function imageUrls(files) {
   return files.map((file) => file.resourceUrl);
 }
 
+/** 목록 화면에서 사용하는 중고상품 요약 DTO로 변환한다. */
 function summaryDto(row) {
   return {
     listingIdx: Number(row.listingIdx),
@@ -39,6 +41,7 @@ function summaryDto(row) {
   };
 }
 
+/** 중고상품 목록 조건을 검증하고 페이지 응답 형태로 반환한다. */
 export async function listUsedListings(query, viewerUserIdx = null) {
   const condition = validateUsedList(query);
   const result = await findUsedListings(condition, viewerUserIdx);
@@ -59,20 +62,41 @@ export async function listUsedListings(query, viewerUserIdx = null) {
 export async function createUsedListing(userIdx, body, files) {
   const data = validateUsedCreate(body, files);
   try {
-    const created = await insertUsedListing({ ...data, sellerIdx: userIdx, imageUrls: imageUrls(files) });
-    return { listingIdx: Number(created.idx), listingType: "USED", tradeStatus: "ON_SALE", createdAt: created.created_at };
+    const created = await insertUsedListing({
+      ...data,
+      sellerIdx: userIdx,
+      imageUrls: imageUrls(files),
+    });
+    return {
+      listingIdx: Number(created.idx),
+      listingType: "USED",
+      tradeStatus: "ON_SALE",
+      createdAt: created.created_at,
+    };
   } catch (error) {
     if (error.code === "23503") {
-      throw new AppError({ status: 400, code: "VALIDATION_ERROR", message: "카테고리를 확인해주세요.", details: { field: "categoryIdx" } });
+      throw new AppError({
+        status: 400,
+        code: "VALIDATION_ERROR",
+        message: "카테고리를 확인해주세요.",
+        details: { field: "categoryIdx" },
+      });
     }
     throw error;
   }
 }
 
+/** 중고상품 상세를 조회하고 조회수 증가분을 응답에 반영한다. */
 export async function getUsedListing(listingIdxValue, viewerUserIdx = null) {
   const listingIdx = validateListingIdx(listingIdxValue);
   const row = await findUsedDetail(listingIdx, viewerUserIdx);
-  if (!row) throw new AppError({ status: 404, code: "NOT_FOUND", message: "중고 상품을 찾을 수 없습니다." });
+  if (!row) {
+    throw new AppError({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "중고 상품을 찾을 수 없습니다.",
+    });
+  }
   await increaseViewCount(listingIdx);
   const isOwner = viewerUserIdx !== null && Number(row.seller_idx) === Number(viewerUserIdx);
   const onSale = row.trade_status === "ON_SALE";
@@ -95,7 +119,11 @@ export async function getUsedListing(listingIdxValue, viewerUserIdx = null) {
       averageRating: Number(row.seller_average_rating),
       reviewCount: Number(row.seller_review_count),
     },
-    images: row.images.map((image) => ({ imageIdx: Number(image.idx), imageUrl: image.image_url, sortOrder: Number(image.sort_order) })),
+    images: row.images.map((image) => ({
+      imageIdx: Number(image.idx),
+      imageUrl: image.image_url,
+      sortOrder: Number(image.sort_order),
+    })),
     viewer: {
       isOwner,
       isFavorite: Boolean(row.is_favorite),
@@ -109,44 +137,109 @@ export async function getUsedListing(listingIdxValue, viewerUserIdx = null) {
   };
 }
 
+/** 판매자 소유와 판매중 상태를 확인한 뒤 중고상품을 수정한다. */
 export async function updateUsedListing(userIdx, listingIdxValue, body, files) {
   const listingIdx = validateListingIdx(listingIdxValue);
   const data = validateUsedUpdate(body, files);
   const current = await findUsedForMutation(listingIdx);
-  if (!current) throw new AppError({ status: 404, code: "NOT_FOUND", message: "중고 상품을 찾을 수 없습니다." });
-  if (Number(current.seller_idx) !== Number(userIdx)) throw new AppError({ status: 403, code: "FORBIDDEN", message: "판매자만 수정할 수 있습니다." });
-  if (current.trade_status !== "ON_SALE") throw new AppError({ status: 409, code: "CONFLICT", message: "판매 중인 상품만 수정할 수 있습니다." });
+  if (!current) {
+    throw new AppError({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "중고 상품을 찾을 수 없습니다.",
+    });
+  }
+  if (Number(current.seller_idx) !== Number(userIdx)) {
+    throw new AppError({
+      status: 403,
+      code: "FORBIDDEN",
+      message: "판매자만 수정할 수 있습니다.",
+    });
+  }
+  if (current.trade_status !== "ON_SALE") {
+    throw new AppError({
+      status: 409,
+      code: "CONFLICT",
+      message: "판매 중인 상품만 수정할 수 있습니다.",
+    });
+  }
   const updatedAt = await updateUsedRecord(listingIdx, data, imageUrls(files));
   return { listingIdx, updated: true, updatedAt };
 }
 
+/** 판매자 또는 관리자인지 확인한 뒤 중고상품을 논리 삭제한다. */
 export async function deleteUsedListing(user, listingIdxValue, body) {
   const listingIdx = validateListingIdx(listingIdxValue);
   const current = await findUsedForMutation(listingIdx);
-  if (!current) throw new AppError({ status: 404, code: "NOT_FOUND", message: "중고 상품을 찾을 수 없습니다." });
+  if (!current) {
+    throw new AppError({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "중고 상품을 찾을 수 없습니다.",
+    });
+  }
   if (Number(current.seller_idx) !== Number(user.userIdx) && user.role !== "ADMIN") {
-    throw new AppError({ status: 403, code: "FORBIDDEN", message: "판매자만 삭제할 수 있습니다." });
+    throw new AppError({
+      status: 403,
+      code: "FORBIDDEN",
+      message: "판매자만 삭제할 수 있습니다.",
+    });
   }
   const deletedAt = await softDeleteUsed(listingIdx, user.userIdx, validateDeleteReason(body));
   return { listingIdx, deleted: true, deletedAt, deletedBy: Number(user.userIdx) };
 }
 
+/** 관심 등록 가능한 중고상품인지 확인한다. */
 async function assertFavoriteTarget(userIdx, listingIdx) {
   const current = await findUsedForMutation(listingIdx);
-  if (!current) throw new AppError({ status: 404, code: "NOT_FOUND", message: "중고 상품을 찾을 수 없습니다." });
-  if (Number(current.seller_idx) === Number(userIdx)) throw new AppError({ status: 409, code: "CONFLICT", message: "본인 상품은 관심 등록할 수 없습니다." });
-  if (current.trade_status !== "ON_SALE") throw new AppError({ status: 409, code: "CONFLICT", message: "판매 중인 상품만 관심 등록할 수 있습니다." });
+  if (!current) {
+    throw new AppError({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "중고 상품을 찾을 수 없습니다.",
+    });
+  }
+  if (Number(current.seller_idx) === Number(userIdx)) {
+    throw new AppError({
+      status: 409,
+      code: "CONFLICT",
+      message: "본인 상품은 관심 등록할 수 없습니다.",
+    });
+  }
+  if (current.trade_status !== "ON_SALE") {
+    throw new AppError({
+      status: 409,
+      code: "CONFLICT",
+      message: "판매 중인 상품만 관심 등록할 수 있습니다.",
+    });
+  }
 }
 
+/** 중고상품 관심 등록 후 최신 관심 수를 반환한다. */
 export async function addUsedFavorite(userIdx, listingIdxValue) {
   const listingIdx = validateListingIdx(listingIdxValue);
   await assertFavoriteTarget(userIdx, listingIdx);
-  return { listingIdx, favorited: true, favoriteCount: await addFavoriteRow(userIdx, listingIdx) };
+  return {
+    listingIdx,
+    favorited: true,
+    favoriteCount: await addFavoriteRow(userIdx, listingIdx),
+  };
 }
 
+/** 중고상품 관심 등록을 해제하고 최신 관심 수를 반환한다. */
 export async function removeUsedFavorite(userIdx, listingIdxValue) {
   const listingIdx = validateListingIdx(listingIdxValue);
   const current = await findUsedForMutation(listingIdx);
-  if (!current) throw new AppError({ status: 404, code: "NOT_FOUND", message: "중고 상품을 찾을 수 없습니다." });
-  return { listingIdx, favorited: false, favoriteCount: await removeFavoriteRow(userIdx, listingIdx) };
+  if (!current) {
+    throw new AppError({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "중고 상품을 찾을 수 없습니다.",
+    });
+  }
+  return {
+    listingIdx,
+    favorited: false,
+    favoriteCount: await removeFavoriteRow(userIdx, listingIdx),
+  };
 }
