@@ -136,6 +136,7 @@ export async function sendPhoneVerification(body) {
 
 /** 사용자가 입력한 인증번호를 검증하고 성공하면 인증 완료 상태를 Redis에 저장한다. */
 export async function verifyPhoneVerification(body) {
+  
   // 1. 인증 목적·식별자·6자리 번호 형식을 검증한다.
   const { phone, purpose, phoneVerificationId, code } = validatePhoneVerify(body);
 
@@ -143,6 +144,7 @@ export async function verifyPhoneVerification(body) {
   const saved = await getPhoneCode(phone, purpose);
   if (!saved) throw new AppError(410, "PHONE_CODE_EXPIRED", "인증번호가 만료되었습니다. 다시 발송해주세요.");
   if (saved.phoneVerificationId !== phoneVerificationId) throw new AppError(400, "PHONE_VERIFICATION_MISMATCH", "현재 발송된 인증번호를 사용해주세요.");
+
   // 3. 입력한 인증번호를 저장된 bcrypt 해시와 비교한다.
   const matches = await bcrypt.compare(code, saved.codeHash);
   if (!matches) {
@@ -152,6 +154,7 @@ export async function verifyPhoneVerification(body) {
     else await updatePhoneCode(phone, purpose, { ...saved, attemptCount });
     throw new AppError(400, "PHONE_CODE_INVALID", "인증번호가 일치하지 않습니다.", { remainingAttempts: Math.max(PHONE_VERIFICATION_POLICY.maxAttempts - attemptCount, 0) });
   }
+
   // 4. 성공 상태는 후속 가입·찾기·수정 요청에서 소비할 수 있도록 별도 저장한다.
   const verifiedAt = new Date();
   await savePhoneVerified({
@@ -165,6 +168,7 @@ export async function verifyPhoneVerification(body) {
       expiresAt: new Date(verifiedAt.getTime() + PHONE_VERIFICATION_POLICY.verifiedTtlSec * 1000).toISOString(),
     },
   });
+
   // 5. 검증에 사용된 인증번호는 즉시 삭제해 다시 사용할 수 없게 한다.
   await deletePhoneCode(phone, purpose);
   return { verified: true, phoneVerificationId, expiresInSeconds: PHONE_VERIFICATION_POLICY.verifiedTtlSec };

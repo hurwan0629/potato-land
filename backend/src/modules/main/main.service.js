@@ -1,6 +1,7 @@
 import { AppError } from "../../common/errors/AppError.js";
 import { findActiveCategories, findMainSections } from "./main.repository.js";
 
+/** 메인 화면 섹션별 노출 개수를 1~20 범위로 제한한다. */
 function parseLimit(value) {
   const limit = Number(value ?? 4);
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > 20) {
@@ -14,6 +15,7 @@ function parseLimit(value) {
   return limit;
 }
 
+/** 여러 메인 섹션에서 공통으로 쓰는 상품 요약 DTO로 변환한다. */
 function normalizeItem(row) {
   return {
     ...row,
@@ -44,7 +46,14 @@ export async function getMainData(query) {
   };
 }
 
+/** 활성 카테고리 목록을 정렬 정보와 함께 반환한다. */
 export async function getCategoriesData() {
   const items = await findActiveCategories();
-  return { items: items.map((item) => ({ ...item, categoryIdx: Number(item.categoryIdx), sortOrder: Number(item.sortOrder) })) };
+  return {
+    items: items.map((item) => ({
+      ...item,
+      categoryIdx: Number(item.categoryIdx),
+      sortOrder: Number(item.sortOrder),
+    })),
+  };
 }

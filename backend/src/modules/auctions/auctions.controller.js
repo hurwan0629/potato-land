@@ -67,6 +67,8 @@ export const deleteAuction = asyncHandler(async (req, res) => {
 
 /** 진행 중 경매에 새 입찰을 등록한다. */
 export const createAuctionBid = asyncHandler(async (req, res) => {
+
+  // 입찰 생성해주기
   const data = await createBidService(
     req.user.userIdx,
     req.params.listingIdx,

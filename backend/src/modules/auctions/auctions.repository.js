@@ -680,6 +680,7 @@ export async function removeAuctionFavoriteRow(userIdx, listingIdx) {
  */
 export async function finalizeAuctionRecord(listingIdx) {
   return withTransaction(async (client) => {
+    // 경매 결과 뽑아주기
     const auctionResult = await client.query(
       `
         SELECT
@@ -702,7 +703,7 @@ export async function finalizeAuctionRecord(listingIdx) {
           LIMIT 1
         ) thumbnail ON TRUE
         WHERE auction.listing_idx = $1
-        FOR UPDATE
+        FOR UPDATE OF auction
       `,
       [listingIdx],
     );
@@ -715,6 +716,7 @@ export async function finalizeAuctionRecord(listingIdx) {
       return { alreadyFinished: true };
     }
 
+    // 낙찰자 정보 뽑기
     const winnerResult = await client.query(
       `
         SELECT
@@ -735,6 +737,7 @@ export async function finalizeAuctionRecord(listingIdx) {
     );
     const winner = winnerResult.rows[0] ?? null;
 
+    // 경매 상태 종료로 만들고 낙찰자 있으면 넣어주기
     await client.query(
       `
         UPDATE auction_posts
@@ -750,6 +753,7 @@ export async function finalizeAuctionRecord(listingIdx) {
     let chatRoom = null;
 
     if (winner && !auction.deleted_at) {
+      // 결제 미리 만들어주기
       const transactionResult = await client.query(
         `
           INSERT INTO transactions (
@@ -772,6 +776,7 @@ export async function finalizeAuctionRecord(listingIdx) {
         ],
       );
 
+      // 경매에 대한 송금정보가 없으면 생성해주기
       transaction = transactionResult.rows[0]
         ?? (
           await client.query(
@@ -790,6 +795,7 @@ export async function finalizeAuctionRecord(listingIdx) {
         ).rows[0]
         ?? null;
 
+      // 채팅방 없을 때에만 만들어주기
       const insertedRoom = await client.query(
         `
           INSERT INTO chat_rooms (listing_idx, buyer_idx)
@@ -804,6 +810,7 @@ export async function finalizeAuctionRecord(listingIdx) {
 
       const roomRow = insertedRoom.rows[0]
         ?? (
+          // 채팅방 조회하기
           await client.query(
             `
               SELECT
@@ -818,6 +825,7 @@ export async function finalizeAuctionRecord(listingIdx) {
         ).rows[0];
 
       if (insertedRoom.rowCount === 1) {
+        // 채팅방 연결 메시지 상단에 올려주기
         const systemMessage = await client.query(
           `
             INSERT INTO chat_messages (
@@ -839,6 +847,7 @@ export async function finalizeAuctionRecord(listingIdx) {
           [roomRow.chatRoomIdx, transaction?.idx ?? null],
         );
 
+        // 채팅방 마지막 메시지 시간 업데이트
         await client.query(
           `
             UPDATE chat_rooms

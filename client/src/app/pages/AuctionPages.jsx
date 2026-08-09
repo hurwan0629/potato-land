@@ -459,6 +459,12 @@ export function AuctionDetailPage() {
         </div>
       </section>
 
+      {Number(auction.highestBidder?.userIdx) === Number(user?.userIdx) && !isFinished && (
+        <InlineAlert tone="success">
+          <Trophy size={19} />
+          현재 회원님이 최고 입찰자입니다.
+        </InlineAlert>
+      )}
       <div className="detail-columns page-section">
         <section className="listing-description">
           <PageHeader eyebrow="상품 설명" title="경매 상품 상세 정보" />
@@ -467,12 +473,6 @@ export function AuctionDetailPage() {
 
       </div>
 
-      {Number(auction.highestBidder?.userIdx) === Number(user?.userIdx) && !isFinished && (
-        <InlineAlert tone="success">
-          <Trophy size={19} />
-          현재 회원님이 최고 입찰자입니다.
-        </InlineAlert>
-      )}
 
       <Modal
         open={deleteModalOpen}

@@ -19,6 +19,7 @@ import {
 
 const log = logger.child("admin-service");
 
+/** 양의 정수 식별자만 통과시키고 잘못된 값은 검증 오류로 변환한다. */
 function positiveInt(value, field) {
   const number = Number(value);
 
@@ -34,6 +35,7 @@ function positiveInt(value, field) {
   return number;
 }
 
+/** 관리자 목록 API의 page, limit, offset 값을 계산한다. */
 function paging(query = {}, fallback = 20) {
   const page = Number(query.page ?? 1);
   const limit = Number(query.limit ?? fallback);
@@ -59,6 +61,7 @@ function paging(query = {}, fallback = 20) {
   };
 }
 
+/** Repository의 rows, totalCount 결과를 공통 페이지 응답 형태로 감싼다. */
 function paged(result, pagingState) {
   return {
     items: result.rows,
@@ -168,6 +171,7 @@ export async function updateUserMemo(userIdxValue, body = {}) {
   };
 }
 
+/** 관리자 게시글 목록의 타입·검색어·페이지 조건을 적용해 조회한다. */
 export async function listAdminListings(listingType, query = {}) {
   const pagingState = paging(query, 20);
   const result = await findAdminListings({
@@ -179,11 +183,13 @@ export async function listAdminListings(listingType, query = {}) {
   return paged(result, pagingState);
 }
 
+/** 종료된 경매 낙찰자 목록을 페이지 단위로 조회한다. */
 export async function listWinners(query = {}) {
   const pagingState = paging(query, 20);
   return paged(await findAuctionWinners(pagingState), pagingState);
 }
 
+/** 특정 회원의 거래 이력을 페이지 단위로 조회한다. */
 export async function listTransactions(userIdxValue, query = {}) {
   const pagingState = paging(query, 20);
   const userIdx = positiveInt(userIdxValue, "userIdx");
@@ -193,6 +199,7 @@ export async function listTransactions(userIdxValue, query = {}) {
   );
 }
 
+/** 특정 회원의 후기 활동 이력을 페이지 단위로 조회한다. */
 export async function listReviews(userIdxValue, query = {}) {
   const pagingState = paging(query, 20);
   const userIdx = positiveInt(userIdxValue, "userIdx");
@@ -202,6 +209,7 @@ export async function listReviews(userIdxValue, query = {}) {
   );
 }
 
+/** 관리자 권한으로 중고상품 삭제 서비스를 호출하고 감사 로그를 남긴다. */
 export async function deleteUsed(admin, listingIdx, body) {
   const result = await deleteUsedListing(admin, listingIdx, body);
   log.info("관리자가 중고상품을 삭제했습니다.", {
@@ -211,6 +219,7 @@ export async function deleteUsed(admin, listingIdx, body) {
   return result;
 }
 
+/** 관리자 권한으로 경매 삭제 서비스를 호출하고 감사 로그를 남긴다. */
 export async function deleteAuctionForAdmin(admin, listingIdx, body) {
   const result = await deleteAuction(admin, listingIdx, body);
   log.info("관리자가 경매를 삭제했습니다.", {
