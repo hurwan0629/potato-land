@@ -386,7 +386,10 @@ export default function ChatPage() {
               key={item.chatRoomIdx}
               type="button"
               className={Number(item.chatRoomIdx) === selectedRoomIdx ? "is-active" : undefined}
-              onClick={() => navigate(`/chat/${item.chatRoomIdx}`)}
+              onClick={() => {
+                item.unreadCount = 0
+                navigate(`/chat/${item.chatRoomIdx}`)
+              }}
             >
               <Avatar
                 user={{

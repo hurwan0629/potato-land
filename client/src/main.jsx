@@ -25,7 +25,7 @@ root.className = [
 ].join(" ");
 
 createRoot(root).render(
-  <StrictMode>
+  // <StrictMode>
+  // </StrictMode>,
     <App />
-  </StrictMode>,
 );

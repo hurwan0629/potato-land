@@ -105,7 +105,8 @@ export async function getAuctions(query, viewerUserIdx = null) {
 export async function createAuction(userIdx, body, files = []) {
   const data = validateAuctionCreate(body, files);
   const startedAt = new Date();
-  const endsAt = new Date(startedAt.getTime() + 24 * 60 * 60 * 1000);
+  // const endsAt = new Date(startedAt.getTime() + 24 * 60 * 60 * 1000);
+  const endsAt = new Date(startedAt.getTime() + 5 * 60 * 1000);
   const bidUnit = 1_000;
 
   let listingIdx;

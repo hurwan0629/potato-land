@@ -262,6 +262,8 @@ export function AuctionDetailPage() {
   if (!auction) {
     return null;
   }
+  // console.log(JSON.parse(user))
+  // console.log(user)
 
   const images = auction.images ?? [];
   const currentImage = images[selectedImage] ?? images[0];
@@ -380,7 +382,11 @@ export function AuctionDetailPage() {
                 <button
                   type="button"
                   className="text-button"
-                  disabled={!auction.viewer.canBid}
+                  disabled={
+                      (bidRemote.data?.items?.[0]?.bidderIdx
+                        && user?.userIdx
+                        && bidRemote.data?.items?.[0]?.bidderIdx == user?.userIdx
+                      ) || !auction.viewer.canBid}
                   onClick={() => setBidAmount(String(auction.minNextBid))}
                 >
                   최소 입찰가 {formatCurrency(auction.minNextBid)} 입력
@@ -388,7 +394,12 @@ export function AuctionDetailPage() {
                 <button
                   type="submit"
                   className="button"
-                  disabled={!auction.viewer.canBid || isWorking}
+                  disabled={
+                    (bidRemote.data?.items?.[0]?.bidderIdx
+                      && user?.userIdx
+                      && bidRemote.data?.items?.[0]?.bidderIdx == user?.userIdx) 
+                    || !auction.viewer.canBid 
+                    || isWorking}
                 >
                   <Gavel size={19} />
                   {isFinished ? "경매 종료" : "입찰하기"}
