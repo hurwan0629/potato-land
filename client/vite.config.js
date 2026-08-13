@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
+      allowedHosts: ["dejected-unclaimed-shiftless.ngrok-free.dev"],
       proxy: {
         // 프론트(import.meta.env.VITE_API_BASE_URL="/api")로 보낸 요청을
         // 백엔드로 그대로 전달. 브라우저 입장에선 같은 origin으로 보여서

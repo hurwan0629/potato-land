@@ -386,7 +386,10 @@ export default function ChatPage() {
               key={item.chatRoomIdx}
               type="button"
               className={Number(item.chatRoomIdx) === selectedRoomIdx ? "is-active" : undefined}
-              onClick={() => navigate(`/chat/${item.chatRoomIdx}`)}
+              onClick={() => {
+                item.unreadCount = 0
+                navigate(`/chat/${item.chatRoomIdx}`)
+              }}
             >
               <Avatar
                 user={{
@@ -612,7 +615,7 @@ export default function ChatPage() {
             <input
               type="number"
               min="1"
-              step="1"
+              step="1000"
               value={paymentAmount}
               autoFocus
               onChange={(event) => setPaymentAmount(event.target.value)}

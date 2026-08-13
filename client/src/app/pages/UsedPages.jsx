@@ -203,9 +203,9 @@ export function UsedDetailPage() {
             <Avatar user={listing.seller} />
             <div>
               <p>판매자</p>
-              <Link to={`/mypage/${listing.seller.userIdx}`}>{listing.seller.nickname}</Link>
+              {listing.seller.nickname}
               <Rating
-                value={listing.seller.averageRating}
+                value={listing.seller.averageRating / 2}
                 reviewCount={listing.seller.reviewCount}
                 compact
               />
@@ -264,7 +264,7 @@ export function UsedDetailPage() {
           eyebrow="상품 설명"
           title="판매자가 남긴 상세 정보"
         />
-        <p>{listing.description}</p>
+        <p style={{ whiteSpace: "pre-wrap" }}>{listing.description}</p>
       </section>
 
       <Modal
@@ -453,7 +453,7 @@ function UsedFormBody({ categories, listing }) {
                 name="price"
                 type="number"
                 min="0"
-                step="1"
+                step="1000"
                 value={form.price}
                 required
                 onChange={updateField}

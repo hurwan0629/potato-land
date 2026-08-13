@@ -87,6 +87,7 @@ export function AuctionDetailPage() {
   const auctionRemote = useRemote(loadAuction);
   const bidRemote = useRemote(loadBids, { items: [], page: 1, totalPages: 0 });
   const auction = auctionRemote.data;
+  console.log(auction)
   const setAuctionData = auctionRemote.setData;
   const reloadBids = bidRemote.reload;
 
@@ -262,6 +263,8 @@ export function AuctionDetailPage() {
   if (!auction) {
     return null;
   }
+  // console.log(JSON.parse(user))
+  // console.log(user)
 
   const images = auction.images ?? [];
   const currentImage = images[selectedImage] ?? images[0];
@@ -311,8 +314,8 @@ export function AuctionDetailPage() {
             <Avatar user={auction.seller} />
             <div>
               <p>판매자</p>
-              <Link to={`/mypage/${auction.seller.userIdx}`}>{auction.seller.nickname}</Link>
-              <Rating value={auction.seller.averageRating} reviewCount={auction.seller.reviewCount} compact />
+              {auction.seller.nickname}
+              <Rating value={auction.seller.averageRating / 2} reviewCount={auction.seller.reviewCount} compact />
             </div>
           </div>
         </div>
@@ -368,7 +371,7 @@ export function AuctionDetailPage() {
                     <input
                       type="number"
                       min={auction.minNextBid}
-                      step="1"
+                      step="1000"
                       value={bidAmount}
                       disabled={!auction.viewer.canBid || isWorking}
                       placeholder={String(auction.minNextBid)}
@@ -380,7 +383,11 @@ export function AuctionDetailPage() {
                 <button
                   type="button"
                   className="text-button"
-                  disabled={!auction.viewer.canBid}
+                  disabled={
+                      (bidRemote.data?.items?.[0]?.bidderIdx
+                        && user?.userIdx
+                        && bidRemote.data?.items?.[0]?.bidderIdx == user?.userIdx
+                      ) || !auction.viewer.canBid}
                   onClick={() => setBidAmount(String(auction.minNextBid))}
                 >
                   최소 입찰가 {formatCurrency(auction.minNextBid)} 입력
@@ -388,7 +395,12 @@ export function AuctionDetailPage() {
                 <button
                   type="submit"
                   className="button"
-                  disabled={!auction.viewer.canBid || isWorking}
+                  disabled={
+                    (bidRemote.data?.items?.[0]?.bidderIdx
+                      && user?.userIdx
+                      && bidRemote.data?.items?.[0]?.bidderIdx == user?.userIdx) 
+                    || !auction.viewer.canBid 
+                    || isWorking}
                 >
                   <Gavel size={19} />
                   {isFinished ? "경매 종료" : "입찰하기"}
@@ -468,7 +480,9 @@ export function AuctionDetailPage() {
       <div className="detail-columns page-section">
         <section className="listing-description">
           <PageHeader eyebrow="상품 설명" title="경매 상품 상세 정보" />
-          <p>{auction.description}</p>
+          <p style={{ whiteSpace: "pre-wrap" }}>
+            {auction.description}
+          </p>
         </section>
 
       </div>
@@ -678,7 +692,7 @@ function AuctionFormBody({ categories, auction }) {
                 name="startPrice"
                 type="number"
                 min="0"
-                step="1"
+                step="1000"
                 value={form.startPrice}
                 required={!isEdit}
                 disabled={isEdit}

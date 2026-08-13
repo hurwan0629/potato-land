@@ -10,7 +10,8 @@ function listingSelect() {
                  pi.image_url AS "thumbnailUrl",
                  CASE WHEN l.listing_type='USED' THEN up.price ELSE ap.current_price END AS "displayPrice",
                  CASE WHEN l.listing_type='USED' THEN up.trade_status::text ELSE ap.status::text END AS status,
-                 l.created_at AS "createdAt", ap.ends_at AS "endsAt"`;
+                 l.created_at AS "createdAt", ap.ends_at AS "endsAt",
+                 COALESCE((SELECT COUNT(*) FROM favorites f WHERE f.listing_idx = l.idx), 0)::int AS "favoriteCount"`;
 }
 
 export async function findListingsBySeller({ sellerIdx, type, status, limit, offset }) {

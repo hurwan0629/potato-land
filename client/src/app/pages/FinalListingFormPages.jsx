@@ -286,7 +286,7 @@ function ListingEditor({ type, categories, listing }) {
                 name={isAuction ? "startPrice" : "price"}
                 type="number"
                 min="0"
-                step="1"
+                step="1000"
                 value={isAuction ? form.startPrice : form.price}
                 required={!isAuction || !isEdit}
                 disabled={isAuction && isEdit}

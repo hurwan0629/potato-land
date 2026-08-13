@@ -355,7 +355,10 @@ export async function completeTransaction(req, res) {
     const messageRow = message.rows[0];
     await client.query(`UPDATE chat_rooms SET updated_at = NOW(), last_message_at = $2 WHERE idx = $1`, [room.chatRoomIdx, messageRow.createdAt]);
     const notification = await createNotification(client, {
-      receiverIdx: transaction.sellerIdx, notificationType: "PAYMENT_RECEIVED", referenceType: "TRANSACTION", referenceIdx: transactionIdx, content: "송금이 완료되었습니다.",
+      receiverIdx: transaction.sellerIdx, 
+      notificationType: "PAYMENT_RECEIVED", 
+      referenceType: "TRANSACTION", referenceIdx: transactionIdx, 
+      content: "입금이 완료되었습니다.",
     });
     return {
       room,

@@ -26,6 +26,6 @@ root.className = [
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+  <App />
   </StrictMode>,
 );
