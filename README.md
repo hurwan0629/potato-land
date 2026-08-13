@@ -61,4 +61,4 @@ Redis는 세션 및 실시간 상태를 관리합니다.
 Socket.IO를 통해 경매, 채팅, 알림 이벤트를 실시간으로 전달합니다.
 
 ## DataBase
-![alt text](<docs\Potato-Land-Docs\06. DB\Potato Land (4).png>)
+![db_erd](https://raw.githubusercontent.com/hurwan0629/potato-land/refs/heads/main/docs/Potato-Land-Docs/06.%20DB/Potato%20Land%20(4).png)
