@@ -148,8 +148,8 @@ export function MyPage() {
         </div>
         <div className="mypage-rating-card">
           <span>평균 평점</span>
-          <strong>{Number(profile.averageRating / 2 ?? 0).toFixed(1)}</strong>
-          <Rating value={profile.averageRating / 2} reviewCount={profile.reviewCount} />
+          <strong>{Number(profile.averageRating ?? 0).toFixed(1)}</strong>
+          <Rating value={profile.averageRating} reviewCount={profile.reviewCount} />
         </div>
       </aside>
 
