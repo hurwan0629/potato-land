@@ -65,6 +65,8 @@ async function emitRoomUpdatedAfterCommit(room, message) {
     unreadByUser(room.sellerIdx),
     unreadByUser(room.buyerIdx),
   ]);
+
+  // 판매자에게 채팅 데이터 발송
   emitChatRoomUpdated(room.sellerIdx, {
     chatRoomIdx: message.chatRoomIdx,
     listingIdx: Number(room.listingIdx),
@@ -72,6 +74,8 @@ async function emitRoomUpdatedAfterCommit(room, message) {
     unreadCount: sellerUnreadCount,
     updatedAt: message.createdAt,
   });
+
+  // 구매자에게 채팅 데이터 발송
   emitChatRoomUpdated(room.buyerIdx, {
     chatRoomIdx: message.chatRoomIdx,
     listingIdx: Number(room.listingIdx),
@@ -82,6 +86,7 @@ async function emitRoomUpdatedAfterCommit(room, message) {
 }
 
 export function registerChatSocket(io, socket) {
+  // room에 들어가서 이벤트 받을 준비 해주기
   socket.on(SOCKET_EVENT.CHAT_JOIN, (payload, ack) => {
     void (async () => {
       try {
@@ -107,6 +112,7 @@ export function registerChatSocket(io, socket) {
     })();
   });
 
+  // 채팅방 나갈 시에 room 에서 나가주기
   socket.on(SOCKET_EVENT.CHAT_LEAVE, (payload, ack) => {
     void (async () => {
       try {
@@ -123,18 +129,26 @@ export function registerChatSocket(io, socket) {
     })();
   });
 
+  // 채팅 송신 시 처리 이벤트
   socket.on(SOCKET_EVENT.CHAT_MESSAGE_SEND, (payload, ack) => {
     void (async () => {
       try {
+        // DB에 TEXT 메시지 타입 생성 (이미지는 api로 처리)
         const result = await createTextMessage({
           io,
           userIdx: socket.data.user.userIdx,
           payload,
         });
+
+        // 생성이 정상적으로 되면 양쪽으로 메시지 보내주기
         if (result.created) {
           try {
+            // 새 채팅 채팅방에 넣어주기
             emitChatMessageNew(result.message.chatRoomIdx, result.message);
+            // 채팅 목록에 보이는 채팅 정보 바꿔주기
             await emitRoomUpdatedAfterCommit(result.room, result.message);
+
+            // 알림 줄게 있다면 받아야하는 사용자에게 알림 주기 (채팅방 안켜져있을 때)
             if (result.notification) {
               await emitNotificationAfterCommit(result.receiverIdx, result.notification);
             }
@@ -142,6 +156,7 @@ export function registerChatSocket(io, socket) {
             log.warn("저장된 채팅 메시지의 Socket 전송에 실패했습니다.", { error });
           }
         }
+
         ack?.({
           success: true,
           data: {

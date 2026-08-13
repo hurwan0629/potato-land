@@ -106,7 +106,7 @@ export async function createAuction(userIdx, body, files = []) {
   const data = validateAuctionCreate(body, files);
   const startedAt = new Date();
   // const endsAt = new Date(startedAt.getTime() + 24 * 60 * 60 * 1000);
-  const endsAt = new Date(startedAt.getTime() + 5 * 60 * 1000);
+  const endsAt = new Date(startedAt.getTime() + 1 * 60 * 1000);
   const bidUnit = 1_000;
 
   let listingIdx;
@@ -374,7 +374,7 @@ export async function createAuctionBid(
   const listingIdx = validateListingIdx(listingIdxValue);
   const bidAmount = validateBidAmount(body.bidAmount);
 
-  // 
+  // 입찰 내역 저장 [PostgreSQL]
   const result = await insertBid({
     listingIdx,
     bidderIdx: userIdx,
@@ -387,6 +387,7 @@ export async function createAuctionBid(
     OWNER: [403, "FORBIDDEN", "판매자는 본인 경매에 입찰할 수 없습니다."],
   };
 
+  // 입찰 DB 저장중에 일어난 오류 종류에 따라 다른 에러처리
   if (result.failure) {
     if (result.failure === "TOO_LOW") {
       throw new AppError({
@@ -401,6 +402,7 @@ export async function createAuctionBid(
     throw new AppError({ status, code, message });
   }
 
+  // 캐시 저장
   await writeBidCache(listingIdx, userIdx, bidAmount, {
     currentPrice: result.currentPrice,
     minNextBid: result.minimumNextBid,
@@ -418,6 +420,7 @@ export async function createAuctionBid(
     createdAt: result.bid.created_at,
   };
 
+  // 모두 정상적으로 완료되면 알림 보내주기
   emitSafely(
     "입찰 갱신",
     () => emitAuctionBidUpdated(listingIdx, payload),

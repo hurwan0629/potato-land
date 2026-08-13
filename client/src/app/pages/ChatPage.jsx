@@ -615,7 +615,7 @@ export default function ChatPage() {
             <input
               type="number"
               min="1"
-              step="1"
+              step="1000"
               value={paymentAmount}
               autoFocus
               onChange={(event) => setPaymentAmount(event.target.value)}

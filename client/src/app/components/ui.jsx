@@ -187,9 +187,9 @@ export function ProductCard({ item, compact = false }) {
           alt={item?.title ?? "상품 이미지"}
           className="product-card__image"
         />
-        <span className="product-card__category">
+        {/* <span className="product-card__category">
           {item?.category?.name ?? item?.categoryName ?? "카테고리"}
-        </span>
+        </span> */}
         {item?.status && (
           <span className="product-card__status">
             <StatusBadge status={item.status} />
